@@ -154,8 +154,16 @@ def activate(request, uidb64, token):
 
 @login_required(login_url = 'login')
 def dashboard(request):
-    orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
-    orders_count = orders.count()
+
+    if request.user.is_staff == True:
+        orders = Order.objects.filter(is_ordered=True).order_by('-created_at')
+        orders_count = orders.count()
+        print("Acceder a DASHBOARD SOLO LOS QUE TIENEN PERMISIS ***********")
+        #return redirect('panel')
+        
+    else:
+        orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+        orders_count = orders.count()
 
 
     userprofile = UserProfile.objects.get(user_id=request.user.id)
@@ -164,6 +172,7 @@ def dashboard(request):
         'orders_count': orders_count,
         'userprofile': userprofile,
     }
+    print("accounts/dashboard.html")
     return render(request, 'accounts/dashboard.html', context)
 
 
@@ -231,7 +240,12 @@ def resetPassword(request):
 
 @login_required(login_url='login')
 def my_orders(request):
-    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+
+    if request.user.is_admin == True:
+        orders = Order.objects.filter(is_ordered=True).order_by('-created_at')
+    else:
+        orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+    
     context = {
         'orders': orders,
     }

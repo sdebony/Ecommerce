@@ -29,8 +29,8 @@ from . import views
 
 
 urlpatterns = [
-    #path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
-    path('admin/', admin.site.urls),
+    path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
+    #path('admin/', admin.site.urls),
     path('securelogin/', admin.site.urls),
     path('', views.home, name='home'),
     path('store/', include('store.urls')),
@@ -38,6 +38,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     # ORDERS
     path('orders/', include('orders.urls')),
+    # PANEL DE ADMINISTRACION
+    path('panel/', include('panel.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

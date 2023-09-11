@@ -1,0 +1,71 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >PEDIDOS - ({{ cantidad }})</h6>
+    </div>
+    
+     
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not ordenes %}
+    <div class="alert alert-info">No se encontraron pedidos</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="order_number">Nro</th>
+          <th data-sortable="true" data-field="first_name">Nombre</th>
+          <th data-sortable="true" data-field="last_name">Apellido</th>   
+          <th data-sortable="true" data-field="phone">phone</th>
+          <th data-sortable="true" data-field="email">email</th>
+          <th data-sortable="true" data-field="order_total">order_total</th>
+          <th data-sortable="true" data-field="status">status</th>
+          <th data-sortable="true" data-field="created_at">Fecha Creaciòn</th>
+          <th data-sortable="true" data-field="updated_at">Fecha Modificaciòn</th>
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in ordenes %}
+        <tr>
+          <td>{{ item.order_number }}</td>
+          <td>{{ item.first_name }}</td> 
+          <td>{{ item.last_name }}</td>
+          <td>{{ item.phone }}</td>
+          <td>{{ item.email }}</td>
+          <td>$ {{ item.order_total }} </td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.created_at }}</td>
+          <td>{{ item.updated_at}}</td>
+          <td >         
+              <a href="#" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
+              <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+            </div>
+         
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

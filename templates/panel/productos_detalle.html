@@ -1,0 +1,213 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="row">
+	<aside class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Datos del Producto - <b>{{ producto.product_name }} </b></h4>
+                <form action="{% url 'panel_producto_crud' %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Nombre</label>
+                        <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
+                        <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" required>
+                        </div>
+                        <div class="col form-group">
+                        <label for="">slug</label>
+                        <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
+                        </div>
+                        <div class="form-check">
+                            {% if producto.is_available  %}
+                            <input class="form-check-input" id="is_available" type="checkbox" value="" checked>
+                            {% else%}
+                            <input class="form-check-input" id="is_available" type="checkbox" value="">
+                            {% endif %}
+                            <label class="form-check-label" if=is_available for="flexCheckChecked">Activo</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Precio</label>
+                        <input type="text" name="price" class="form-control" value="{{producto.price}}" required>
+                        </div>
+                        <div class="col form-group">
+                        <label for="">Stock</label>
+                        <input type="text" name="stock" class="form-control" value=" {{producto.stock}} ">
+                        </div>
+                        
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            
+                        <label for="">Categoria</label>
+                            <select name="category" id="category" class="form-control">
+                                {% for cat in categorias %}
+                                    {% if producto %}
+                                        {% if cat.id == producto.category.id %}
+                                            <option value="{{cat.id}}" selected >{{producto.category.category_name}}  </option>
+                                        {% else %}
+                                            <option value="{{cat.id}}" >{{cat.category_name}}  </option>
+                                        {% endif %}
+                                    {% else%}
+                                        <option value="{{cat.id}}" >{{cat.category_name}}  </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select> 
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Fecha Creación</label>
+                        <input type="text" name="city" class="form-control" value="{{producto.created_date}}" disabled>
+                        </div>
+                        <div class="col form-group">
+                        <label for="">Fecha ultima modificacion</label>
+                        <input type="text" name="state" class="form-control" value="{{producto.modified_date}}"  disabled>
+                        </div>
+                    
+                        
+
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Descripcion</label>
+                        <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
+                        <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" >
+                    </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
+                    <a href="{% url 'panel_catalogo' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+        </div> <!-- card.// -->
+    </aside>
+    <aside class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'panel_producto_img' %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <h4 class="card-title mb-4">Imagen </h4>
+                    <aside class="col-md-6">
+                        <article class="gallery-wrap">
+                            <div class="img-big-wrap mainImage">
+                                <center><img src="{{ producto.images.url }}"></center>
+                            </div> <!-- img-big-wrap.// -->
+                        </article> <!-- gallery-wrap .end// -->
+                    </aside>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Imagen:</label>
+                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
+                            <input id="imgFile" type="file" name="imgFile" class="form-control" >
+                            <button type="submit" class="btn btn-primary"><span class=""></span> Cargar imagen </button>
+                        </div>
+                        
+                    </div>
+                </form>
+            </div>
+        </div><br>
+
+    <aside class="col-lg-14">
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'panel_producto_variante' %}" method="POST" id="frmvariantes">
+                {% csrf_token %}
+
+                <h4 class="card-title mb-6">Variantes </h4>
+                <aside class="col-md-12">
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Producto</label>
+                        <input type="number" name="product_id" class="form-control" value="{{producto.id}}" hidden>
+                        <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Variante</label>
+                            <select name="variation_category" id="variation_category" class="form-control">
+                                <option value="color" selected >Color  </option>
+                                <option value="size" >Tamaño </option>
+                                <option value="letra" >Letra </option>
+                            </select> 
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Valor</label>
+                            <input type="text" name="variation_value" id="variation_value" class="form-control" value="" required >
+                        </div>
+                        <div class="form-check">
+                            <label for=""></label>
+                           
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <button type="submit" class="btn btn-primary"><span class=""></span> Agregar </button>
+                        </div> 
+                    </div>
+                </form>
+<br>
+                    <div class="form-row">
+                        <!--  Listado de variantes-->
+                        <form action="{% url 'panel_producto_variante_del' %}" method="POST" id="frmvariantes_list">
+                        {% csrf_token %}
+            
+                        <table 
+                            id="table"
+                            data-toggle="table"
+                            data-pagination="false"
+                            data-search="true"
+                            data-show-columns="false"
+                            data-show-toggle="false"
+                            data-show-fullscreen="false"
+                            data-locale="es-AR"
+                            data-perpage="25"
+                        >
+                            <thead>
+                                <th data-sortable="true" data-field="variation_category">Variante</th>
+                                <th data-sortable="true" data-field="variation_value">Valor</th>
+                                <th data-sortable="true" data-field="is_active">Habilitado</th>
+                                <th data-sortable="true" data-field="created_date">Última modificación</th>
+                                <th>Eliminar</th>
+                            </thead>
+                            <tbody>
+                                <input type="number" name="product_id" class="form-control" value="{{producto.id}}" hidden>
+                                {% for item in variantes %}
+                                <tr>   
+                                    <input type="number" name="var_id" class="form-control" value="{{item.id}}" hidden> 
+                                    <td >{{item.variation_category}}</td> 
+                                    <td >{{item.variation_value}}</td>
+                                    {% if item.is_active %}
+                                    <td><input class="form-check-input" id="is_available" type="checkbox" value="" checked disabled></td>
+                                    {% else%}
+                                    <td><input class="form-check-input" id="is_available" type="checkbox" value="" disabled></td>
+                                    {% endif %}
+                                    <td>{{item.created_date}}</td>
+                                    <td>
+                                        <button type="submit" class="btn btn-danger"><span class=""></span> Eliminar </button>
+                                    </td>
+                                </tr>
+                                
+                                {% endfor%}
+                            </tbody>
+                        </form>
+                        </table>
+                        <!-- Fin listado-->
+                    </div>
+
+
+				</aside>
+                
+            </div>
+        </div>
+    </aside>
+</aside>
+
+</div>
+
+
+      
+
+{% endblock %}

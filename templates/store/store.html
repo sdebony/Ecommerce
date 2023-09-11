@@ -60,6 +60,8 @@
 	{% if products %}
 	{% for product in products %}
 	<div class="col-md-4">
+		<form action="{% url 'add_cart' product.id %}" method="POST">
+			{% csrf_token %}
 		<figure class="card card-product-grid">
 			<div class="img-wrap">
 
@@ -73,9 +75,13 @@
 						<span class="price">$ {{ product.price }}</span>
 					</div> <!-- price-wrap.// -->
 				</div>
-				<a href="{{ product.get_url }}" class="btn btn-block btn-primary">View Details </a>
+		<!--		<a href="{{ product.get_url }}" class="btn btn-block btn-primary">View Details </a>
+		-->		<button type="submit" class="btn  btn-primary"> <span class="text">Add to Cart</span> <i class="fa fa-shopping-cart"></i> </button>
+
+
 			</figcaption>
 		</figure>
+		</form>
 	</div> <!-- col.// -->
 	{% endfor %}
 	{% else %}

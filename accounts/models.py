@@ -82,8 +82,28 @@ class UserProfile(models.Model):
     state = models.CharField(blank=True, max_length=20)
     country = models.CharField(blank=True, max_length=20)
 
+
     def __str__(self):
         return self.user.first_name
 
     def full_address(self):
         return f'{self.address_line_1} {self.address_line_2}'
+
+class Permition(models.Model):
+    codigo  = models.CharField(max_length=10)
+    permiso = models.CharField(max_length=100)
+    rootpath = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=255,blank=True)
+
+    def __str__(self):
+        return self.permiso
+
+class AccountPermition(models.Model):
+
+     user = models.ForeignKey(Account, on_delete=models.CASCADE)
+     codigo = models.ForeignKey(Permition,on_delete=models.CASCADE)
+     modo_editar = models.BooleanField(default=False)
+
+     def __str__(self):
+        return f'{self.codigo}'
+

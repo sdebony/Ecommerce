@@ -13,55 +13,55 @@
 	<aside class="col-lg-6">
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title mb-4">Billing Address</h4>
+    <h4 class="card-title mb-4">Datos de Entrega</h4>
     <form action="{% url 'place_order' %}" method="POST">
       {% csrf_token %}
       <div class="form-row">
         <div class="col form-group">
-          <label for="">First Name</label>
-          <input type="text" name="first_name" class="form-control" required>
+          <label for="">Nombre</label>
+          <input type="text" name="first_name" class="form-control" value="{{user.first_name}}" required>
         </div>
         <div class="col form-group">
-          <label for="">Last Name</label>
-          <input type="text" name="last_name" class="form-control" required>
+          <label for="">Apellido</label>
+          <input type="text" name="last_name" class="form-control" value="{{user.last_name}}" required>
         </div>
       </div>
       <div class="form-row">
         <div class="col form-group">
           <label for="">Email</label>
-          <input type="email" name="email" class="form-control" required>
+          <input type="email" name="email" class="form-control" value="{{user.email}}" required>
         </div>
         <div class="col form-group">
-          <label for="">Phone Number</label>
-          <input type="text" name="phone" class="form-control" required>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="col form-group">
-          <label for="">Address Line 1</label>
-          <input type="text" name="address_line_1" class="form-control" required>
-        </div>
-        <div class="col form-group">
-          <label for="">Address Line 2</label>
-          <input type="text" name="address_line_2" class="form-control">
+          <label for="">Telefono</label>
+          <input type="text" name="phone" class="form-control" value="{{user.phone_number}}" required>
         </div>
       </div>
       <div class="form-row">
         <div class="col form-group">
-          <label for="">City</label>
-          <input type="text" name="city" class="form-control" required>
+          <label for="">Direccion 1</label>
+          <input type="text" name="address_line_1" class="form-control" value="{{userprofile.address_line_1}} " required>
         </div>
         <div class="col form-group">
-          <label for="">State</label>
-          <input type="text" name="state" class="form-control" required>
+          <label for="">Direccion 2</label>
+          <input type="text" name="address_line_2" class="form-control" value="{{userprofile.address_line_2}} ">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col form-group">
+          <label for="">Ciudad</label>
+          <input type="text" name="city" class="form-control" value="{{userprofile.city}}" required>
         </div>
         <div class="col form-group">
-          <label for="">Country</label>
-          <input type="text" name="country" class="form-control" required>
+          <label for="">Provincia</label>
+          <input type="text" name="state" class="form-control" value="{{userprofile.state}}" required>
+        </div>
+        <div class="col form-group">
+          <label for="">Pais</label>
+          <input type="text" name="country" class="form-control" value="{{userprofile.country}}" >
         </div>
         </div>
         <div class="form-row">
-          <label for="">Order Note</label>
+          <label for="">Observaciones</label>
           <textarea name="order_note" rows="2" class="form-control"></textarea>
         </div>
 
@@ -119,8 +119,8 @@
       </tbody>
       </table>
 
-      <button type="submit" name="submit" class="btn btn-primary btn-block">Place Order</button>
-			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
+      <button type="submit" name="submit" class="btn btn-primary btn-block">Confirmar Compra</button>
+			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continar Comprando</a>
       </form>
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->

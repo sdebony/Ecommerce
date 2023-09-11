@@ -1,0 +1,107 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary">PRODUCTOS - ({{ cantidad }})</h6>
+    </div>  
+     
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not catalogo %}
+    <div class="alert alert-info">No se encontraron productos</div>
+    {% endif %}
+    <div class="buttons-toolbar">
+        <a class="btn btn-primary" href="{% url 'panel_producto_crud' %}"><i class="far fa-calendar-plus"></i> Nuevo</a>
+    </div>
+
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="product_name">Nombre</th>
+<!--      <th data-sortable="true" data-field="description">Descripcion</th>   -->
+          <th data-sortable="true" data-field="price">Precio</th>
+          <th data-sortable="true" data-field="images">Imagen</th>
+          <th data-sortable="true" data-field="stock">Stock</th>
+          <th data-sortable="true" data-field="is_available">Habilitado</th>
+          <th data-sortable="true" data-field="category">Categoria</th>
+          <th data-sortable="true" data-field="created_date">Fecha Creaciòn</th>
+          <th data-sortable="true" data-field="modified_date">Fecha Modificaciòn</th>
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in catalogo %}
+        <tr>
+          
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></td> 
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">$ {{ item.price }}</a></td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.images.url }}</a></td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.stock }}</a></td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.is_available|yesno:"Si,No" }}</a> </td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.category }}</a></td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.created_date }}</a></td>
+          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.modified_date}}</a></td>
+          <td>  
+            <!--  <a href="{% url 'panel_producto_detalle' item.id %}" class="href btn btn-warning btn-circle" title="Editar">  <i class="far fa-edit"> </i></a>   
+            -->  <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+
+<script>
+  function inactivar(id)
+  {
+    var data = {id:id};
+    data = JSON.stringify(data);
+    var token = '{{csrf_token}}';
+    // alert(token);
+    // alert(id);
+    
+    $.ajax({
+      headers : {"X-CSRFToken": token},
+      type:"POST",
+      url:"/fac/clientes/estado/"+id,
+      data: data,
+      success: function(response){
+        if(response==="OK")
+        {
+          location.reload(true);
+        }
+        else{
+          mensaje("Error Intentado Cambiar Estado a Cliente");
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrow){
+        console.log(textStatus, errorThrow);
+        mensaje(errorThrow,'red');
+        cerrar_modal();
+      }
+    });
+  }
+// Call the dataTables jQuery plugin
+// $(document).ready(function() {
+//   $('.table').DataTable();
+// });
+</script>
+{% endblock %}
