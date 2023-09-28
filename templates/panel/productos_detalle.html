@@ -13,18 +13,18 @@
                     <div class="form-row">
                         <div class="col form-group">
                         <label for="">Nombre</label>
-                        <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                        <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" required>
+                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
+                            <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" required>
                         </div>
                         <div class="col form-group">
-                        <label for="">slug</label>
-                        <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
+                            <label for="">slug</label>
+                            <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
                         </div>
                         <div class="form-check">
                             {% if producto.is_available  %}
-                            <input class="form-check-input" id="is_available" type="checkbox" value="" checked>
+                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
                             {% else%}
-                            <input class="form-check-input" id="is_available" type="checkbox" value="">
+                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
                             {% endif %}
                             <label class="form-check-label" if=is_available for="flexCheckChecked">Activo</label>
                         </div>
@@ -76,7 +76,7 @@
                         <div class="col form-group">
                         <label for="">Descripcion</label>
                         <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
-                        <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" >
+                        <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" hidden>
                     </div>
                     </div>
                     <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
@@ -149,7 +149,7 @@
                     </div>
                 </form>
 <br>
-                    <div class="form-row">
+                <div class="form-row">
                         <!--  Listado de variantes-->
                         <form action="{% url 'panel_producto_variante_del' %}" method="POST" id="frmvariantes_list">
                         {% csrf_token %}

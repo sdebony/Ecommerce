@@ -1,15 +1,98 @@
 {% extends 'panel/base.html' %}
 
+
 {% block page_content %}
 
 
-<div class="card shadow mb-4">
+<div class="card shadow mb-6">
   <!-- Card Header - Dropdown -->
+
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary " >PEDIDOS - ({{ cantidad }})</h6>
-    </div>
+    <h6 class="m-2 font-weight-bold text-primary " >PANEL DE PEDIDOS - ({{ cantidad }})</h6>
+    <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
+      {% csrf_token %}
+        <div class="dropdown no-arrow">Desde:
+          <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />
+                Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta}}"/>
+                
+                <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+        </div>
+      </form>
+  </div>
     
-     
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-info shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <a href="{% url 'panel_pedidos' 'New'  %}">
+                  <div class="text-s font-weight-bold text-primary text-uppercase mb-1"> Nuevo ({{ cantidad_new }})</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_new}} </div>
+                
+              </a>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+            
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <a href="{% url 'panel_pedidos' 'Cobrado'  %}">
+                <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Cobrados ({{ cantidad_cobrado}})</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_cobrado}} </div>           
+            </a>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <a href="{% url 'panel_pedidos' 'Entregado'  %}">
+              <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Entregados {{ cantidad_entregado}}</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_entregado }}  </div>
+            
+          </a>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+
+  
+   
+    </div>
+  </div>    
+    
+    
+    
+
+
+
+
+
   <!-- Card Body -->
   <div class="card-body">
     {% if not ordenes %}
@@ -29,6 +112,7 @@
       data-locale="es-AR"
     >
       <thead>
+          <th class="all">Acciones</th>  
           <th data-sortable="true" data-field="order_number">Nro</th>
           <th data-sortable="true" data-field="first_name">Nombre</th>
           <th data-sortable="true" data-field="last_name">Apellido</th>   
@@ -36,29 +120,38 @@
           <th data-sortable="true" data-field="email">email</th>
           <th data-sortable="true" data-field="order_total">order_total</th>
           <th data-sortable="true" data-field="status">status</th>
-          <th data-sortable="true" data-field="created_at">Fecha Creaciòn</th>
-          <th data-sortable="true" data-field="updated_at">Fecha Modificaciòn</th>
+          <th data-sortable="true" data-field="created_at">Fecha </th>
+         
 
-          <th class="all">Acciones</th>  
       </thead>
       <tbody>
+        <!--  <a href="#" class="href btn btn-success btn-circle"></a>-->
+        <!--  - {{item.STATUS}}-->
         {% for item in ordenes %}
         <tr>
-          <td>{{ item.order_number }}</td>
-          <td>{{ item.first_name }}</td> 
+          <td >
+            {% if item.status == 'New' %}
+             <i class="href btn btn-primary btn-circle"><i class="fas fa-dollar-sign"></i></i>
+            {% endif %}
+            {% if item.status == 'Cobrado' %}
+             <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i></i>
+            {% endif %}
+            {% if item.status == 'Entregado' %}
+            <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i></i>
+            {% endif %}
+          
+          </div>
+          </td>
+          <td><b><a href="{% url 'panel_pedidos_detalle' item.order_number %}">{{ item.order_number }}</a></b></td>
+          <td>{{ item.first_name }} </td> 
           <td>{{ item.last_name }}</td>
-          <td>{{ item.phone }}</td>
+          <td>{{ item.dir_telefono }}</td>
           <td>{{ item.email }}</td>
           <td>$ {{ item.order_total }} </td>
           <td>{{ item.status }}</td>
-          <td>{{ item.created_at }}</td>
-          <td>{{ item.updated_at}}</td>
-          <td >         
-              <a href="#" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
-              <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
-            </div>
-         
-          </td>
+          <td>{{ item.fecha | date:"d/m/Y"  }}</td>
+          
+          
         </tr>
         {% endfor %}
       </tbody>
@@ -68,4 +161,14 @@
 </div>
 {% endblock %}
 {% block js_page %}
+<script>
+$(function () {
+
+  $("#fecha_desde, #fecha_hasta").datetimepicker({
+    format: 'd/m/Y',
+    timepicker:false
+    });
+  });
+
+</script>
 {% endblock %}

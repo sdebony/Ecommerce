@@ -3,15 +3,19 @@ from django.http import HttpResponse, JsonResponse
 from carts.models import CartItem
 from .forms import OrderForm
 import datetime
+import time
 from .models import Order, Payment, OrderProduct
 import json
 from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+import pywhatkit  #Kit de envio de whatsapp
+
 
 def payments(request):
     body = json.loads(request.body)
+    
     order = Order.objects.get(user=request.user, is_ordered=False, order_number=body['orderID'])
 
     # Store transaction details inside Payment model
@@ -58,7 +62,7 @@ def payments(request):
     CartItem.objects.filter(user=request.user).delete()
 
     # Send order recieved email to customer
-    mail_subject = 'Thank you for your order!'
+    mail_subject = 'Gracias por tu compra!'
     message = render_to_string('orders/order_recieved_email.html', {
         'user': request.user,
         'order': order,
@@ -66,6 +70,7 @@ def payments(request):
     to_email = request.user.email
     send_email = EmailMessage(mail_subject, message, to=[to_email])
     send_email.send()
+   
 
     # Send order number and transaction id back to sendData method via JsonResponse
     data = {
@@ -76,41 +81,49 @@ def payments(request):
 
 def place_order(request, total=0, quantity=0,):
     current_user = request.user
-
+    
     # If the cart count is less than or equal to 0, then redirect back to shop
     cart_items = CartItem.objects.filter(user=current_user)
     cart_count = cart_items.count()
+    
     if cart_count <= 0:
         return redirect('store')
 
     grand_total = 0
-    tax = 0
+    envio = 0
     for cart_item in cart_items:
         total += (cart_item.product.price * cart_item.quantity)
         quantity += cart_item.quantity
-    tax = (0 * total)/100
-    grand_total = total + tax
+    
+    grand_total = total + envio
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
+        
         if form.is_valid():
+            
             # Store all the billing information inside Order table
             data = Order()
             data.user = current_user
             data.first_name = form.cleaned_data['first_name']
             data.last_name = form.cleaned_data['last_name']
-            data.phone = form.cleaned_data['phone']
+            data.dir_telefono = form.cleaned_data['dir_telefono']
             data.email = form.cleaned_data['email']
-            data.address_line_1 = form.cleaned_data['address_line_1']
-            data.address_line_2 = form.cleaned_data['address_line_2']
-            data.country = form.cleaned_data['country']
-            data.state = form.cleaned_data['state']
-            data.city = form.cleaned_data['city']
-            data.order_note = form.cleaned_data['order_note']
+            data.dir_calle = form.cleaned_data['dir_calle']
+            data.dir_nro = form.cleaned_data['dir_nro']
+            data.dir_localidad = form.cleaned_data['dir_localidad']
+            data.dir_provincia = form.cleaned_data['dir_provincia']
+            data.dir_cp = form.cleaned_data['dir_cp']
+            data.dir_correo =  form.cleaned_data['dir_correo']
+            data.order_note = form.cleaned_data['dir_obs']
             data.order_total = grand_total
-            data.tax = tax
+            data.envio = envio
             data.ip = request.META.get('REMOTE_ADDR')
+            print(data.dir_correo)
+            print("Save")
             data.save()
+
+         
             # Generate order number
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))
@@ -119,6 +132,7 @@ def place_order(request, total=0, quantity=0,):
             current_date = d.strftime("%Y%m%d") #20210305
             order_number = current_date + str(data.id)
             data.order_number = order_number
+            data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.save()
 
             order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)
@@ -126,13 +140,16 @@ def place_order(request, total=0, quantity=0,):
                 'order': order,
                 'cart_items': cart_items,
                 'total': total,
-                'tax': tax,
+                'envio': envio,
                 'grand_total': grand_total,
             }
+            print("order",order)
             return render(request, 'orders/payments.html', context)
+        else:
+            return redirect('store')
     else:
+        print("invalid Form")
         return redirect('checkout')
-
 
 def order_complete(request):
     order_number = request.GET.get('order_number')
@@ -159,3 +176,124 @@ def order_complete(request):
         return render(request, 'orders/order_complete.html', context)
     except (Payment.DoesNotExist, Order.DoesNotExist):
         return redirect('home')
+
+def order_cash(request):
+              
+    if request.method =="POST":
+        
+        order_number = request.POST.get('order_number')
+        print("**********************")
+        print(order_number)
+        print("**********************")
+        
+
+        order = Order.objects.get(user=request.user, is_ordered=False, order_number=order_number)
+        
+        # Move the cart items to Order Product table
+        cart_items = CartItem.objects.filter(user=request.user)
+
+        for item in cart_items:
+            orderproduct = OrderProduct()
+            orderproduct.order_id = order.id
+            #orderproduct.payment = payment
+            orderproduct.user_id = request.user.id
+            orderproduct.product_id = item.product_id
+            orderproduct.quantity = item.quantity
+            orderproduct.product_price = item.product.price
+            orderproduct.ordered = True
+            orderproduct.save()
+
+            cart_item = CartItem.objects.get(id=item.id)
+            product_variation = cart_item.variations.all()
+            orderproduct = OrderProduct.objects.get(id=orderproduct.id)
+            orderproduct.variations.set(product_variation)
+            orderproduct.save()
+
+
+            # Reduce the quantity of the sold products
+            product = Product.objects.get(id=item.product_id)
+            product.stock -= item.quantity
+            product.save()
+
+        # Clear cart
+        CartItem.objects.filter(user=request.user).delete()
+
+        
+
+        # *************************
+        # ORDER COMPLETE
+        #**************************
+        try:
+
+            if order:
+                order.is_ordered = True  #Confirmo la orden de compa
+                order.save()
+
+            print("order status", order.is_ordered)
+
+            order = Order.objects.get(order_number=order_number, is_ordered=True)
+            ordered_products = OrderProduct.objects.filter(order_id=order.id)
+
+            subtotal = 0
+            for i in ordered_products:
+                subtotal += i.product_price * i.quantity
+
+            #Es pago contra recibo
+            #payment = Payment.objects.get(payment_id=transID)
+            payment = []
+
+
+            #*************************************
+            # SEND EMAIL
+            #**************************************
+
+            # Send order recieved email to customer
+            mail_subject = 'Gracias por tu compra!!'
+            message = render_to_string('orders/order_recieved_email.html', {
+                'user': request.user,
+                'order': order,
+                'ordered_products': ordered_products,
+                'order_number': order.order_number,
+                'transID': 'Pendiente', #payment.payment_id,
+                'payment': payment,    #Viaja Vacío
+                'subtotal': subtotal,
+                })
+            to_email =  request.user.email
+            cc_email = 'santidebony@hotmail.com'
+            send_email = EmailMessage(mail_subject, message, to=[to_email],cc=[cc_email])
+            send_email.content_subtype = "html"
+            send_email.attach_file('static/images/logo.png')
+            send_email.send()
+
+            #************************
+            #Send Whatsapp
+            #*************************
+            # using Exception Handling to avoid unexpected errors
+            #try:
+                # sending message in Whatsapp in India so using Indian dial code (+91)
+                
+            #    hora = int(time.strftime("%H"))
+            #    minutos = int(time.strftime("%M"))
+            #    minutos= minutos
+            #    print(hora,minutos)
+            #    pywhatkit.sendwhatmsg("+5491165184759","Gracias por su compra nro: " + str(order.order_number), hora, minutos,0,True)
+            #    print("Message Sent!") #Prints success message in console
+
+            # error message
+            #except: 
+            #    print("Error in sending the message")
+           
+            context = {
+                'order': order,
+                'ordered_products': ordered_products,
+                'order_number': order.order_number,
+                 'transID': 'Pendiente', #payment.payment_id,
+                'payment': payment,    #Viaja Vacío
+                'subtotal': subtotal,
+            }
+            print("Order Complete")
+            return render(request, 'orders/order_complete.html', context)
+        #except (Payment.DoesNotExist, Order.DoesNotExist):
+        except (Order.DoesNotExist):
+            print("Except")
+            return redirect('home')

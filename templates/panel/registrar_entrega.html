@@ -1,0 +1,74 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+<form action="{% url 'panel_confirmar_entrega' %}" method="POST">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Registrar Entrega <b> {{orden.order_number }} </b></h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <div class="form-row">
+                    <div class="col form-group">
+                    <label for="">Fecha Pedido</label>
+                    <input type="text" name="fecha" class="form-control" value="{{ orden.created_at|date:'Y-m-d' }}" disabled required>
+                    <input type="text" name="order_number" id="order_number" class="form-control" value="{{ orden.order_number}}" required>
+                    </div>
+                    <div class="col form-group">
+                    <label for="">Telefono</label>
+                    <input type="text" name="user" class="form-control" value="{{ orden.dir_telefono }}" disabled>
+                    </div>
+                </div>
+                  
+                <div class="form-row">
+                    <div class="col form-group">
+                    <label for="">Cliente:</label>
+                    <input type="text" name="subtotal" id="subtotal" class="form-control" value="{{ orden.full_name }}" disabled required>
+                    </div>
+                   
+                    <div class="col form-group">
+                      <label for="">Direccion </label>
+                      <input type="text" name="total" id="total" class="form-control" value="{{ orden.full_address }}" disabled >
+                      </div>
+                    
+                </div>
+                  <div class="form-row">
+                    <div class="col form-group">
+                        <label for="">Localidad:</label>
+                        <input type="text" name="subtotal" id="subtotal" class="form-control" value="{{ orden.dir_localidad }}" disabled required>
+                        </div>
+                       
+                        <div class="col form-group">
+                          <label for="">Direccion </label>
+                          <input type="text" name="total" id="total" class="form-control" value="{{ orden.dir_provincia }}" disabled >
+                          </div>
+                      
+                  </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Confirmar Entrega</button>
+                    <a href="{% url 'panel_pedidos' 'New' %}" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}

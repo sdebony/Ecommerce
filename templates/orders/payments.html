@@ -13,16 +13,16 @@
 
 			<aside class="col-lg-8">
 				<div class="card">
-					<h5 class="card-header">Datos de la Entrega</h5>
+					<h5 class="card-header">Datos de la Entrega - #{{ order.order_number }}</h5>
 					<div class="card-body">
 						<p class="card-text mb-0">{{order.full_name}}</p>
 						<p class="card-text mb-0">{{order.full_address}}</p>
-						<p class="card-text mb-0">{{order.city}}, {{order.state}}</p>
-						<p class="card-text mb-0">{{order.country}}</p>
+						<p class="card-text mb-0">{{order.dir_localidad}}, {{order.dir_provincia}}</p>
+						<p class="card-text mb-0">{{order.dir_cp}}</p>
 						<p class="card-text mb-0">{{order.email}}</p>
-						<p class="card-text mb-0">{{order.phone}}</p>
+						<p class="card-text mb-0">{{order.dir_telefono}}</p>
 						{% if order.order_note %}
-						<b>Order Note: </b> {{order.order_note}}
+						<b>Observacionese: </b> {{order.order_note}}
 						{% endif %}
 
 
@@ -96,8 +96,8 @@
 							<dd class="text-right">$ {{total}}</dd>
 						</dl>
 						<dl class="dlist-align">
-							<dt>Imp:</dt>
-							<dd class="text-right"> $ {{tax}}</dd>
+							<dt>Envio:</dt>
+							<dd class="text-right"> $ {{envio}}</dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Total:</dt>
@@ -108,12 +108,16 @@
 							<!-- <img src="{% static './images/misc/payments.png' %}" height="26">  -->
 						</p>
 
-
-						<div id="paypal-button-container">
-							 <!-- PayPal Button Will Load  -->  
-						</div>
-
-
+<!--				<div id="paypal-button-container">  -->
+						 <!-- PayPal Button Will Load  -->  
+<!--				</div>   -->
+						<form action="{% url 'order_cash' %}" enctype="multipart/form-data" method="POST">
+							{% csrf_token %}
+							<div>
+								<input  type="text"  id="order_number"name="order_number" class="form-control" value="{{ order.order_number }}" hidden>
+								<button type="submit" class="btn btn-primary btn-block"><span class=""></span>Efectivo / Transferencia </button>
+							</div>
+						</form>
 					</div> <!-- card-body.// -->
 				</div> <!-- card.// -->
 				

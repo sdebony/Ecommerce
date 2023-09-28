@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import RegistrationForm, UserForm, UserProfileForm
-from .models import Account, UserProfile
+from .models import Account, UserProfile,AccountPermition,Permition, AccountDirecciones
 from orders.models import Order, OrderProduct
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 # Verification email
 from django.contrib.sites.shortcuts import get_current_site
@@ -155,25 +156,79 @@ def activate(request, uidb64, token):
 @login_required(login_url = 'login')
 def dashboard(request):
 
-    if request.user.is_staff == True:
-        orders = Order.objects.filter(is_ordered=True).order_by('-created_at')
-        orders_count = orders.count()
-        print("Acceder a DASHBOARD SOLO LOS QUE TIENEN PERMISIS ***********")
-        #return redirect('panel')
         
-    else:
-        orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
-        orders_count = orders.count()
+        if request.user.is_authenticated:
+            #accesousuario =  get_object_or_404(AccountPermition, user=request.user.id, codigo__codigo ='PANEL',modo_ver=True)  #Permiso de Ver  
+            id_permiso = Permition.objects.get(codigo='PANEL')
+            print(id_permiso)
+            if id_permiso:
+                try:
+                    accesousuario =  AccountPermition.objects.get(user=request.user.id, codigo=id_permiso,modo_ver=True)  #Permiso de Ver  
+                    if accesousuario:
+                       
+                        if accesousuario.codigo.codigo =='PANEL':
+                        
+                            return redirect('panel')
+                        else:
+                            print("Sin Acceso Panel")
+                            orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+                            orders_count = orders.count()
+
+                            userprofile = UserProfile.objects.get(user_id=request.user.id)
+                    
+                            context = {
+                                'orders_count': orders_count,
+                                'userprofile': userprofile,
+                            }
+                            print("accounts/dashboard.html")
+                            return render(request, 'accounts/dashboard.html', context)  
+                
+                except ObjectDoesNotExist:
+                    print("Sin Acceso Panel")
+                    orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+                    orders_count = orders.count()
 
 
-    userprofile = UserProfile.objects.get(user_id=request.user.id)
-    
-    context = {
-        'orders_count': orders_count,
-        'userprofile': userprofile,
-    }
-    print("accounts/dashboard.html")
-    return render(request, 'accounts/dashboard.html', context)
+                    userprofile = UserProfile.objects.get(user_id=request.user.id)
+                
+                    context = {
+                        'orders_count': orders_count,
+                        'userprofile': userprofile,
+                    }
+                    print("accounts/dashboard.html")
+                
+                    return render(request, 'accounts/dashboard.html', context)
+                 
+            else:
+        
+                print("Sin Acceso Panel")
+                orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+                orders_count = orders.count()
+
+                userprofile = UserProfile.objects.get(user_id=request.user.id)
+        
+                context = {
+                    'orders_count': orders_count,
+                    'userprofile': userprofile,
+                }
+                print("accounts/dashboard.html")
+                return render(request, 'accounts/dashboard.html', context)     
+        
+        else:
+            print("Sin Acceso Panel")
+            orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+            orders_count = orders.count()
+
+
+            userprofile = UserProfile.objects.get(user_id=request.user.id)
+        
+            context = {
+                'orders_count': orders_count,
+                'userprofile': userprofile,
+            }
+            print("accounts/dashboard.html")
+        
+            return render(request, 'accounts/dashboard.html', context)
 
 
 def forgotPassword(request):
@@ -314,3 +369,162 @@ def order_detail(request, order_id):
         'subtotal': subtotal,
     }
     return render(request, 'accounts/order_detail.html', context)
+
+
+@login_required(login_url='login')
+def edit_dir_entrega(request,dir_id=None):
+
+    if request.method=='GET':
+
+        print("dir_id-->",dir_id)
+        
+        if not dir_id:
+            direccion = AccountDirecciones(dir_id=0,dir_correo=0)
+        else:
+            direccion = AccountDirecciones.objects.get(user=request.user,dir_id=dir_id)
+        
+        direcciones = AccountDirecciones.objects.filter(user=request.user)
+        
+
+        context = {
+            'direccion' : direccion,
+            'direcciones': direcciones,
+            }
+
+        return render(request, 'accounts/edit_direcciones.html',context)
+
+    if request.method=='POST':
+
+
+        print("request.POST")
+        dir_id= request.POST["dir_id"]
+        dir_nombre= request.POST["dir_nombre"]
+        dir_cp= request.POST["dir_cp"]
+        dir_calle= request.POST["dir_calle"]
+        dir_nro= request.POST["dir_nro"]
+        dir_localidad= request.POST["dir_localidad"]
+        dir_provincia= request.POST["dir_provincia"]
+        dir_telefono= request.POST["dir_telefono"]
+        dir_obs= request.POST["dir_obs"]
+        dir_correo= request.POST["dir_correo"]
+
+        
+        if dir_id == "0":
+            #ADD NEW
+            direcciones = AccountDirecciones(
+                    dir_nombre=dir_nombre,
+                    user=request.user,
+                    dir_cp=dir_cp,
+                    dir_calle=dir_calle,
+                    dir_nro=dir_nro,
+                    dir_localidad=dir_localidad,
+                    dir_provincia=dir_provincia,
+                    dir_telefono=dir_telefono,
+                    dir_obs=dir_obs,
+                    dir_correo=dir_correo,
+                )
+            direcciones.save()
+            dir_id=direcciones.dir_id
+            messages.success(request, 'Direccion actualizada con éxito.')
+        else:
+            
+            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+            if direcciones:
+               
+                #UPDATE DIRECCION
+                direcciones = AccountDirecciones(
+                        dir_id=dir_id ,
+                        user=request.user,
+                        dir_nombre=dir_nombre,
+                        dir_cp=dir_cp,
+                        dir_calle=dir_calle,
+                        dir_nro=dir_nro,
+                        dir_localidad=dir_localidad,
+                        dir_provincia=dir_provincia,
+                        dir_telefono=dir_telefono,
+                        dir_obs=dir_obs,
+                        dir_correo=dir_correo,
+                    )
+                direcciones.save()
+                messages.success(request, 'Direccion actualizada con éxito.')
+        
+        direccion = AccountDirecciones.objects.get(user=request.user,dir_id=dir_id)
+        direcciones = AccountDirecciones.objects.filter(user=request.user)
+    
+        context = {
+            'direccion' : direccion,
+            'direcciones': direcciones,
+            }
+        return render(request, 'accounts/edit_direcciones.html',context)    
+
+
+@login_required(login_url='login')
+def edit_dir_entrega_correo(request,dir_id=None,dir_correo=None):
+
+    if dir_id ==0:
+        messages.warning(request, 'Complete los datos')
+        direccion = AccountDirecciones.objects.filter(user=request.user).first()
+        direcciones = AccountDirecciones.objects.filter(user=request.user)
+
+        context = {
+            'direccion' : direccion,
+            'direcciones': direcciones,
+        }
+    else:
+        
+        direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+        if direcciones:
+            
+            #UPDATE DIRECCION
+            direcciones = AccountDirecciones(
+                    dir_id=dir_id ,
+                    dir_nombre=direcciones.dir_nombre,
+                    user=request.user,
+                    dir_cp=direcciones.dir_cp,
+                    dir_calle=direcciones.dir_calle,
+                    dir_nro=direcciones.dir_nro,
+                    dir_localidad=direcciones.dir_localidad,
+                    dir_provincia=direcciones.dir_provincia,
+                    dir_telefono=direcciones.dir_telefono,
+                    dir_obs=direcciones.dir_obs,
+                    dir_correo=dir_correo,
+                )
+            direcciones.save()
+            messages.success(request, 'Direccion actualizada con éxito.')
+        
+        direccion = AccountDirecciones.objects.get(user=request.user,dir_id=dir_id)
+        direcciones = AccountDirecciones.objects.filter(user=request.user)
+
+        context = {
+            'direccion' : direccion,
+            'direcciones': direcciones,
+            }
+    return render(request, 'accounts/edit_direcciones.html',context)    
+
+@login_required(login_url='login')
+def del_dir_entrega(request):
+
+
+    if request.method=='POST':
+
+        dir_id= request.POST["dir_id_del"]
+        if dir_id=="0":
+            messages.error(request,'Seleccione una dirección de entrega para eliminarla!')
+            direccion = AccountDirecciones.objects.filter(user=request.user).first()
+
+        else:
+
+            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+            if direcciones:
+                direcciones.delete()
+                messages.error(request,'Se ha eliminado la Dirección de Entrega correctamente!')
+
+    direccion = AccountDirecciones.objects.filter(user=request.user).first()
+    direcciones = AccountDirecciones.objects.filter(user=request.user)
+    
+    
+    context = {
+        'direccion' : direccion,
+        'direcciones': direcciones,
+         }
+    return render(request, 'accounts/edit_direcciones.html',context)   

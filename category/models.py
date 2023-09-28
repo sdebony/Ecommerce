@@ -18,3 +18,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.category_name
+    
+    def category_name_lower(self):
+        return self.category_name.lower()

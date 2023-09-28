@@ -38,8 +38,6 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-
-
 class Account(AbstractBaseUser):
     first_name      = models.CharField(max_length=50)
     last_name       = models.CharField(max_length=50)
@@ -72,7 +70,6 @@ class Account(AbstractBaseUser):
     def has_module_perms(self, add_label):
         return True
 
-
 class UserProfile(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE)
     address_line_1 = models.CharField(blank=True, max_length=100)
@@ -94,16 +91,34 @@ class Permition(models.Model):
     permiso = models.CharField(max_length=100)
     rootpath = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=255,blank=True)
+    orden   = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.permiso
+        return f'{self.codigo}'
 
 class AccountPermition(models.Model):
 
      user = models.ForeignKey(Account, on_delete=models.CASCADE)
      codigo = models.ForeignKey(Permition,on_delete=models.CASCADE)
+     modo_ver = models.BooleanField(default=False)
      modo_editar = models.BooleanField(default=False)
 
      def __str__(self):
         return f'{self.codigo}'
 
+class AccountDirecciones(models.Model):
+
+     dir_id = models.AutoField('dir_id',primary_key=True)
+     user = models.ForeignKey(Account, on_delete=models.CASCADE)
+     dir_nombre = models.CharField(max_length=50)
+     dir_cp = models.CharField(max_length=10)
+     dir_calle = models.CharField(max_length=100)
+     dir_nro = models.CharField(max_length=25)
+     dir_localidad = models.CharField(max_length=50)
+     dir_provincia = models.CharField(max_length=50)
+     dir_telefono = models.CharField(max_length=25)
+     dir_obs    = models.CharField(max_length=250)
+     dir_correo = models.BooleanField(default=False) #Es correo Argentino
+
+     def __str__(self):
+        return f'{self.dir_id}'

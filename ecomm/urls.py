@@ -40,6 +40,10 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     # PANEL DE ADMINISTRACION
     path('panel/', include('panel.urls')),
+    #APIS
+    path('api/', include(('api.urls', 'api'), namespace='api')),
+    #CONTABILIDAD - REGISTRACION DE MOVIMIENTOS CONTABLES
+    path('cont/', include('contabilidad.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

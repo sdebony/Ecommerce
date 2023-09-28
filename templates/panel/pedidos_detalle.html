@@ -1,0 +1,169 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Pedido</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="{% url 'panel_pedidos' 'New' %}">Volver</a></li>
+              <li class="breadcrumb-item active">Pedido # {{ ordenes.order_number }}</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="callout callout-info">
+              <h5><i class="fas fa-info"></i><b>Estado de la Orden:
+                <font size="4" face="verdana" color="red">    
+              {{ ordenes.status | upper }}</font></b></h5>
+         
+            </div>
+
+
+            <!-- Main content -->
+            <div class="invoice p-3 mb-3">
+              <!-- title row -->
+              <div class="row">
+                <div class="col-12">
+                 {% if ordenes.dir_correo %} 
+                  <h4><i class="fas fa-globe"></i> Correo Argentino
+                    <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
+                  </h4>
+                  {% else %}
+                  <h4><i class="fas fa-home"></i> Entrega Cliente 
+                    <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
+                  </h4>
+                  {% endif %}
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- info row -->
+              <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col">
+                  Para
+                  <address>
+                    <strong>{{ ordenes.full_name}}</strong><br>
+                   {{ ordenes.dir_calle }} {{ ordenes.dir_nro }} <br>
+                   {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}}<br>
+                    Phone: {{ ordenes.dir_telefono}}<br>
+                    Email: {{ordenes.email }}
+                  </address>
+                </div>
+                <!-- /.col -->
+                
+               
+              </div>
+              <!-- /.row -->
+
+              <!-- Table row -->
+              <div class="row">
+                <div class="col-12 table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                    <tr>
+                      <th>Cantidad</th>
+                      <th>Product</th>
+                      <th>Variantes</th>
+                      <th>Subtotal</th>
+                    </tr>
+                    </thead>
+                    <tbody  >
+                    {% for item in ordenes_detalle %}  
+                    <tr>
+                      <td>{{ item.quantity}}</td>
+                      <td>{{ item.product}}</td>
+                      <td>
+                        {% for var in item.variations.all %}
+                          {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
+                        {% endfor %}
+                      </td>
+                      <td>{{ item.product_price }}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                    </tbody>
+                  </table>
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+
+              <div class="row">
+                <!-- accepted payments column -->
+                <div class="col-6">
+                  <p class="lead">
+                    <div class="callout callout-info">
+                      <h5><i class="fas fa-info"></i> Observaciones:</h5>
+                      {{ ordenes.dir_obs }}
+                      {{ ordenes.order_note }}
+                    </div>
+                  </p>
+                  
+                </div>
+                <!-- /.col -->
+                <div class="col-6">
+                  <p class="lead"></p>
+
+                  <div class="table-responsive">
+                    <table class="table">
+                      <tr>
+                        <th style="width:50%">Subtotal:</th>
+                        <td>{{ subtotal }}</td>
+                      </tr>
+                    
+                      <tr>
+                        <th>Envio:</th>
+                        <td>{{ ordenes.envio }}</td>
+                      </tr>
+                      <tr>
+                        <th>Total:</th>
+                        <td>{{ ordenes.order_total }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+
+              <!-- this row will not appear when printing -->
+              <div class="row no-print">
+                <div class="col-12">
+                  <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
+                 {% if pago_pendiente %}
+                  <button type="submit" class="btn btn-success float-right" ><i class="far fa-credit-card"></i>Registrar Pago</button>
+                  {% endif %} 
+                  <pre style='display:inline'  class="float-right"> </pre>
+                  {% if entrega_pendinete %} 
+                    <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
+                  {% endif %} 
+                   
+                </div>
+              </div>
+            </div>
+            <!-- /.invoice -->
+
+        
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+ 
+{% endblock %}
+{% block js_page %}
+{% endblock %}

@@ -1,0 +1,140 @@
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+            <!-- left column -->
+            <div class="card-body">
+                <h4 class="card-title mb-4">Categoría - <b>{{ categoria.category_name }} </b></h4>
+                <form action="{% url 'panel_categoria_save' %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Nombre</label>
+                            <input type="number" name="categoria_id"  class="form-control" value="{{categoria.id}}" hidden>
+                            <input type="text" name="category_name" class="form-control" value="{{categoria.category_name}}" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">slug</label>
+                            <input type="text" name="slug" class="form-control" value="{{categoria.slug}}"  disabled>
+                        </div>
+                        <input id="imgFile" type="file" name="imgFile" class="form-control" value="{{ categoria.cat_image.url}}">
+                        <input id="images" type="text" name="images" class="form-control" value="{{ categoria.cat_image }}" hidden>               
+                        
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Descripcion</label>
+                        <textarea type="textarea" name="description" rows="8" class="form-control">{{categoria.description}}</textarea>
+                       
+                    </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
+                    <a href="{% url 'panel_categoria' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+        </div> <!-- card.// -->
+                <!-- fin rigth column-->
+                <aside class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            
+                                <h4 class="card-title mb-4">Imagen </h4>
+                                <aside class="col-md-4">
+                                    <article class="gallery-wrap">
+                                        <div class="img-big-wrap mainImage">
+                                            <center><img src="{{ categoria.cat_image.url }}"></center>
+                                        </div> <!-- img-big-wrap.// -->
+                                    </article> <!-- gallery-wrap .end// -->
+                                </aside>
+            
+                                <div class="form-row">
+                                    
+                                </div>
+                           
+                        </div>
+                    </div><br>
+                </aside><!-- col // -->
+
+        </div>
+    </div>
+                
+</section>
+<br>
+<br>
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+            <!-- left column -->
+            <div class="col-md-12" >
+                <!-- general form elements -->
+                <div class="card card-primary"><b>Categorias:</b>
+                    <div class="card-header">
+                            <!-- tabla articulos -->
+                            <table 
+                                id="table"
+                                data-toggle="table"
+                                data-pagination="false"
+                                data-search="true"
+                                data-show-columns="false"
+                                data-show-toggle="false"
+                                data-show-fullscreen="false"
+                                data-toolbar=".buttons-toolbar"
+                                data-locale="es-AR"
+                                >
+                                <thead>
+                                    <th data-sortable="true" data-field="id">Nro</th>
+                                    <th data-sortable="true" data-field="product_name">Pducto</th>
+                                    <th data-sortable="true" data-field="description">Descripcion</th>   
+                                    <th data-sortable="true" data-field="price">Precio</th>
+                                    <th data-sortable="true" data-field="images">Imagen</th>
+                                    <th data-sortable="true" data-field="stock">Stock</th>
+                                    <th data-sortable="true" data-field="category">Categoria</th>
+                                    <th data-sortable="true" data-field="is_available">habilitado</th>
+                                    
+                                    <th class="all">Acciones</th>  
+                                </thead>
+                                <tbody>
+                                    {% for item in articulos_tmp %}
+                                    <tr>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>{{ item.description }}</td> 
+                                    <td>{{ item.price }}</td>
+                                    <td>{{ item.images }}</td>
+                                    <td>{{ item.stock }}</td>
+                                    <td>{{ item.category }}</td>
+                                    {% if item.is_available %}
+                                        <td> <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
+                                    {% else %}
+                                        <td> <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
+                                    {% endif %}
+                                    <td >         
+                                       <a href="{% url 'panel_importar_productos_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                                    </div>
+                                    
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+
+                            </table>
+                            <!-- fin tabla articulos-->
+                    </div>
+                </div>
+                 <!-- /.card -->
+            </div>
+      </div>
+
+      <!-- / .card-body -->
+      
+    </div>
+</section>
+<br>
+
+{% endblock %}

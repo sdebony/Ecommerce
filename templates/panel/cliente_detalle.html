@@ -1,0 +1,84 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<section class="section-conten padding-y bg">
+
+<div class="container">
+	<div class="row">
+	<main class="col-md-9">
+		<article class="card">
+		<header class="card-header">
+            <center><strong class="d-inline-block mr-3"><h6>Cliente</h6></strong></center>
+
+		</header>
+		<div class="card-body">
+			
+			<div class="row">
+			<div class="col-md-12">
+					<div class="form-row">
+						<div class="form-group col-md-6">
+							<label>Nombre</label>
+							<b>{{ usuarios.first_name }} </b>
+						</div>
+						<div class="form-group col-md-6">
+							<label>Apellido</label>
+							<b>{{usuarios.last_name}} </b>
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="form-group col-md-6">
+							<label>Telefono</label>
+							{{usuarios.phone_number}}
+						</div>
+						<div class="form-group col-md-6">
+							<label>usuario</label>
+                            {{usuarios.username}}
+							
+						</div>
+                    </div>
+                    <div class="form-row">
+					    <div class="form-group col-md-6">
+							<label>email</label>
+                            {{usuarios.email}}
+							
+						</div>
+					</div>
+
+                    <div class="form-row">
+						<div class="form-group col-md-6">
+							<label>Fecha de Creación</label>
+							<b>{{ usuarios.date_joined | date:"d/m/Y" }} </b>
+						</div>
+						<div class="form-group col-md-6">
+							<label>Fecha ultimo ingreso</label>
+							<b>{{usuarios.last_login  | date:"d/m/Y"}} </b>
+						</div>
+					</div>
+
+                    <div class="form-row">
+						<div class="form-group col-md-6">
+							<label>Compas: </label>
+							<b>{{ compras }} </b>
+						</div>
+					</div>
+
+                    <a href="{% url 'panel_clientes' %}" class="btn btn-secondary">Volver</a>
+				
+			</div>
+
+			</div> <!-- row.// -->
+		</div> <!-- card-body .// -->
+
+		</article> <!-- order-group.// -->
+	</main>
+</div> <!-- row.// -->
+</div>
+
+
+</section>
+
+{% endblock %}
+{% block js_page %}
+{% endblock %}

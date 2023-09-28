@@ -1,0 +1,93 @@
+
+{% extends 'panel/base.html' %}
+{% load static %}
+
+{% block page_content %}
+
+<!-- Begin Page Content -->
+   <div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Configuración de acceso de usuarios</h1>
+    <p class="mb-4">Acceso de usuarios.</p>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Usuario: {{ usuario.last_name }}, {{ usuario.first_name }}</h6>
+            <div class="dropdown no-arrow">
+              <a href="{% url 'panel_usuarios' %}" class="btn btn-secondary">Cancelar</a>
+             
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Permiso</th>
+                            <th>Descripción</th>
+                            <th>Acceso</th>
+                            <th>Modificar</th>
+                            <th>Root Path </th>
+                            <th>Opciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       <!-- PERSIMOS ASIGNADOS-->
+                        {% for per_user in permisos_usr%}
+                        <tr>
+                            <td>{{ per_user.codigo.codigo  }}</td>
+                            <td>{{ per_user.codigo.descripcion }} </td>
+                            <td>
+                                {% if per_user.modo_ver == 1%}
+                                    <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=per_user.pk codigo=per_user.codigo.id tipo=1 valor=0 %}">
+                                    <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                                {% else %}
+                                    <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=per_user.pk codigo=per_user.codigo.id tipo=1 valor=1 %}">
+                                    <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if per_user.modo_editar == 1%}
+                                    <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=per_user.pk codigo=per_user.codigo.id tipo=2 valor=0 %}">
+                                    <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                                {% else %}
+                                    <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=per_user.pk codigo=per_user.codigo.id tipo=2 valor=1 %}">
+                                    <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                                {% endif %}
+                            </td>
+                            <td>{{ per_user.codigo.rootpath }}</td>
+                            <td>.</td>
+                        </tr>
+                        {% endfor %}
+                        <!-- PERMISOS NO ASIGNADOS -->
+                        {% for perm in permisos%}
+                        <tr>
+                            <td>{{ perm.codigo   }} </td>
+                            <td>{{ perm.descripcion }}</td>
+                            <td>
+                                <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=0 codigo=perm.pk tipo=1 valor=1 %}">
+                                <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                            </td>
+                            <td>      
+                                <a href="{% url 'panel_usuario_permisos_actualizar' user_id=usuario.id id_pk=0 codigo=perm.pk tipo=2 valor=1 %}">  
+                                <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+                            </td>
+                            <td>{{ perm.rootpath }}</td>
+                            <td>.</td>
+                        </tr>
+                        {% endfor %}
+
+                       
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /.container-fluid -->
+{% endblock %}
+{% block js_page %}
+{% endblock %}

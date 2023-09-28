@@ -1,0 +1,81 @@
+
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+
+
+
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- left column -->
+        <div class="col-md-6">
+          <!-- general form elements -->
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">{{cuentas.nombre }} - {{ cuentas.moneda }}</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            {% if cuentas %}
+              <form action="{% url 'conta_cuentas_detalle' cuentas.id %}" method="POST">
+            {% else %}
+              <form action="{% url 'conta_cuentas_new'  %}" method="POST">
+            {% endif %}
+            {% csrf_token %}
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="">Nombre</label>
+                  <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Nombre de la cuenta" value="{{ cuentas.nombre }}">
+                </div>
+                <div class="form-group">
+                  <label for="">descripcion</label>
+                  <input type="text" class="form-control" name="descripcion" id="descripcion" placeholder="descripcion" value="{{ cuentas.descripcion }}">
+                </div>
+                <div class="form-group">
+                  <label for="">Límite mensual</label>
+                  <input type="number" class="form-control" name="limite" id="limite" placeholder="limite mensual" value="{{ cuentas.limite }}">
+                </div>
+                <div class="form-group">
+                    <div class="form-group">
+                        <label>Moneda</label>
+                        <select class="form-control" id="moneda" name="moneda">
+                        {% for item in monedas %}
+                            {% if item.codigo == cuentas.moneda.codigo  %}
+                            <option selected>{{ item.codigo }}</option>
+                            {% else %}
+                                <option> {{ item.codigo }} </option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                      </div>
+                </div>
+                <div class="form-check">
+                    {% if cuentas.is_available %}
+                        <input type="checkbox" class="form-check-input" name="is_available" id="is_available" checked>
+                    {% else %}
+                        <input type="checkbox" class="form-check-input" name="is_available" id="is_available" unchecked>
+                    {% endif %}
+                     <label class="form-check-label" for="is_available">Habilitada</label>
+                </div>
+              </div>
+              <!-- / .card-body -->
+
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'conta_list_cuentas' %}" class="btn btn-secondary">Cancelar</a>
+              </div>
+            </form>
+          </div>
+          <!-- /.card -->
+        </div>
+      </div>
+    </div>
+</section>
+
+
+          {% endblock %}

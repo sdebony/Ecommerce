@@ -1,0 +1,72 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >USUARIOS - ({{ cantidad }})</h6>
+    </div>
+    
+     
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not usuarios %}
+    <div class="alert alert-info">No se encontraron usuarios</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="id">Nro</th>
+          <th data-sortable="true" data-field="first_name">Nombre</th>
+          <th data-sortable="true" data-field="last_name">Apellido</th>   
+          <th data-sortable="true" data-field="username">usuario</th>
+          <th data-sortable="true" data-field="email">email</th>
+          <th data-sortable="true" data-field="is_admin">Admin</th>
+          <th data-sortable="true" data-field="is_staff">Staff</th>
+          <th data-sortable="true" data-field="is_active">Activo</th>
+          <th data-sortable="true" data-field="is_superadmin">Super Admin</th>
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in usuarios %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.first_name }}</td> 
+          <td>{{ item.last_name }}</td>
+          <td>{{ item.username }}</td>
+          <td>{{ item.email }}</td>
+          <td>{{ item.is_admin }} </td>
+          <td>{{ item.is_staff }}</td>
+          <td>{{ item.is_active }}</td>
+          <td>{{ item.is_superadmin}}</td>
+          <td >         
+              <a href="{% url 'panel_usuarios_reasignar' item.id %}" class="href btn btn-warning btn-circle" title="Permisos"><i class="fas fa-lock"> </i></a>
+              <!-- <a href="#" class="href btn btn-success btn-circle" title="Acceso"><i class="fas fa-check"></i></a> -->
+              <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+            </div>
+         
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

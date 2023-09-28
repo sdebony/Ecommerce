@@ -43,7 +43,11 @@ INSTALLED_APPS = [
     'store',
     'carts',
     'orders',
+    'api',
+    'panel',
+    'contabilidad',
     'admin_honeypot',
+    'rest_framework',
     #'storages',
 ]
 
@@ -126,7 +130,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

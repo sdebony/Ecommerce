@@ -1,13 +1,13 @@
 {% extends 'panel/base.html' %}
-
+{% load static %}
 {% block page_content %}
 
 
 <div class="card shadow mb-4">
   <!-- Card Header - Dropdown -->
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary">PRODUCTOS - ({{ cantidad }})</h6>
-    </div>  
+    <h6 class="m-2 font-weight-bold text-primary">Productos - ({{ cantidad }})</h6>
+  </div>  
      
   <!-- Card Body -->
   <div class="card-body">
@@ -15,7 +15,7 @@
     <div class="alert alert-info">No se encontraron productos</div>
     {% endif %}
     <div class="buttons-toolbar">
-        <a class="btn btn-primary" href="{% url 'panel_producto_crud' %}"><i class="far fa-calendar-plus"></i> Nuevo</a>
+        <a class="btn btn-primary" href="{% url 'panel_producto_crud' %}"><i class="fa fa-plus"></i> Nuevo</a>
     </div>
 
 
@@ -24,7 +24,7 @@
       data-toggle="table"
       data-pagination="false"
       data-search="true"
-      data-show-columns="false"
+      data-show-columns="true"
       data-show-toggle="false"
       data-show-fullscreen="false"
       data-toolbar=".buttons-toolbar"
@@ -38,7 +38,7 @@
           <th data-sortable="true" data-field="stock">Stock</th>
           <th data-sortable="true" data-field="is_available">Habilitado</th>
           <th data-sortable="true" data-field="category">Categoria</th>
-          <th data-sortable="true" data-field="created_date">Fecha Creaciòn</th>
+<!--          <th data-sortable="true" data-field="created_date">Fecha Creación</th>  -->
           <th data-sortable="true" data-field="modified_date">Fecha Modificaciòn</th>
 
           <th class="all">Acciones</th>  
@@ -47,14 +47,24 @@
         {% for item in catalogo %}
         <tr>
           
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></td> 
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">$ {{ item.price }}</a></td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.images.url }}</a></td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.stock }}</a></td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.is_available|yesno:"Si,No" }}</a> </td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.category }}</a></td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.created_date }}</a></td>
-          <td><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.modified_date}}</a></td>
+          <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
+          <td>$ {{ item.price }}</td>
+          <td>{{ item.images.url }}</td>
+          <td>{{ item.stock }}</td>
+          {% if item.is_available %}
+              <td> 
+                <a href="{% url 'panel_producto_habilitar' product_id=item.id estado=0 %}"> 
+                <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;" name="is_available"></a>
+             </td>
+          {% else %}
+            <td>
+              <a href="{%url 'panel_producto_habilitar' product_id=item.id estado=1 %}">
+               <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;" name="is_available"> </a>
+            </td>
+          {% endif %}
+           <td>{{ item.category }}</td>
+<!--      <td>{{ item.created_date }}</td> -->
+          <td>{{ item.modified_date | date:"d/m/Y" }}</td>
           <td>  
             <!--  <a href="{% url 'panel_producto_detalle' item.id %}" class="href btn btn-warning btn-circle" title="Editar">  <i class="far fa-edit"> </i></a>   
             -->  <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>

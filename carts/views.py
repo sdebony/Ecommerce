@@ -3,7 +3,7 @@ from store.models import Product, Variation
 from .models import Cart, CartItem
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from accounts.models import UserProfile
+from accounts.models import UserProfile,AccountDirecciones
 # Create your views here.
 from django.http import HttpResponse
 
@@ -130,7 +130,6 @@ def add_cart(request, product_id):
             cart_item.save()
         return redirect('cart')
 
-
 def remove_cart(request, product_id, cart_item_id):
 
     product = get_object_or_404(Product, id=product_id)
@@ -163,7 +162,7 @@ def remove_cart_item(request, product_id, cart_item_id):
 
 def cart(request, total=0, quantity=0, cart_items=None):
     try:
-        tax = 0
+        envio = 0
         grand_total = 0
         if request.user.is_authenticated:
             cart_items = CartItem.objects.filter(user=request.user, is_active=True)
@@ -173,8 +172,8 @@ def cart(request, total=0, quantity=0, cart_items=None):
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
             quantity += cart_item.quantity
-        #tax = (21 * total)/100
-        grand_total = total + tax
+        
+        grand_total = total + envio
     except ObjectDoesNotExist:
         pass #just ignore
 
@@ -182,7 +181,7 @@ def cart(request, total=0, quantity=0, cart_items=None):
         'total': total,
         'quantity': quantity,
         'cart_items': cart_items,
-        'tax'       : tax,
+        'envio'       : envio,
         'grand_total': grand_total,
     }
     return render(request, 'store/cart.html', context)
@@ -191,11 +190,11 @@ def cart(request, total=0, quantity=0, cart_items=None):
 @login_required(login_url='login')
 def checkout(request, total=0, quantity=0, cart_items=None):
     try:
-        tax = 0
+        envio = 0
         grand_total = 0
         if request.user.is_authenticated:
             userprofile = get_object_or_404(UserProfile, user=request.user)
-
+            direccion = AccountDirecciones.objects.filter(user=request.user)
             cart_items = CartItem.objects.filter(user=request.user, is_active=True)
         else:
             cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -203,8 +202,8 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
             quantity += cart_item.quantity
-        tax = (2 * total)/100
-        grand_total = total + tax
+        envio = 0 #(2 * total)/100
+        grand_total = total + envio
     except ObjectDoesNotExist:
         pass #just ignore
 
@@ -212,8 +211,11 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         'total': total,
         'quantity': quantity,
         'cart_items': cart_items,
-        'tax'       : tax,
+        'envio'       : envio,
         'grand_total': grand_total,
         'userprofile': userprofile,
+        'direccion' :direccion,
     }
     return render(request, 'store/checkout.html', context)
+
+

@@ -1,0 +1,162 @@
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+            <!-- left column -->
+            <div class="col-md-6" >
+               
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title" align="center">Importar Pedidos </h3>
+                        </div>
+                        <div class="card-footer">
+                            <form action="{% url 'panel_pedidos_import' %}" method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                    <input type="file" name="rootfile">
+                                    <button type="submit" class="btn btn-primary">Procesar Archivo ...</button>
+                                    <a href="#" class="btn btn-secondary">Cancelar</a>
+                                    
+                                </form>
+                          </div>
+                  
+                    </div>
+            </div>
+
+            <!-- rigth column-->
+
+            <aside class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                    <!-- Collapsable Card Example -->
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Accordion -->
+                            <a href="#collapseCardRta" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseCardRta">
+                                <h6 class="m-0 font-weight-bold text-primary">Resultado - Procesados OK : {{ cant_ok }} - Procesados Error : {{ cant_error }}  </h6>
+                            </a>
+                            <!-- Card Content - Collapse -->
+                            <div class="collapse" id="collapseCardRta">
+                                <div class="card-body">
+                                    <p>Procesados OK : {{ cant_ok }}        </p>
+                                    <p>Procesados Error : {{ cant_error }}        </p>
+                                    <p>Errores : {{ error_str }}        </p> 
+                                </div>
+                            </div>
+                        </div>
+                         </form>
+                    </div>
+                    <!--    <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a> -->
+                    </div><br>
+            <!-- fin rigth column-->
+
+        </div>
+    </div>            
+</section>
+<br>
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+            <!-- left column -->
+            <div class="col-md-12" >
+                <!-- general form elements -->
+                <div class="card card-primary">
+                    <div class="card-header"><center><b><h3>Pedidos importados:</h3></b></center>
+                    </div>
+            </div>
+                 <!-- /.card -->
+            </div>
+            <!-- fin left column-->
+      </div>
+      <aside class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+            <!-- Collapsable Card Example -->
+                <div class="card shadow mb-4">
+
+                {% for pedidos in pedidos_tmp %}
+                    <!-- Card Header - Accordion -->
+                    <div id="accordion">
+                        <div class="card">
+                          <div class="card-header" id="headingOne">
+                            <h5 class="mb-0">
+                              <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
+                                Pedido:  {{ pedidos.codigo }}  <span style="color: green;" > $ {{ pedidos.order_total}}</span> - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                                
+                              </button>
+                              <span style="float: right;">
+                                        <a href="{% url 'panel_guardar_tmp_pedidos' pedidos.codigo %}" class="btn btn-secondary">Importar</a>
+                                    
+                              </span>
+                            </h5>
+                          </div>
+                    <!-- Card Content - Collapse -->
+                    <div id="{{ pedidos.codigo}}" class="collapse" aria-labelledby="{{ pedidos.codigo}}" data-parent="#accordion">
+                        <div class="card-body">
+                                      <!-- tabla articulos -->
+                                            <table 
+                                            id="table"
+                                            data-toggle="table"
+                                            data-pagination="false"
+                                            data-search="false"
+                                            data-show-columns="false"
+                                            data-show-toggle="false"
+                                            data-show-fullscreen="false"
+                                            data-toolbar=".buttons-toolbar"
+                                            data-locale="es-AR"
+                                            >
+                                            <thead>
+                                                <th data-sortable="true" data-field="id">Nro</th>
+                                                <th data-sortable="true" data-field="product">Producto</th>
+                                                <th data-sortable="true" data-field="quantity">Cantidad</th>   
+                                                <th data-sortable="true" data-field="subtotal">Precio</th>
+                                                <th data-sortable="true" data-field="status">Error</th>
+                                                
+                                               
+                                            </thead>
+                                            <tbody>
+                                                {% for item in articulos_tmp %}
+                                                  {% if item.codigo == pedidos.codigo %}
+                                                    <tr>
+                                                      <td>{{ item.id }}</td>
+                                                      <td>{{ item.product }}</td>
+                                                      <td>{{ item.quantity }}</td> 
+                                                      <td>{{ item.subtotal }}</td>
+                                                      <td>
+                                                        {% if item.status %}
+                                                            <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;">
+                                                        {% else %}
+                                                            <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;">
+                                                        {% endif %}
+                                                       </td>
+                                                    </tr>
+                                                  {% endif %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                        </div>
+                    </div>
+                        </div>
+                     <!-- fin tabla articulos-->
+                    </div>
+                {% endfor %}
+                </div>
+              <a href="{% url 'panel_guardar_tmp_pedidos_all' %}" class="btn btn-success">Importar Todos</a>
+            </div>         
+         </div>
+       
+      </div><br>
+
+      <!-- / .card-body -->
+      
+    
+</section>
+<br>
+
+{% endblock %}

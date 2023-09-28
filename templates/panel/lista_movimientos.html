@@ -1,0 +1,76 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Movimientos</h6>
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <a href="{% url 'mov_export_xls' 1 %}" class="btn btn-secondary">Exportar xls</a>
+      
+    </div>
+  </div>
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not mov %}
+    <div class="alert alert-info">No Hay Movimientos</div>
+    {% endif %}
+    
+
+    <table 
+    id="table"
+    data-toggle="table"
+    data-pagination="false"
+    data-search="true"
+    data-show-columns="false"
+    data-show-toggle="false"
+    data-show-fullscreen="false"
+    data-toolbar=".buttons-toolbar"
+    data-locale="es-AR"
+  >
+      <thead>
+          <th data-sortable="true" data-field="id">Id</th>        
+          <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="cliente">Cliente</th>
+          <th data-sortable="true" data-field="movimiento">Movimiento</th>
+          <th data-sortable="true" data-field="caja">Caja</th>
+          <th data-sortable="true" data-field="monto">Monto</th>
+          <th data-sortable="true" data-field="moneda">Moneda</th>
+          <th data-sortable="true" data-field="Observaciones">Observaciones</th>
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in mov %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.fecha | date:"d/m/Y" }}</td>
+          <td>{{ item.cliente }}</td>
+          <td>{{ item.movimiento }}</td>
+          <td>{{ item.cuenta }} </td>
+          <td>{{ item.monto}}</td>
+          <td>{{ item.moneda }}</td>
+          {% if item.ordernumber  %}
+              <td>
+                <a href="{% url 'panel_pedidos_detalle' item.ordernumber.order_number %}">{{ item.observaciones }}</a>    
+               </td>
+          {% else %}
+                <td>{{ item.observaciones }}</td>
+          {% endif %}
+          <td >         
+              <a href="#" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
+              <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+            </div>
+         
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

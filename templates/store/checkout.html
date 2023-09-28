@@ -6,26 +6,50 @@
 
 <section class="section-content padding-y bg">
 <div class="container">
-
+  <h1 class="h6 mb-3 text-gray-600">
+    <p>UNA VEZ RECIBIDO TU PEDIDO, 
+    CONTROLAMOS EL STOCK Y NOS COMUNICAMOS CON VOS PARA COORDINAR EL PAGO. 
+   TE PEDIMOS NOS ENVIES TU EMAIL PARA ENVIARTE LA FACTURA</p>
+  </h1>
 <!-- ============================ COMPONENT 1 ================================= -->
 
 <div class="row">
 	<aside class="col-lg-6">
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title mb-4">Datos de Entrega</h4>
+    <h4 class="card-title mb-4">Cliente</h4>
     <form action="{% url 'place_order' %}" method="POST">
       {% csrf_token %}
       <div class="form-row">
         <div class="col form-group">
           <label for="">Nombre</label>
-          <input type="text" name="first_name" class="form-control" value="{{user.first_name}}" required>
+          <input type="text" name="first_name" class="form-control" value="{{user.first_name}}"  required>
         </div>
         <div class="col form-group">
           <label for="">Apellido</label>
           <input type="text" name="last_name" class="form-control" value="{{user.last_name}}" required>
         </div>
       </div>
+      <hr>
+      <br>
+      <h4 class="card-title mb-4">Dirección de Entrega</h4>
+      <div class="form-row">
+          <div class="col form-group">
+            <label for="">Direcciones disponibles:</label>
+            <select name="direccion" id="direccion" class="form-control" required>
+              <option value="0" selected disabled >Seleccione una direccion</option>
+              {% for item in direccion %}
+                <option value="{{item.dir_id}}" >{{ item.dir_nombre}}</option>
+              {% endfor %}
+            </select>
+            <br>
+            <label for="">Entrega en Correo Argentino: 
+              <a href=""><img name="img_correo" id="img_correo" src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"></a>
+              <input type="text" name="dir_correo" id="dir_correo" class="form-control" value="" required hidden>
+            </label>
+   </div>
+      </div>
+      <hr>
       <div class="form-row">
         <div class="col form-group">
           <label for="">Email</label>
@@ -33,37 +57,39 @@
         </div>
         <div class="col form-group">
           <label for="">Telefono</label>
-          <input type="text" name="phone" class="form-control" value="{{user.phone_number}}" required>
+          <input type="text" name="dir_telefono" id="dir_telefono" class="form-control" value="" required>
         </div>
       </div>
       <div class="form-row">
         <div class="col form-group">
-          <label for="">Direccion 1</label>
-          <input type="text" name="address_line_1" class="form-control" value="{{userprofile.address_line_1}} " required>
+          <label for="">Calle</label>
+          <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="" required>
         </div>
         <div class="col form-group">
-          <label for="">Direccion 2</label>
-          <input type="text" name="address_line_2" class="form-control" value="{{userprofile.address_line_2}} ">
+          <label for="">Nro</label>
+          <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="">
         </div>
       </div>
       <div class="form-row">
         <div class="col form-group">
-          <label for="">Ciudad</label>
-          <input type="text" name="city" class="form-control" value="{{userprofile.city}}" required>
+          <label for="">Localidad</label>
+          <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="" required>
         </div>
         <div class="col form-group">
           <label for="">Provincia</label>
-          <input type="text" name="state" class="form-control" value="{{userprofile.state}}" required>
+          <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="" required>
         </div>
         <div class="col form-group">
-          <label for="">Pais</label>
-          <input type="text" name="country" class="form-control" value="{{userprofile.country}}" >
+          <label for="">Codigo Postal</label>
+          <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" >
         </div>
         </div>
         <div class="form-row">
           <label for="">Observaciones</label>
-          <textarea name="order_note" rows="2" class="form-control"></textarea>
+          <textarea name="dir_obs" id="dir_obs" rows="2" class="form-control"></textarea>
         </div>
+        
+       
 
 
   </div>
@@ -136,5 +162,53 @@
 </div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
+
+
+
+
+<script>
+ 
+ function buscardireccion(dir_id)     {
+       
+       if (dir_id==0){
+            return false;
+        }
+        var path = "{% url 'api:api_direccion' %}" + dir_id;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+                $("#dir_calle").val(r.dir_calle);
+                $("#dir_nro").val(r.dir_nro);
+                $("#dir_cp").val(r.dir_cp);
+                $("#dir_telefono").val(r.dir_telefono);
+                $("#dir_localidad").val(r.dir_localidad);
+                $("#dir_provincia").val(r.dir_provincia);
+                $("#dir_obs").val(r.dir_obs);
+                if (r.dir_correo==false){
+                  document.getElementById("img_correo").src="{% static 'img/uncheck.jpg' %}";
+                  $("#dir_correo").val("0");
+                }
+                if (r.dir_correo==true){
+                  document.getElementById("img_correo").src="{% static 'img/check.jpg' %}";
+                  $("#dir_correo").val("1");
+                }
+                
+            },
+        });
+    }
+
+   $(function () {     
+        $("#direccion").change(function() {
+           console.log($("#direccion").val());
+           buscardireccion($("#direccion").val());
+        });
+    
+        $("#direccion").val({{direccion.dir_id }}).change();
+            
+    });
+
+</script>
 
 {% endblock %}

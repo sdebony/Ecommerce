@@ -6,10 +6,10 @@
 
 <div class="container" style="margin-top: 50px;">
     <center><i class="fas fa-check-circle" style="font-size: 72px;margin-bottom: 20px;color: #28A745;"></i></center>
-    <h2 class="text-center">Payment Successful</h2>
+    <h2 class="text-center">Orden Generada</h2>
 	<br>
 	<div class="text-center">
-		<a href="{% url 'store' %}" class="btn btn-success">Shop more</a>
+		<a href="{% url 'store' %}" class="btn btn-success">Seguir Comprando</a>
 	</div>
 </div>
 
@@ -34,8 +34,8 @@
                                     <li><strong>Invoiced To</strong></li>
                                     <li>{{order.full_name}}</li>
                                     <li>{{order.full_address}}</li>
-                                    <li>{{order.city}}, {{order.state}}</li>
-                                    <li>{{order.country}}</li>
+                                    <li>{{order.dir_localidad}}, {{order.dir_provincia}}</li>
+                                    <li>{{order.dir_cp}}</li>
                                 </ul>
                             </div>
                         </div>
@@ -86,8 +86,8 @@
                                                 <th class="text-center">${{subtotal}} </th>
                                             </tr>
                                             <tr>
-                                                <th colspan="2" class="text-right">Tax:</th>
-                                                <th class="text-center">${{order.tax}} </th>
+                                                <th colspan="2" class="text-right">Envio:</th>
+                                                <th class="text-center">${{order.envio}} </th>
                                             </tr>
 
                                             <tr>
