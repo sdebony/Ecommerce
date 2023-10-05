@@ -46,7 +46,7 @@ def panel_home(request):
             }
         print("Acceso Panel")
         return render (request,"panel/base.html",context)
-        
+
     print('Sin modulo PANEL')
     return render(request,'dashboard',)
     
@@ -76,7 +76,7 @@ def dashboard_ventas(request):
             fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
             fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
 
-        print(fecha_desde,fecha_hasta)
+        #print(fecha_desde,fecha_hasta)
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=Sum('monto')).order_by('cuenta')
@@ -91,10 +91,7 @@ def dashboard_ventas(request):
             month_earnings = round(sum([Order.order_total for Order in payments_months]))
             hist_pedidos.append(month_earnings)
       
-
-        print(clientes)
-
-
+        #print(clientes)
 
         form = []
         context = {
