@@ -10,7 +10,7 @@ from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
-import pywhatkit  #Kit de envio de whatsapp
+#import pywhatkit  #Kit de envio de whatsapp
 
 
 def payments(request):
@@ -118,6 +118,7 @@ def place_order(request, total=0, quantity=0,):
             data.order_note = form.cleaned_data['dir_obs']
             data.order_total = grand_total
             data.envio = envio
+            data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.ip = request.META.get('REMOTE_ADDR')
             print(data.dir_correo)
             print("Save")
@@ -132,7 +133,7 @@ def place_order(request, total=0, quantity=0,):
             current_date = d.strftime("%Y%m%d") #20210305
             order_number = current_date + str(data.id)
             data.order_number = order_number
-            data.fecha = datetime.date.today()  #Grabo la fecha del momento
+            
             data.save()
 
             order = Order.objects.get(user=current_user, is_ordered=False, order_number=order_number)

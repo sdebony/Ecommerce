@@ -18,6 +18,10 @@
     {% if not mov %}
     <div class="alert alert-info">No Hay Movimientos</div>
     {% endif %}
+    <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'mov_registros' 0 %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
     
 
     <table 
@@ -36,9 +40,8 @@
           <th data-sortable="true" data-field="fecha">Fecha</th>
           <th data-sortable="true" data-field="cliente">Cliente</th>
           <th data-sortable="true" data-field="movimiento">Movimiento</th>
-          <th data-sortable="true" data-field="caja">Caja</th>
+          <th data-sortable="true" data-field="cuenta">Cuenta</th>
           <th data-sortable="true" data-field="monto">Monto</th>
-          <th data-sortable="true" data-field="moneda">Moneda</th>
           <th data-sortable="true" data-field="Observaciones">Observaciones</th>
 
           <th class="all">Acciones</th>  
@@ -50,19 +53,29 @@
           <td>{{ item.fecha | date:"d/m/Y" }}</td>
           <td>{{ item.cliente }}</td>
           <td>{{ item.movimiento }}</td>
-          <td>{{ item.cuenta }} </td>
+          <td>{{ item.cuenta }} - {{ item.cuenta.moneda }} </td>
           <td>{{ item.monto}}</td>
-          <td>{{ item.moneda }}</td>
           {% if item.ordernumber  %}
               <td>
                 <a href="{% url 'panel_pedidos_detalle' item.ordernumber.order_number %}">{{ item.observaciones }}</a>    
                </td>
           {% else %}
+                {% if  item.idtransferencia %}
+                <td>
+                  <a href="{% url 'mov_transferencia' item.idtransferencia %}">{{ item.observaciones }}</a>    
+                 </td> 
+                {% else %}
                 <td>{{ item.observaciones }}</td>
+                {% endif %}
           {% endif %}
           <td >         
-              <a href="#" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
-              <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+              {% if not item.ordernumber   %}
+                {% if not item.idtransferencia %}
+                  <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
+                  <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                {% endif %}
+              {% endif %}
+
             </div>
          
           </td>

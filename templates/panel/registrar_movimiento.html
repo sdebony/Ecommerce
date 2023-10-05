@@ -1,0 +1,182 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+<form action="{% url 'mov_registros' 0 %}" method="POST">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Registrar Movimiento <b> </b></h3>
+                    
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <div class="form-row">
+                    <div class="col form-group">
+                        <input type="text" name="idmov" id="idmov" class="form-control" value="{{ mov.id }}" hidden >
+                    </div>
+                    <div class="col form-group">
+                    </div>  
+                    <div class="col form-group">
+                    <div><B>
+                            <div class="col form-group">
+                                <label for="">Fecha:</label>
+                                {% if not mov.fecha %}
+                                    <input type="text" name="fecha" id="fecha" class="form-control" value="{{ fecha|date:'d/m/Y' }}"  required>
+                                {% else %}
+                                    <input type="text" name="fecha" id="fecha" class="form-control" value="{{ mov.fecha|date:'d/m/Y' }}"  required>
+                                {% endif %}
+                            </div>
+                            </B>
+                      </div>
+                      </div>
+                  </div>
+                  
+                  <div class="form-row">
+                    <div class="col form-group">
+                        <label for="">Cliente</label>
+                        <input type="text" name="cliente" id="cliente" class="form-control" value="{{ mov.cliente }}" >
+                        </div>
+
+                      <div class="col form-group">
+                        <label> Cuenta: </label>
+                        <select class="form-control" id="cuenta" name="cuenta">
+                        {% for item in cuentas %}
+                            {% if item.id == mov.cuenta.id %}
+                                <option value="{{item.id}}" selected >{{item.nombre}} - {{ item.moneda.moneda }} </option>
+                            {% else %}
+                                <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% endif%}
+                        {% endfor %}
+                        </select>
+                      </div>
+                      
+                  </div>
+                  
+                  <div class="form-row">
+                      <div class="col form-group">
+                      <label for="">Monto</label>
+                      <input type="text" name="monto" id="monto" class="form-control" value="{{ mov.monto }}"  required>
+                      </div>
+                      <div class="col form-group">
+                      <label for="">Tipo Movimiento </label>
+                      <select class="form-control" id="tipo_mov" name="tipo_mov">
+                        {% for item in operaciones %}
+                            {% if item.id  == mov.movimiento.id %}
+                                <option value="{{ item.codigo }}" selected >{{ item.movimiento }}</option>
+                            {% else %}
+                                <option value="{{ item.codigo }}">{{ item.movimiento }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  
+                    <div class="form-row">
+                      <div class="col form-group">
+                        <label for="">Observaciones</label>
+                        <textarea type="textarea" name="observaciones" id="observaciones" rows="3" class="form-control"> {{mov.observaciones}}</textarea>
+                        </div>
+                      
+                  </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Transferir</button>
+                    <a href="{% url 'panel_movimientos' %}" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}
+{% block js_page %}
+
+
+<script>
+
+   function buscarCuenta(combo)     {
+       
+        //console.log($("#caja_origen").val());
+       if (combo==1){
+            var cajas=$('#cuenta_origen').val();
+       }
+
+        if (cajas==0){
+            return false;
+        }
+        var path = "{% url 'api:cuentas_list' %}" + cajas;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+                console.log(r);
+                console.log(r.moneda);
+                //mensaje(r.moneda,'red');
+                
+                if (combo==1){
+                    
+                    $("#moneda_origen").val(r.moneda);
+                }
+                
+                
+            },
+        });
+    }
+
+    function calcular()
+    {
+        var monto_origen,conversion,monto_destino;
+
+        monto_origen = $("#monto_origen").val();
+     
+    }
+
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#cuenta_origen").change(function() {
+           console.log($("#cuenta_origen").val());
+           buscarCuenta(1);
+           
+        });
+
+
+        $('#monto_origen,#monto_destino,#conversion').change(function(){
+            calcular();
+        });
+
+        $("#cuenta_origen").val({{transferencia.caja_origen.id }}).change();
+
+        
+        
+        $("#cuenta_origen").data('select2').trigger('select', {
+            data: {"id":transferencia.caja_origen.id  }
+        });
+    });
+
+    
+   
+
+</script>
+
+{% endblock %}

@@ -46,7 +46,7 @@ class Order(models.Model):
 
     order_note = models.CharField(max_length=250, blank=True)
     order_total = models.FloatField()
-    envio = models.FloatField()
+    envio = models.FloatField()  #Monto Envio
     status = models.CharField(max_length=10, choices=STATUS, default='New')
     ip = models.CharField(blank=True, max_length=20)
     is_ordered = models.BooleanField(default=False)
@@ -66,6 +66,9 @@ class Order(models.Model):
     def status_id(self):
         return f'{self.status}'
 
+    @classmethod
+    def get_totales(cls):
+        return sum([Order.order_total for Orders in cls.objects.all()])
             
 
 class OrderProduct(models.Model):

@@ -7,20 +7,19 @@ from store.models import Product,Variation
 from orders.models import Order, OrderProduct,Payment,OrderShipping
 from category.models import Category
 from accounts.models import Account, UserProfile
-from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas
+from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail
 
 from accounts.forms import UserForm, UserProfileForm
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 
 import xlwt,xlrd
 import csv
-
-
 
 
 import os
@@ -41,12 +40,77 @@ def panel_home(request):
     if accesousuario.codigo.codigo =="PANEL":
         
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
         context = {
-            'permisousuario':permisousuario,
+            'permisousuario':permisousuario
             }
         print("Acceso Panel")
         return render (request,"panel/base.html",context)
+        
     print('Sin modulo PANEL')
+    return render(request,'dashboard',)
+    
+def dashboard_ventas(request):
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='DASHBOARD VENTAS')
+        else:
+            print("sin acceso")
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            print("exception")
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =="DASHBOARD VENTAS":
+        
+        fecha_1 = request.POST.get("fecha_desde")
+        fecha_2 = request.POST.get("fecha_hasta")     
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=90) 
+            fecha_desde = fecha_hasta - dias
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+        print(fecha_desde,fecha_hasta)
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=Sum('monto')).order_by('cuenta')
+        pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('status').annotate(cantidad=Count('order_number')).order_by('status')
+        
+        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name').annotate(total=Sum('order_total')).order_by('-order_total')[:5]
+      
+        hist_pedidos = []
+
+        for i in range(1, 13): 
+            payments_months = Order.objects.filter(fecha__month = i)
+            month_earnings = round(sum([Order.order_total for Order in payments_months]))
+            hist_pedidos.append(month_earnings)
+      
+
+        print(clientes)
+
+
+
+        form = []
+        context = {
+            'permisousuario':permisousuario,
+            'hist_pedidos':hist_pedidos,
+            'data': saldos,
+            'pedidos':pedidos,
+            'clientes':clientes,
+            'form': form,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta
+           
+            }
+        print("Acceso Panel")
+        return render (request,"panel/dashboard_ventas.html",context)
+    print('Sin acceso DASHBOARD VENTAS')
     return render(request,'dashboard',)
 
 def panel_product_list(request):
@@ -147,17 +211,14 @@ def panel_pedidos_list(request,status=None):
         fecha_2 = request.POST.get("fecha_hasta")     
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=30) 
+            dias = timedelta(days=240) 
             fecha_desde = fecha_hasta - dias
         else:
            
             fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
             fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
          
-          
-        
-      
-
+       
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         #ordenes = Order.objects.filter(status=status).order_by('-created_at')
         ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('-created_at')
@@ -185,6 +246,10 @@ def panel_pedidos_list(request,status=None):
         fecha_desde = fecha_desde.strftime("%d/%m/%Y")
         fecha_hasta = fecha_hasta.strftime("%d/%m/%Y")
 
+        amount_new = round(amount_new)
+        amount_cobrado = round(amount_cobrado)
+        amount_entregado = round(amount_entregado)
+
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
@@ -208,6 +273,58 @@ def panel_pedidos_list(request,status=None):
 
 def panel_pedidos_detalle(request,order_number=None):
 
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='PEDIDOS':
+        print("Ingreso")
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        ordenes = Order.objects.get(order_number=order_number)
+        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+        subtotal = ordenes.order_total - ordenes.envio
+        if ordenes.status=="New":
+            pago_pendiente=True
+            entrega_pendinete=False
+            entregado=False
+        elif ordenes.status=="Cobrado":
+            pago_pendiente=False
+            entrega_pendinete=True
+            entregado=False
+        elif ordenes.status=="Entregado":
+            pago_pendiente=False
+            entrega_pendinete=False
+            entregado=True
+
+        print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
+        
+        context = {
+            'ordenes':ordenes,
+            'permisousuario':permisousuario,
+            'ordenes_detalle':ordenes_detalle,
+            'subtotal': subtotal,
+            'pago_pendiente': pago_pendiente,
+            'entrega_pendinete':entrega_pendinete,
+            'entregado':entregado
+        }
+        
+        return render(request,'panel/pedidos_detalle.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def panel_pedidos_eliminar(request,order_number=None):
+
     
     try:
         if request.user.is_authenticated:
@@ -224,37 +341,20 @@ def panel_pedidos_detalle(request,order_number=None):
     #Si tiene acceso a PANEL
    
     if accesousuario.codigo.codigo =='PEDIDOS':
-
-        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
-        ordenes = Order.objects.get(order_number=order_number)
-        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
-        subtotal = ordenes.order_total - ordenes.envio
-        if ordenes.status=="New":
-            pago_pendiente=True
-            entrega_pendinete=False
-        elif ordenes.status=="Cobrado":
-            pago_pendiente=False
-            entrega_pendinete=True
-        elif ordenes.status=="Entregado":
-            pago_pendiente=False
-            entrega_pendinete=False
-
-        print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
+        print("Eliminar")
+        if order_number:
+                ordenes = Order.objects.get(order_number=order_number)
+                if ordenes:
+                    ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+                    if ordenes_detalle:
+                        ordenes_detalle.delete()
+                ordenes.delete()
+                messages.success(request,"Pedido eliminado con exito.")
         
-        context = {
-            'ordenes':ordenes,
-            'permisousuario':permisousuario,
-            'ordenes_detalle':ordenes_detalle,
-            'subtotal': subtotal,
-            'pago_pendiente': pago_pendiente,
-            'entrega_pendinete':entrega_pendinete,
-        }
-        print(ordenes)
-        return render(request,'panel/pedidos_detalle.html',context) 
+        return redirect('panel_pedidos','New')
 
     return render(request,'panel/login.html',)
-    
+
 def panel_productos_variantes(request):
     
     try:
@@ -920,8 +1020,8 @@ def panel_confirmar_pago(request,order_number=None):
        
         if request.method =="POST":
             # GRABAR TRX EN PAYMENT
-            total = 0
-            subtotal=0
+            total = 0  #Subtotal items + costo envio
+            subtotal=0  #Subtotal 
             envio=0
             quantity=0
             current_user = request.user
@@ -940,12 +1040,13 @@ def panel_confirmar_pago(request,order_number=None):
                 return redirect('store')
 
             for cart_item in ordered_products:
-                #total += (cart_item.product.price * cart_item.quantity)
-                subtotal += cart_item.product_price
+                #subtotal += (cart_item.product.price * cart_item.quantity) No se toma precio de lista
+                subtotal += (cart_item.product_price * cart_item.quantity)  #Precio ya cerrado
+                #subtotal += cart_item.product_price
                 quantity += cart_item.quantity
 
             total =  float(envio) + float(subtotal)
-            
+            print(total,quantity,subtotal)
             #GRABO TRANSACCION DE PAGO
             if order:
                 payment = Payment(
@@ -971,7 +1072,7 @@ def panel_confirmar_pago(request,order_number=None):
                 current_date = datetime.today()
                 oper = Operaciones.objects.filter(codigo="ING").first() #Ingresos
                 cuentas= Cuentas.objects.get(id=cuenta_id)
-                moneda = Monedas.objects.filter(codigo=cuentas.moneda.codigo).first()
+            
 
                 cliente = order.last_name + ", " + order.first_name
                 trx = Movimientos(
@@ -980,7 +1081,6 @@ def panel_confirmar_pago(request,order_number=None):
                         movimiento = oper,
                         cuenta = cuentas,
                         monto=total,
-                        moneda=moneda,
                         observaciones = "Cobro Trx: " + order.order_number,
                         idtransferencia = 0,
                         ordernumber = order, #Nro de orden
@@ -1020,6 +1120,38 @@ def panel_movimientos_list(request):
         }
         
         return render(request,'panel/lista_movimientos.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def panel_transferencias_list(request):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        transf = Transferencias.objects.filter()
+        cuentas = Cuentas.objects.all()
+        
+        context = {
+            'transf':transf,
+            'permisousuario':permisousuario,
+            'cuentas':cuentas,
+                       
+        }
+        
+        return render(request,'panel/lista_transferencias.html',context) 
 
     return render(request,'panel/login.html',)
 
@@ -1078,12 +1210,12 @@ def export_xls(request,modelo=None):
                 row_num=0
                 font_style= xlwt.Style.XFStyle()
                 font_style.font.bold = True
-                columns = ['fecha','cliente','movimiento','monto','moneda','observaciones','idtransferencia','ordernumber']
+                columns = ['fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber']
                 for col_num in range(len(columns)):
                     ws.write(row_num,col_num,columns[col_num],font_style)
                 font_style = xlwt.Style.XFStyle()
                 rows = Movimientos.objects.filter(cuenta=i).all().values_list(
-                    'fecha','cliente','movimiento','monto','moneda','observaciones','idtransferencia','ordernumber')
+                    'fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber')
                 for row in rows:
                     row_num += 1
                     for col_num in range(len(row)):
@@ -1862,7 +1994,7 @@ def guardar_tmp_pedidos(request,codigo=None):
                         dir_obs = pedidos_tmp.dir_obs,
                         dir_correo= pedidos_tmp.dir_correo,
                         order_total = pedidos_tmp.order_total,
-                        envio = pedidos_tmp.dir_correo,
+                        envio = 0,
                         status = "New",
                         is_ordered=True,
                         ip = request.META.get('REMOTE_ADDR')
@@ -1888,14 +2020,14 @@ def guardar_tmp_pedidos(request,codigo=None):
                                                 user = request.user,
                                                 product = producto,
                                                 quantity = item.quantity,
-                                                product_price = item.subtotal,
+                                                product_price = item.subtotal / item.quantity,  # EN LA IMPOSTARCION VIENE EL TOTAL NO PRECIO UNITARIO
                                                 ordered = True,
                                                 created_at = datetime.today(),
                                                 updated_at = datetime.today()
                                             )
                                         Order_Det_New.save()
                                         if Order_Det_New:
-                                            total_arts = total_arts+ item.subtotal
+                                            total_arts = total_arts + item.subtotal
                                         #Descuento Stock Articulos
                                         chk_prod.id = producto.id
                                         chk_prod.stock = chk_prod.stock - item.quantity
@@ -1936,16 +2068,16 @@ def guardar_tmp_pedidos(request,codigo=None):
 
 
                     if pedidos_tmp:
-                        print("Borro temp Pedidos:",id_pedido)
+                        print("1.Borro temp Pedidos:",id_pedido)
                         pedidos_tmp.id = id_pedido
                         pedidos_tmp.delete()
                     if detalle_tmp:
-                        #print("Borro temp Pedidos detalle")
+                        print("Borro temp Pedidos detalle")
                         detalle_tmp.delete()
                 
 
                 if pedidos_tmp:
-                    print("Borro temp Pedidos",id_pedido)
+                    print("2.Borro temp Pedidos",id_pedido)
                     pedidos_tmp.id = id_pedido
                     pedidos_tmp.delete()
                     detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
@@ -1972,35 +2104,131 @@ def guardar_tmp_pedidos(request,codigo=None):
     return render(request,'panel/importar_pedidos.html',context)
 
 def guardar_tmp_pedidos_all(request):
-
-    
-    
+      
     pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user).order_by('codigo')
     if pedidos_tmp:
         for pedido in pedidos_tmp:
             codigo = pedido.codigo
-            guardar_tmp_pedidos(request,codigo)
+            pedidos_tmp = ImportTempOrders.objects.filter(usuario=request.user,codigo=codigo).first()
+            if pedidos_tmp:
+                id_pedido=pedidos_tmp.id
+                order = Order.objects.filter(order_number=codigo)
+                if not order:
+                    #print("El pedido no existe, lo grabo")
+                    user_account = Account.objects.get(email=request.user)
+                    if user_account:
+                        
+                        Order_New = Order(
+                            order_number=codigo,
+                            first_name=pedidos_tmp.first_name,
+                            last_name=pedidos_tmp.last_name,
+                            email=pedidos_tmp.email,
+                            created_at=pedidos_tmp.created_at,
+                            fecha=pedidos_tmp.created_at,
+                            updated_at=pedidos_tmp.updated_at,
+                            user=user_account,
+                            dir_telefono=pedidos_tmp.dir_telefono,
+                            dir_calle=pedidos_tmp.dir_calle,
+                            dir_nro =pedidos_tmp.dir_nro,
+                            dir_localidad=pedidos_tmp.dir_localidad,
+                            dir_provincia=pedidos_tmp.dir_provincia,
+                            dir_cp = pedidos_tmp.dir_cp,
+                            dir_obs = pedidos_tmp.dir_obs,
+                            dir_correo= pedidos_tmp.dir_correo,
+                            order_total = pedidos_tmp.order_total,
+                            envio = 0,
+                            status = "New",
+                            is_ordered=True,
+                            ip = request.META.get('REMOTE_ADDR')
+                                ) 
+                        Order_New.save()
+                        if Order_New:
+                            id_pedido = Order_New.id
+                        else:
+                            id_pedido = 0
+                        #print("Encabezado: id", Order_New.id)
+                        if Order_New:
+                                detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
+                                total_arts = 0
+                                for item in detalle_tmp:
+
+                                    chk_prod= Product.objects.filter(product_name=item.product).first()
+                                    if chk_prod:
+                                        producto = Product.objects.get(product_name=item.product)
+                                        #print("Producto del Detalle:" , producto)
+                                        if producto:
+                                            Order_Det_New = OrderProduct(
+                                                    order = Order_New,
+                                                    user = request.user,
+                                                    product = producto,
+                                                    quantity = item.quantity,
+                                                    product_price = item.subtotal / item.quantity,  # EN LA IMPOSTARCION VIENE EL TOTAL NO PRECIO UNITARIO
+                                                    ordered = True,
+                                                    created_at = datetime.today(),
+                                                    updated_at = datetime.today()
+                                                )
+                                            Order_Det_New.save()
+                                            if Order_Det_New:
+                                                total_arts = total_arts + item.subtotal
+                                            #Descuento Stock Articulos
+                                            chk_prod.id = producto.id
+                                            chk_prod.stock = chk_prod.stock - item.quantity
+                                            chk_prod.save()
+
+                            #Actualizo Total Items                    
+                                Order_New.id = id_pedido
+                                Order_New.order_total = total_arts
+                                Order_New.save()
+
+                        #Guardo al cliente
+                        nuevo_usuario = Account.objects.filter(email=Order_New.email).first()
+                        if not nuevo_usuario:
+                            try:
+                                usr_name= Order_New.email
+                                i_end = usr_name.find('@')
+                                usr_name = usr_name[1:i_end]
+                                #print("usr_name",usr_name)
+                                newUser = Account(
+                                    first_name      = Order_New.first_name,
+                                    last_name       = Order_New.last_name,
+                                    username        = usr_name,
+                                    email           = Order_New.email,
+                                    phone_number    = Order_New.dir_telefono,
+                                    date_joined     = datetime.today(),
+                                    last_login      = datetime.today(),
+                                    is_admin        = False,
+                                    is_staff        = False,
+                                    is_active       = False,
+                                    is_superadmin   = False
+                                )
+                                newUser.save()
+                                #print("Se ingreso un nuevo cliente:", newUser.id)
+                            except Exception as err:
+                                print("Error no controlado: ",usr_name)
+                                print(f"Unexpected {err=}, {type(err)=}")
+                                pass
 
 
+                        if pedidos_tmp:
+                            print("1.Borro temp Pedidos:",id_pedido)
+                            pedidos_tmp.id = id_pedido
+                            pedidos_tmp.delete()
+                        if detalle_tmp:
+                            print("Borro temp Pedidos detalle")
+                            detalle_tmp.delete()
+                    
 
-     #Si tiene acceso a PANEL
-    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-    pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user).order_by('codigo')
-    articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user).order_by('codigo')
-    cant_ok = pedidos_tmp.count()
-    cant_error=0
-    error_str = ""
+                    if pedidos_tmp:
+                        print("2.Borro temp Pedidos",id_pedido)
+                        pedidos_tmp.id = id_pedido
+                        pedidos_tmp.delete()
+                        detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
+                        if detalle_tmp:
+                            detalle_tmp.delete()
+            
 
-    context = {
-                'cant_ok':cant_ok,
-                'permisousuario':permisousuario,
-                'cant_error':cant_error,
-                'error_str':error_str,
-                'pedidos_tmp':pedidos_tmp,
-                'articulos_tmp':articulos_tmp,
-                                        
-                }
-    return render(request,'panel/importar_pedidos.html',context)
+
+    return redirect('panel_pedidos','New') 
 
 def panel_registrar_entrega(request,order_number=None):
     
@@ -2068,15 +2296,468 @@ def panel_confirmar_entrega(request):
                             user = request.user
                             )
                         new_entrega.save()
-                        #print("Guardo entrega")
+                        print("Guardo entrega")
                         status = "Entregado"
                         if order:
                             order.status = status
                             order.save()
-                        #    print("Grabo etado pedido")
+                            print("Grabo etado pedido")
                     else:
                             print("Ya se entrego", order_number)
 
             return redirect('panel_pedidos','Cobrado') 
 
+    return render(request,'panel/login.html',)
+
+def panel_pedidos_eliminar_pago(request,order_number=None):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='PEDIDOS':
+        print("---->>>>>>>Eliminar: ",order_number)
+        try:
+            if order_number:
+                print("--->", order_number)
+                ordenes = Order.objects.get(order_number=order_number)
+                if ordenes:
+                    id_orden = ordenes.id
+                    id_pago = ordenes.payment.id
+                    print("ID Pago -->", id_pago)
+                    print("ID ORden --> ", id_orden)
+                    pago = Payment.objects.get(id=id_pago)
+                    id_pago = pago.id
+                    if pago:
+                       
+                        movimiento = Movimientos.objects.get(ordernumber=id_orden)
+                        if movimiento:
+                            id_mov = movimiento.id
+                            print("Mov --> ",id_mov )
+                            movimiento.id = id_mov
+                            movimiento.delete()
+                        else:
+                            print("Error al eliminar el movimiento")
+                        ordenes.id = id_orden
+                        ordenes.payment = ""
+                        ordenes.save()
+                        pago.id = id_pago
+                        pago.delete()
+                    else:
+                        print("Error en el medio de pago")
+                else:
+                    print("No se encontro el pedido")
+              
+                messages.success(request,"Pago Eliminado.")
+            else:
+                print("No se encontro el Nro de Orden")        
+            return redirect('panel_pedidos','New')
+        except Exception as err:
+            error_str=  f"Unexpected {err=}, {type(err)=}"
+            messages.error(request,"Error Exception:" + error_str,'red')
+            return redirect('panel_pedidos','New')
+
+    return render(request,'panel/login.html',)
+
+def panel_pedidos_eliminar_entrega(request,order_number=None):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL 
+    if accesousuario.codigo.codigo =='PEDIDOS':
+        print(">>>>Eliminar Entrega: ",order_number)
+        try:
+            if order_number:
+                print("--->", order_number)
+                ordenes = Order.objects.get(order_number=order_number)
+                if ordenes:
+                    id_ordenes = ordenes.id
+                    ordenes.id = ordenes.id
+                    ordenes.status = "Cobrado"
+                    ordenes.save()                    
+                    entrega = OrderShipping.objects.get(order=id_ordenes)
+                    if entrega:
+                        entrega.order = ordenes
+                        entrega.delete()
+                        messages.success(request,"Entrega Eliminado.")
+
+            else:
+                print("No se encontro el Nro de Orden")        
+                return redirect('panel_pedidos','New')
+        except Exception as err:
+            error_str=  f"Unexpected {err=}, {type(err)=}"
+            messages.error(request,"Error Exception:" + error_str,'red')
+            return redirect('panel_pedidos','Cobrado')
+        return redirect('panel_pedidos','Cobrado')
+
+    return render(request,'panel/login.html',)
+
+def panel_movimientos_transf(request,idtrans=None):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
+        if request.method == "GET":
+            if idtrans:
+                trans = Transferencias.objects.filter(pk=idtrans).first()
+            else:
+                trans = []
+
+            cuentas = Cuentas.objects.all()
+            fecha = datetime.today()
+            fecha = fecha.strftime("%d/%m/%Y")
+
+            context = {
+                'trans':trans,
+                'permisousuario':permisousuario,
+                'cuentas':cuentas,
+                'fecha':fecha,
+                        
+            }
+
+            return render(request,'panel/registrar_transferencia.html',context) 
+
+        if request.method =="POST":
+           
+            fecha=request.POST.get("fecha")
+            cliente=request.POST.get("cliente")
+            cuenta_origen=request.POST.get("cuenta_origen")
+            cuenta_destino=request.POST.get("cuenta_destino")
+            monto_origen=request.POST.get("monto_origen")
+            monto_destino=request.POST.get("monto_destino")
+            conversion=request.POST.get("conversion")
+            observaciones=request.POST.get("observaciones")
+            fecha_a_datetime = datetime.strptime(fecha, '%d/%m/%Y')
+
+            print(fecha,cliente,cuenta_origen,cuenta_destino,monto_origen,monto_destino,conversion,observaciones)
+            
+            if idtrans:
+                #Si modician Elimino y creo de nuevo
+                trans = Transferencias.objects.filter(pk=idtrans).first()
+                if trans:
+                    idtransfer=trans.id
+                    print("idtrans",idtransfer)
+                    trans.delete()
+                    mov1 = Movimientos.objects.filter(idtransferencia=idtransfer).all()
+                    if mov1:
+                        mov1.delete()
+                  
+
+            # ORIGEN
+            rs_cuenta1 = Cuentas.objects.filter(id=cuenta_origen).get()
+            rs_operacion1 = Operaciones.objects.filter(codigo="EGR").get()  #EGRESO
+            
+
+            #DESTINO
+            rs_cuenta2 = Cuentas.objects.filter(id=cuenta_destino).get()
+            rs_operacion2 = Operaciones.objects.filter(codigo="ING").get()  #INGRESO
+           
+
+            rs_operacion3 = Operaciones.objects.filter(codigo="TRF").get()  #TRANSFERENCIA
+
+            #TRANSFERENCIA 
+            trans = Transferencias (
+                fecha = fecha_a_datetime,
+                cliente = cliente,
+                movimiento=rs_operacion3,
+                cuenta_origen = rs_cuenta1,
+                cuenta_destino = rs_cuenta2,
+                monto_origen=monto_origen,
+                conversion=conversion,
+                monto_destino=monto_destino,
+                observaciones = observaciones
+                )
+            trans.save()
+            if trans:
+                idtrans = trans.id
+            print("Nueva Transfeencia: ", idtrans)
+
+            if float(monto_origen) > 1:
+                print(rs_operacion1.codigo)
+                if rs_operacion1.codigo=="EGR":
+                    monto_origen = float(monto_origen) * -1
+                    print(monto_origen)
+            mov = Movimientos (
+                fecha       =  fecha_a_datetime,
+                cliente     = cliente,
+                cuenta      = rs_cuenta1,
+                monto       = monto_origen,
+                idtransferencia = idtrans,
+                movimiento  = rs_operacion1,
+                observaciones = "Transf: " + str(idtrans) + " - " +  observaciones
+                )
+            mov.save()
+            if mov:
+                id_mov_origen = mov.id
+                print("Add Mov Origen", id_mov_origen)
+
+
+                mov2 = Movimientos (
+                    fecha       =  fecha_a_datetime,
+                    cliente     = cliente,
+                    cuenta      = rs_cuenta2,
+                    idtransferencia = idtrans,
+                    monto       = monto_destino,
+                    movimiento  = rs_operacion2,
+                    observaciones = "Transf: " + str(idtrans) + " - " +  observaciones
+                    )
+                mov2.save()
+                if mov2:
+                    id_mov_destino = mov2.id
+                    print("Add Mov Destino", id_mov_destino)
+                
+                #ACTUALIZO LOS NRO DE MOVIMIENTOS GENERADOS.
+                trans = Transferencias (
+                    id = idtrans,
+                    fecha = fecha_a_datetime,
+                    cliente = cliente,
+                    movimiento=rs_operacion3,
+                    cuenta_origen = rs_cuenta1,
+                    cuenta_destino = rs_cuenta2,
+                    monto_origen=monto_origen,
+                    conversion=conversion,
+                    monto_destino=monto_destino,
+                    observaciones = observaciones,
+                    idmov_origen = mov,
+                    idmov_destino = mov2
+                    )
+                trans.save()
+
+            return redirect('panel_transferencias') 
+
+
+    return render(request,'panel/login.html',)
+
+def registrar_movimiento(request,idmov=None):
+        
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='MOVIMIENTOS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='MOVIMIENTOS':
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+
+        if request.method == "GET":
+            if idmov:
+                mov = Movimientos.objects.filter(id=idmov).first()
+                print("getid",mov)
+            else:
+                mov = []
+
+            operaciones= Operaciones.objects.all()
+            cuentas = Cuentas.objects.all()
+            fecha = datetime.today()
+
+            context = {
+                'mov':mov,
+                'operaciones':operaciones,
+                'permisousuario':permisousuario,
+                'cuentas':cuentas,
+                'fecha':fecha,
+                        
+            }
+
+            return render(request,'panel/registrar_movimiento.html',context) 
+
+        if request.method=="POST":
+
+            idmov=request.POST.get("idmov")
+            fecha=request.POST.get("fecha")
+            cliente=request.POST.get("cliente")
+            cuenta=request.POST.get("cuenta")
+            monto=request.POST.get("monto")
+            tipo_mov=request.POST.get("tipo_mov")
+            observaciones=request.POST.get("observaciones")
+
+            rs_cuenta = Cuentas.objects.filter(id=cuenta).get()
+            rs_operacion = Operaciones.objects.filter(codigo=tipo_mov).get()
+           
+            
+            fecha_a_datetime = datetime.strptime(fecha, '%d/%m/%Y')
+            
+            
+            if float(monto) > 1:
+                if rs_operacion.codigo=="EGR":
+                    monto = float(monto) * -1
+                   
+            if idmov: 
+                movimiento = Movimientos.objects.filter(pk=idmov).get()
+                if movimiento:
+                    mov = Movimientos (
+                        id          = idmov,
+                        fecha       =  fecha_a_datetime,
+                        cliente     = cliente,
+                        cuenta      = rs_cuenta,
+                        monto       = monto,
+                        movimiento  = rs_operacion,
+                        observaciones = observaciones
+                        )
+                    mov.save()
+                    print("Update", idmov)
+            else:
+                mov = Movimientos (
+                    fecha       =  fecha_a_datetime,
+                    cliente     = cliente,
+                    cuenta      = rs_cuenta,
+                    monto       = monto,
+                    movimiento  = rs_operacion,
+                    observaciones = observaciones
+                    )
+                mov.save()
+                print("New")
+
+            #print("fecha",fecha)
+            #print("cliente",cliente)
+            #print("cuenta",rs_cuenta.id, rs_cuenta.moneda.id)
+            #print("monto",monto)
+            #print("tipo_mov",tipo_mov)
+            #print("observaciones",observaciones)
+
+        return redirect('panel_movimientos') 
+    
+    
+    return render(request,'panel/login.html',)
+
+def panel_transferencias_eliminar(request,idtrans=None):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
+        if request.method == "GET":
+            if idtrans:
+                trans = Transferencias.objects.filter(pk=idtrans).first()
+            else:
+                trans = []
+
+         
+            context = {
+                'trans':trans,
+                'permisousuario':permisousuario
+            }
+
+            return render(request,'panel/eliminar_transferencia.html',context) 
+
+        if request.method =="POST":
+           
+            #idtransfer=request.POST.get("idtransf")
+            print("Eliminar transferencia -->",idtrans)
+            if idtrans:
+                #Si modician Elimino y creo de nuevo
+                trans = Transferencias.objects.filter(pk=idtrans).first()
+                if trans:
+                    idtransfer=trans.id
+                    print("idtrans",idtransfer)
+                    trans.delete()
+                    mov1 = Movimientos.objects.filter(idtransferencia=idtransfer).all()
+                    if mov1:
+                        mov1.delete()
+                  
+
+            
+            return redirect('panel_transferencias') 
+
+
+    return render(request,'panel/login.html',)
+
+def panel_movimiento_eliminar(request,idmov=None):
+        
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='MOVIMIENTOS')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='MOVIMIENTOS':
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+
+        if request.method == "GET":
+            if idmov:
+                mov = Movimientos.objects.filter(id=idmov).first()
+                print("getid",mov)
+            else:
+                mov = []
+
+            context = {
+                'mov':mov,
+                'permisousuario':permisousuario
+            }
+
+            return render(request,'panel/eliminar_movimiento.html',context) 
+
+        if request.method=="POST":
+            print(idmov)
+            if idmov: 
+                movimiento = Movimientos.objects.filter(pk=idmov).get()
+                if movimiento: 
+                    movimiento.delete()
+                  
+        return redirect('panel_movimientos') 
+    
+    
     return render(request,'panel/login.html',)

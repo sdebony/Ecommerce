@@ -144,11 +144,20 @@
                 <div class="col-12">
                   <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
                  {% if pago_pendiente %}
-                  <button type="submit" class="btn btn-success float-right" ><i class="far fa-credit-card"></i>Registrar Pago</button>
+                  <a href="{% url 'registrar_pago' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Registrar Pago</a>
+                  <pre style='display:inline'  class="float-right"> </pre>
+                  <a href="{% url 'panel_pedidos_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
+                  
                   {% endif %} 
                   <pre style='display:inline'  class="float-right"> </pre>
                   {% if entrega_pendinete %} 
                     <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
+                    <pre style='display:inline'  class="float-right"> </pre>
+                    <a href="{% url 'panel_pedidos_eliminar_pago' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Pago</a>
+                  {% endif %} 
+
+                  {% if entregado %} 
+                    <a href="{% url 'panel_pedidos_eliminar_entrega' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Entrega</a> 
                   {% endif %} 
                    
                 </div>

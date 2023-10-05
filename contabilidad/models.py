@@ -59,7 +59,6 @@ class Movimientos(models.Model):
     movimiento=models.ForeignKey(Operaciones, on_delete=models.CASCADE,null=False)
     cuenta = models.ForeignKey(Cuentas, on_delete=models.CASCADE)
     monto=models.FloatField(default=0)
-    moneda=models.ForeignKey(Monedas,on_delete=models.CASCADE,null=False)
     observaciones = models.CharField(max_length=250,default='',null=False,blank=True)
     idtransferencia = models.BigIntegerField(default=0)
     ordernumber = models.ForeignKey(Order,on_delete=models.CASCADE,null=True)
@@ -71,4 +70,27 @@ class Movimientos(models.Model):
 
     class Meta:
         verbose_name_plural = "Movimientos"
+        ordering = ['-fecha','-id',]
+
+class Transferencias(models.Model):
+
+    fecha = models.DateField() 
+    cliente = models.CharField(max_length=100,null=True,default='')
+    movimiento=models.ForeignKey(Operaciones, on_delete=models.CASCADE,null=False)
+    cuenta_origen = models.ForeignKey(Cuentas, on_delete=models.CASCADE,related_name='cuenta_origen')
+    cuenta_destino = models.ForeignKey(Cuentas, on_delete=models.CASCADE,related_name='cuenta_destino')
+    monto_origen=models.FloatField(default=0)
+    conversion=models.FloatField(default=0)
+    monto_destino=models.FloatField(default=0)
+    observaciones = models.CharField(max_length=250,default='',null=False,blank=True)
+    idmov_origen = models.ForeignKey(Movimientos,on_delete=models.CASCADE,null=True,related_name='mov_origen')
+    idmov_destino = models.ForeignKey(Movimientos,on_delete=models.CASCADE,null=True,related_name='mov_destino')
+
+
+    def __str__(self):
+        return '{}'.format(self.id)
+
+
+    class Meta:
+        verbose_name_plural = "Transferencias"
         ordering = ['-fecha','-id',]

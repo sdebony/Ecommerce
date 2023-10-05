@@ -1,0 +1,256 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+  {% if trans %}
+    <form action="{% url 'mov_transferencia' trans.id %}" method="POST">
+  {% else %}
+    <form action="{% url 'mov_transferencia' 0 %}" method="POST">
+  {% endif %}
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Registrar Transferencia <b> </b></h3>
+                    
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <div class="form-row">
+                    
+                    <div class="col form-group">
+                      <div class="col form-group">
+                        <label for="">Cliente</label>
+                        <input type="text" name="cliente" id="cliente" class="form-control" value="{{ trans.cliente }}" >
+                        </div>
+                    </div>  
+                    <div>
+                      <div class="col form-group">
+                          <label for="">Fecha:</label>
+                          {% if not trans.fecha %}
+                              <input type="text" name="fecha" id="fecha" class="form-control" value="{{ fecha|date:'d/m/Y' }}"  required>
+                          {% else %}
+                              <input type="text" name="fecha" id="fecha" class="form-control" value="{{ trans.fecha|date:'d/m/Y' }}"  required>
+                          {% endif %}
+                      </div>
+                      
+                </div>
+                  </div>
+                  
+                  <div class="form-row">
+                      <div class="col form-group">
+                        <div class="col form-group">
+                            <label> Transferir de Cuenta</label>
+                                <select class="form-control" id="cuenta_origen" name="cuenta_origen">
+                                {% for item in cuentas %}
+                                  {% if item.nombre == trans.cuenta_origen.nombre %}
+                                      <option value="{{ item.id }}" selected >{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                                  {%else %}
+                                      <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                                  {% endif %}
+                                {% endfor %}
+                                </select>
+                          </div>
+                      </div>
+                      <div class="col form-group">
+                          <label> A Cuenta</label>
+                            <select class="form-control" id="cuenta_destino" name="cuenta_destino">
+                            {% for item in cuentas %}
+                              {% if item.nombre == trans.cuenta_destino.nombre %}
+                                <option value="{{ item.id }}" selected >{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                              {%else %}
+                                  <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                              {% endif %}
+                            {% endfor %}
+                            </select>
+                        
+                      </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="col form-group">
+                      
+                    </div>
+                  <div class="col form-group">
+                     
+                     
+                      
+                    </select> </div>
+                </div>
+                  <div class="form-row">
+                    <div class="col form-group">
+                        <div class="col form-group">  
+                        <label for="">Monto Origen</label>
+                        <input type="text" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen }}"  required>
+                        </div>
+                      </div>   
+                        <div class="col form-group">
+                        <label for="">Cotización</label>
+                        <input type="text" name="conversion" id="conversion" class="form-control" value="{{trans.conversion }}">
+                        </div>
+                        <div class="col form-group">
+                          <label for="">Monto Destino</label>
+                          <input type="text" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino }}"  >
+                          </div>
+                      
+                  </div>
+                  <div class="form-row">
+                    <div class="col form-group">
+                      <label for="">Observaciones</label>
+                      <textarea type="textarea" name="observaciones" id="observaciones" rows="3" class="form-control"> {{trans.observaciones}}</textarea>
+                      </div>
+                    
+                </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Transferir</button>
+                    <a href="{% url 'panel_transferencias' %}" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}
+{% block js_page %}
+
+
+<script>
+
+   function buscarCuenta(combo)     {
+       
+        //console.log($("#caja_origen").val());
+       if (combo==1){
+            var cajas=$('#cuenta_origen').val();
+       }
+       if (combo==2){
+            var cajas=$('#cuenta_destino').val();
+       }
+
+        if (cajas==0){
+            return false;
+        }
+        var path = "{% url 'api:cuentas_list' %}" + cajas;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+                console.log(r);
+                console.log(r.moneda);
+                //mensaje(r.moneda,'red');
+                
+                if (combo==1){
+                    
+                    $("#moneda_origen").val(r.moneda);
+                }
+                if (combo==2){
+                    
+                    $("#moneda_destino").val(r.moneda);
+                }
+                
+                
+            },
+        });
+    }
+
+    function calcular()
+    {
+        var monto_origen,conversion,monto_destino;
+
+        monto_origen = $("#monto_origen").val();
+        monto_destino = $("#monto_destino").val();
+        conversion = $("#conversion").val();
+        
+
+        if(conversion==""){
+            $('#conversion').val(0);
+        }
+
+        if(monto_destino==""){
+            $('#monto_destino').val(0);
+        }
+
+      
+
+        if (monto_origen>0&&conversion==0&&monto_destino>0){
+            conversion=monto_origen/conversion
+            $('#conversion').val(conversion);
+        
+            return false;
+        }
+
+        if (monto_origen>monto_destino&&conversion>0){
+            monto_destino = monto_origen / conversion
+            $('#monto_destino').val(monto_destino);
+        
+            return false;
+        }        
+    }
+
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#cuenta_origen").change(function() {
+           console.log($("#cuenta_origen").val());
+           buscarCuenta(1);
+           
+        });
+
+        $("#cuenta_destino").change(function() {
+           console.log($("#cuenta_destino").val());
+           buscarCuenta(2);
+           
+        });
+
+        $('#monto_origen,#monto_destino,#conversion').change(function(){
+            calcular();
+        });
+
+        $("#cuenta_origen").val({{transferencia.caja_origen.id }}).change();
+        $("#cuenta_destino").val({{transferencia.caja_destino.id }}).change();
+
+        
+        
+        $("#cuenta_origen").data('select2').trigger('select', {
+            data: {"id":transferencia.caja_origen.id  }
+        });
+
+        $("#cuenta_destino").data('select2').trigger('select', {
+            data: {"id":transferencia.caja_destino.id  }
+        });
+
+       
+
+        //$("#moneda_origen").data('select2').trigger('select', {
+        //    data: {"id":transferencia.moneda_origen.id  }   
+        //});
+        
+        //$("#moneda_destino").data('select2').trigger('select', {
+        //    data: {"id":transferencia.moneda_destino.id}
+        //});
+            
+    });
+
+    
+   
+
+</script>
+
+{% endblock %}

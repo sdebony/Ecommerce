@@ -5,9 +5,11 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 
-from .serializers import DireccionesSerializer
+from .serializers import DireccionesSerializer,CuentasSerializer
 from accounts.models import AccountDirecciones
+from contabilidad.models import Cuentas
 
+from django.db.models import Q
 
 class Direccion(APIView):
           
@@ -24,3 +26,23 @@ class DireccionesList(APIView):
         direccion = get_object_or_404(AccountDirecciones)
         data = DireccionesSerializer(direccion,many=True).data
         return Response(data)
+
+class CuentasList(APIView):
+          
+    def get(self,request,cuenta):
+        print("Cuentas API List")
+        cuentas = get_object_or_404(Cuentas,Q(id=cuenta))
+        data = CuentasSerializer(cuentas).data
+        return Response(data)
+
+class CuentasApi(APIView):
+          
+    def get(self,request):
+        print("Cuentas API ")
+        cuentas = Cuentas.objects.all()
+        data = CuentasSerializer(cuentas,many=True).data
+        return Response(data)
+
+
+     
+     

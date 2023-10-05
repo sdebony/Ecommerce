@@ -6,10 +6,10 @@
 
 <div class="card shadow mb-6">
   <!-- Card Header - Dropdown -->
-
+  <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary " >PANEL DE PEDIDOS - ({{ cantidad }})</h6>
-    <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
+    <h6 class="m-2 font-weight-bold text-primary " >PANEL DE PEDIDOS - {{ cantidad }}</h6>
+  
       {% csrf_token %}
         <div class="dropdown no-arrow">Desde:
           <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />
@@ -29,7 +29,7 @@
             <div class="row no-gutters align-items-center">
               <div class="col mr-2">
                 <a href="{% url 'panel_pedidos' 'New'  %}">
-                  <div class="text-s font-weight-bold text-primary text-uppercase mb-1"> Nuevo ({{ cantidad_new }})</div>
+                  <div class="text-s font-weight-bold text-primary text-uppercase mb-1"> Pend de Facturar {{ cantidad_new }}</div>
                 <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_new}} </div>
                 
               </a>
@@ -48,7 +48,7 @@
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
               <a href="{% url 'panel_pedidos' 'Cobrado'  %}">
-                <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Cobrados ({{ cantidad_cobrado}})</div>
+                <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Pend de Entregar {{ cantidad_cobrado}}</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_cobrado}} </div>           
             </a>
             </div>
@@ -86,11 +86,6 @@
     </div>
   </div>    
     
-    
-    
-
-
-
 
 
   <!-- Card Body -->
@@ -120,7 +115,7 @@
           <th data-sortable="true" data-field="email">email</th>
           <th data-sortable="true" data-field="order_total">order_total</th>
           <th data-sortable="true" data-field="status">status</th>
-          <th data-sortable="true" data-field="created_at">Fecha </th>
+          <th data-sortable="true" data-field="fecha">Fecha </th>
          
 
       </thead>

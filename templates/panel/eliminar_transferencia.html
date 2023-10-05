@@ -1,0 +1,62 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<section class="section-conten padding-y bg">
+    <form action="{% url 'panel_transferencias_eliminar' trans.id  %}" enctype="multipart/form-data" method="POST">
+        {% csrf_token %}
+        <div class="container">
+            <div class="row">
+            <main class="col-md-9">
+                <article class="card">
+                <header class="card-header">
+                    <center><strong class="d-inline-block mr-8"><h3>Eliminar Transaferencia: {{ trans.id }}</h3></strong></center>
+                    <input type="number" name="idtransf" id="idtransf" class="form-control" value="{{ trans.id }}" disabled >
+                </header>
+                <div class="card-body">
+                    
+                    <div class="row">
+                    <div class="col-md-12">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Nombre</label>
+                                    <b>{{ trans.cliente }} </b>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>fecha: </label>
+                                    <b>{{trans.fecha  | date:"d/m/Y"}} </b>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Origen: </label>
+                                    <b>{{trans.cuenta_origen}}</b>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Destino: </label>
+                                    <b>{{trans.cuenta_destino}} </b>
+                                    
+                                </div>
+                            </div>
+                            <h5 class="mb-0">
+                            <span style="float: right;">
+                                <button type="submit" class="btn btn-danger"><span class=""></span> Eliminar </button>
+                                <a href="{% url 'panel_transferencias' %}" class="btn btn-secondary">Cancelar</a>
+                            </span></h5>
+                    </div>
+
+                    </div> <!-- row.// -->
+                </div> <!-- card-body .// -->
+
+                </article> <!-- order-group.// -->
+            </main>
+        </div> <!-- row.// -->
+        </div>
+    </form>
+
+</section>
+
+{% endblock %}
+{% block js_page %}
+{% endblock %}

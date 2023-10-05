@@ -1,0 +1,74 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Transferencias</h6>
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <a href="#" class="btn btn-secondary">Exportar xls</a>
+      
+    </div>
+  </div>
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not transf %}
+    <div class="alert alert-info">No Hay Transferencias</div>
+    {% endif %}
+    <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'mov_transferencia' 0 %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
+    
+
+    <table 
+    id="table"
+    data-toggle="table"
+    data-pagination="false"
+    data-search="true"
+    data-show-columns="false"
+    data-show-toggle="false"
+    data-show-fullscreen="false"
+    data-toolbar=".buttons-toolbar"
+    data-locale="es-AR"
+  >
+      <thead>
+          <th data-sortable="true" data-field="id">Id</th>        
+          <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="cliente">Cliente</th>
+          <th data-sortable="true" data-field="cuenta_oigen">Origen</th>
+          <th data-sortable="true" data-field="monto_orgien">Monto Origen</th>
+          <th data-sortable="true" data-field="conversion">Conversion</th>
+          <th data-sortable="true" data-field="cuenta_destino">Destino</th>
+          <th data-sortable="true" data-field="monto_destino">Monto Destino</th>
+          <th data-sortable="true" data-field="Observaciones">Observaciones</th>
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in transf %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.fecha | date:"d/m/Y" }}</td>
+          <td>{{ item.cliente }}</td>
+          <td>{{ item.cuenta_origen}}</td>
+          <td>{{ item.monto_origen }} </td>
+          <td>{{ item.conversion}}</td>
+          <td>{{ item.cuenta_destino }}</td>
+          <td>{{ item.monto_destino }}</td>
+          <td>{{ item.observaciones }}</td>
+          <td>
+            <a href="{% url 'mov_transferencia' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
+            <a href="{% url 'panel_transferencias_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

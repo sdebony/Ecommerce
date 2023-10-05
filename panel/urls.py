@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.panel_home, name='panel'),
+    path('dashboard/ventas', views.dashboard_ventas, name='dashboard_ventas'),
     #PRODUCTOS
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
     path('producto/<int:product_id>', views.panel_product_detalle, name='panel_producto_detalle'),
@@ -35,11 +36,10 @@ urlpatterns = [
     path('pedidos/import/pedidos/all/', views.guardar_tmp_pedidos_all, name='panel_guardar_tmp_pedidos_all'), 
     path('pedidos/entregas/<str:order_number>', views.panel_registrar_entrega, name='panel_registrar_entrega'), 
     path('pedidos/entregas/', views.panel_confirmar_entrega, name='panel_confirmar_entrega'), 
-    
-
-    
-
-    
+    path('pedidos/eliminar/pago/<str:order_number>', views.panel_pedidos_eliminar_pago, name='panel_pedidos_eliminar_pago'), 
+    path('pedidos/eliminar/<str:order_number>', views.panel_pedidos_eliminar, name='panel_pedidos_eliminar'), 
+    path('pedidos/eliminar/entrega/<str:order_number>', views.panel_pedidos_eliminar_entrega, name='panel_pedidos_eliminar_entrega'), 
+     
     #USUARIOS
     path('usuarios/', views.panel_usuario_list, name='panel_usuarios'),
     #    *****Listado de usuario
@@ -55,6 +55,13 @@ urlpatterns = [
     #MOVIMIENTOS
     path('mov/', views.panel_movimientos_list, name='panel_movimientos'),
     path('mov/export_xls/<int:modelo>',views.export_xls, name="mov_export_xls"),
+    path('mov/transferencia/<int:idtrans>',views.panel_movimientos_transf, name="mov_transferencia"),
+    path('mov/tranf/', views.panel_transferencias_list, name='panel_transferencias'),
+    path('mov/tranf/del/<int:idtrans>', views.panel_transferencias_eliminar, name='panel_transferencias_eliminar'),
+    path('mov/registros/<int:idmov>',views.registrar_movimiento, name="mov_registros"),
+    path('mov/mov/del/<int:idmov>', views.panel_movimiento_eliminar, name='panel_movimiento_eliminar'),
+
+    
     
     
     

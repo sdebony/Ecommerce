@@ -1,0 +1,266 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+        <div class="container-fluid">
+
+            <!-- Page Heading -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                <form action="{% url 'dashboard_ventas' %}" enctype="multipart/form-data" method="POST">
+                
+                  {% csrf_token %}
+                  <div class="dropdown no-arrow">Desde:
+                    <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde  | date:'d/m/Y' }}" />
+                          Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta | date:'d/m/Y' }}"/>
+                          <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+                  </div>
+                </form>
+            </div>
+    
+            <!-- Content Row -->
+            
+    
+            <!-- Content Row -->
+    
+            <div class="row">
+              <!-- Area Chart -->
+                <div class="col-xl-8 col-lg-7">
+                  <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                      <div
+                          class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                          <h6 class="m-0 font-weight-bold text-primary">$ Ventas Anuales</h6>
+                         
+                      </div>
+                      <!-- Card Body -->
+                        <div class="card-body">
+                          <h1> </h1>
+                                            <!-- CHART-->
+                  <div class="col-md-12">
+                    <canvas id="myChart3" width="400" height="250"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChart3').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: [  'Ene',  'Feb',  'Mar',  'Abr',  'May',  'Jun',  'Jul',  'Ago',  'Sep',  'Oct',  'Nov',  'Dic', ],
+                        datasets: [{
+                            label: '#Ventas anuales',
+                            data: [{% for data in hist_pedidos %} '{{ data  }}', {% endfor %}],
+                            backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                  ],
+                                
+                                    borderWidth: 1
+                        }]
+                            },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        stacked: true
+                                    }
+  
+                                }]
+                            }
+                        }
+                        });
+                    </script>
+                </div>
+                 <!-- FIN CHART-->
+                            <!-- FIN CHART-->
+                        </div>
+                  </div>
+                </div>
+                <!-- Fin Area Chart -->
+                <!-- Pie Chart -->
+                <div class="col-xl-4 col-lg-5">
+                    <div class="card shadow mb-4">
+                        <!-- Card Header - Dropdown -->
+                        <div
+                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary"># Estados de los Pedidos</h6>                       
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="chart-pie pt-4 pb-2">
+                              <canvas id="myChart2" width="400" height="200"></canvas>
+                              <script>
+                                  var ctx = document.getElementById('myChart2').getContext('2d');
+                                  var myChart = new Chart(ctx, {
+                                      type: 'doughnut',
+                                      data: {
+                                          labels: [{% for pedidos in pedidos %} '{{ pedidos.status }}', {% endfor %}],
+                                  datasets: [{
+                                      label: '#Saldo de cuentas',
+                                      data: [{% for pedidos in pedidos %} {{ pedidos.cantidad }}, {% endfor %}],
+                                      backgroundColor: [
+                                          'rgba(255, 99, 132, 1)',
+                                          'rgba(54, 162, 235, 1)',
+                                          'rgba(255, 206, 86, 1)',
+                                          'rgba(75, 192, 192, 1)',
+                                          'rgba(153, 102, 255, 1)',
+                                          'rgba(255, 159, 64, 1)'
+                                            ],
+                                            borderColor: [
+                                            'rgba(255, 99, 132, 1)',
+                                            'rgba(54, 162, 235, 1)',
+                                            'rgba(255, 206, 86, 1)',
+                                            'rgba(75, 192, 192, 1)',
+                                            'rgba(153, 102, 255, 1)',
+                                            'rgba(255, 159, 64, 1)'
+                                            ],
+                                              borderWidth: 1
+                                  }]
+                                      },
+                                  options: {
+                                      scales: {
+                                          yAxes: [{
+                                              ticks: {
+                                                  beginAtZero: true,
+                                                  stacked: true
+                                              }
+                                            }]
+                                      }
+                                  }
+                                  });
+                              </script>
+                            </div>
+                            <div class="mt-4 text-center small">
+                               Cantidad de Pedidos
+                            </div>
+                        </div>
+                        <!-- End Card Body-->          
+                    </div>
+  
+                    <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                          <h6 class="m-0 font-weight-bold text-primary"># Top 5 Clientes </h6>
+                      </div>
+  
+                      <div class="card-body">
+                        <div class="chart-pie pt-4 pb-2">
+                          <canvas id="myChart5" width="400" height="200"></canvas>
+                          <script>
+                            var ctx = document.getElementById('myChart5').getContext('2d');
+                            var myChart = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: [{% for data in clientes %} '{{ data.last_name }}', {% endfor %}],
+                            datasets: [{
+                                label: 'Clientes',
+                                data: [{% for data in clientes %} {{ data.total }}, {% endfor %}],
+                                backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(255, 159, 64, 0.2)',
+                                        'rgba(255, 205, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(153, 102, 255, 0.2)',
+                                        'rgba(201, 203, 207, 0.2)'
+                                      ],
+                                      borderColor: [
+                                        'rgb(255, 99, 132)',
+                                        'rgb(255, 159, 64)',
+                                        'rgb(255, 205, 86)',
+                                        'rgb(75, 192, 192)',
+                                        'rgb(54, 162, 235)',
+                                        'rgb(153, 102, 255)',
+                                        'rgb(201, 203, 207)'
+                                      ],
+                                        borderWidth: 1
+                            }]
+                                },
+                            options: {
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true,
+                                            stacked: true
+                                        }
+  
+                                    }]
+                                }
+                            }
+                            });
+                        </script>
+                        </div>
+  
+                      </div>
+                    </div>  
+                </div>
+            </div>
+      </div>
+          <!-- Area Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">$ Saldo de Cuentas</h6>
+                   
+                </div>
+                <!-- Card Body -->
+                  <div class="card-body">
+                    <h1> </h1>
+                      <!-- CHART-->
+                      <div class="col-md-12">
+                        <canvas id="myChart" width="400" height="200"></canvas>
+                        <script>
+                            var ctx = document.getElementById('myChart').getContext('2d');
+                            var myChart = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: [{% for data in data %} '{{ data.cuenta__nombre }}', {% endfor %}],
+                            datasets: [{
+                                label: '#Saldo de cuentas',
+                                data: [{% for data in data %} {{ data.total }}, {% endfor %}],
+                                backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(255, 159, 64, 0.2)',
+                                        'rgba(255, 205, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(153, 102, 255, 0.2)',
+                                        'rgba(201, 203, 207, 0.2)'
+                                      ],
+                                      borderColor: [
+                                        'rgb(255, 99, 132)',
+                                        'rgb(255, 159, 64)',
+                                        'rgb(255, 205, 86)',
+                                        'rgb(75, 192, 192)',
+                                        'rgb(54, 162, 235)',
+                                        'rgb(153, 102, 255)',
+                                        'rgb(201, 203, 207)'
+                                      ],
+                                        borderWidth: 1
+                            }]
+                                },
+                            options: {
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: true,
+                                            stacked: true
+                                        }
+  
+                                    }]
+                                }
+                            }
+                            });
+                        </script>
+                      </div>
+                      <!-- FIN CHART-->
+                  </div>
+                <!-- Card Body Fin -->
+                  
+            </div>
+        </div>
+        <!-- Fin Area Chart -->
+  
+
+        
+{% endblock %}
