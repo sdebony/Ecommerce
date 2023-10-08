@@ -11,12 +11,15 @@ from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Trans
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail
 
 from accounts.forms import UserForm, UserProfileForm
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count,Max
 from django.http import HttpResponse
 from slugify import slugify
-from datetime import datetime, timedelta
+from datetime import timedelta,datetime
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+
+
+from django.db import connection
 
 import xlwt,xlrd
 import csv
@@ -90,19 +93,35 @@ def dashboard_ventas(request):
             payments_months = Order.objects.filter(fecha__month = i)
             month_earnings = round(sum([Order.order_total for Order in payments_months]))
             hist_pedidos.append(month_earnings)
-      
-        #print(clientes)
 
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        lim_fecha_desde = datetime(yr,mt,dt)
+ 
+        mt = int(mt) + 1
+        lim_fecha_hasta = datetime(yr,mt,dt)
+        lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
+        print ("lim_fecha_hasta",lim_fecha_hasta )
+        print ("lim_fecha_desde",lim_fecha_desde )
+        
+        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
+       
+
+       
         form = []
         context = {
             'permisousuario':permisousuario,
             'hist_pedidos':hist_pedidos,
             'data': saldos,
+            'cuentas':cuentas,
             'pedidos':pedidos,
             'clientes':clientes,
             'form': form,
             'fecha_desde':fecha_desde,
-            'fecha_hasta':fecha_hasta
+            'fecha_hasta':fecha_hasta,
+            'lim_fecha_desde':lim_fecha_desde,
+            'lim_fecha_hasta':lim_fecha_hasta
            
             }
         print("Acceso Panel")
@@ -1715,10 +1734,8 @@ def import_pedidos_xls(request):
                                 str_field       = "correo"
                                 correo =    str(sheet1.cell_value(rowNumber, 6))  #Entrega en correo
                                 if correo[0:2].lower().strip() =="si":
-                                    print("Correo Argentino SI", correo[0:2].lower().strip() )
                                     bcorreo = True
                                 else:
-                                    print("Correo Argentino NO", correo[0:2].lower().strip() )
                                     bcorreo = False
 
                                 nombre_completo= str(sheet1.cell_value(rowNumber, 5))
@@ -1779,7 +1796,8 @@ def import_pedidos_xls(request):
                                     new_pedido.save()
                                 
                                     if new_pedido:       
-                                        #LINEAS DE ARTICULOS                                
+                                        #LINEAS DE ARTICULOS
+                                        #print(mensaje)                                
                                         if "?pedido=" in mensaje:
                                             i_start_ped = mensaje.find('?pedido=')
                                             i_end_ped = mensaje.find('*',i_start_ped)
@@ -1815,22 +1833,22 @@ def import_pedidos_xls(request):
                                                     i_ini_linea = linea.find('*')+1
                                                     i_fin_linea = linea.find('*',i_ini_linea)
                                                     quantity = linea[i_ini_linea:i_fin_linea]
-                                                    #print("quantity:",quantity)
+                                                    print("quantity:",quantity)
                                                     linea = linea[i_fin_linea+1:len(linea)]
                                                     # ** PRODUCTO **
                                                     i_ini_linea = linea.find('*')+1
                                                     i_fin_linea = linea.find('*',i_ini_linea)
                                                     product = linea[i_ini_linea:i_fin_linea]  #.strip().replace('\r','').replace('\n')
-                                                    #print("Producto ", product)
+                                                    print("Producto ", product)
                                                     linea = linea[i_fin_linea+1:len(linea)]
                                                     # ** SUBTOTAL **
                                                     i_ini_linea = linea.find('$')+1
-                                                    #print("linea",linea[i_ini_linea:len(linea)])
+                                                    print("linea",linea[i_ini_linea:len(linea)])
                                                     subtotal = float(linea[i_ini_linea:len(linea)])
-                                                    #print("subtotal ", str(subtotal))
+                                                    print("subtotal ", str(subtotal))
                                                     if subtotal>0:
                                                         total_items = total_items + subtotal
-                                                    #print("Total Items",str(total_items))
+                                                    print("Total Items",str(total_items))
                                                     
                                                     try:
                                                         codigo = codigo
@@ -2758,3 +2776,34 @@ def panel_movimiento_eliminar(request,idmov=None):
     
     
     return render(request,'panel/login.html',)
+
+def get_usage_percentage_for_all_accounts(fecha_inicio, fecha_fin):
+    """Obtiene el porcentaje de uso del límite establecido en todas las cuentas para un rango de fechas determinado.
+    Args:
+        fecha_inicio (str): La fecha de inicio del rango de fechas.
+        fecha_fin (str): La fecha de fin del rango de fechas.
+    Returns:
+        list: Una lista de diccionarios, donde cada diccionario contiene el nombre de la cuenta, el total de monto de las transacciones, el límite establecido en la cuenta y el porcentaje de uso del límite.
+    """
+    # Obtiene el total de monto de las transacciones realizadas en el rango de fechas especificado para cada cuenta.
+    subconsulta = Movimientos.objects.filter(
+        fecha__gte=fecha_inicio,
+        fecha__lte=fecha_fin,   
+    ).values('cuenta_id').annotate(monto_total=Sum('monto'))
+    # Realiza un JOIN entre la tabla `cuentas` y la subconsulta, para obtener el nombre de la cuenta, el total de monto de las transacciones y el límite establecido en cada cuenta.
+    cuentas = Cuentas.objects.all().select_related('cuenta').annotate(
+        monto_total=Subquery(subconsulta, field='cuenta_id'),
+    )
+    # Calcula el porcentaje de uso del límite para cada cuenta.
+    porcentajes_uso = []
+    for cuenta in cuentas:
+        porcentaje_uso = (cuenta.monto_total / cuenta.limite) * 100
+        porcentajes_uso.append({
+            'nombre': cuenta.nombre,
+            'monto_total': cuenta.monto_total,
+            'limite': cuenta.limite,
+            'porcentaje_uso': porcentaje_uso,
+        })
+    # Crea un queryset para mostrar los resultados en HTML.
+    queryset = QuerySet(porcentajes_uso)
+    return queryset

@@ -1,5 +1,6 @@
 from django.db import models
 
+from django.db.models import Sum
 
 from orders.models import Order
 # Create your models here.
@@ -26,7 +27,7 @@ class Cuentas(models.Model):
     nombre      = models.CharField('Nombre', max_length=25,unique=True)
     descripcion = models.CharField('Descripcion',max_length=50,default='')
     moneda      =  models.ForeignKey(Monedas, on_delete=models.CASCADE, null=False)
-    limite      = models.IntegerField() #Importe maximo mensual
+    limite      = models.IntegerField(default=0) #Importe maximo mensual
     is_available    = models.BooleanField(default=True)
     
     def __str__(self):
