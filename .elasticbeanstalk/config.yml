@@ -1,6 +1,10 @@
 branch-defaults:
   main:
     environment: django-ecomm-env
+environment-defaults:
+  django-ecomm-env:
+    branch: null
+    repository: null
 global:
   application_name: django-ecomm-app
   branch: null
