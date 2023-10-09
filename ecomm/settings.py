@@ -95,12 +95,12 @@ AUTH_USER_MODEL = 'accounts.Account'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': config('ENGINE'),
-#        'NAME': BASE_DIR / config('DB_NAME'),
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': config('ENGINE'),
+        'NAME': BASE_DIR / config('DB_NAME'),
+    }
+}
 
 
 # Password validation

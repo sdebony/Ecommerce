@@ -12,7 +12,7 @@ global:
   default_platform: Python 3.8
   default_region: us-west-2
   include_git_submodules: true
-  instance_profile: null
+  instance_profile: i-0a59821c04a37be77
   platform_name: null
   platform_version: null
   profile: eb-cli
