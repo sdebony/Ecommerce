@@ -27,6 +27,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 #DEBUG = config('DEBUG', default=True, cast=bool) # True
 
+#ALLOWED_HOSTS = ['localhost']
 ALLOWED_HOSTS = ['django-ecomm-env.eba-ktzcwhce.us-west-2.elasticbeanstalk.com']
                   
 
