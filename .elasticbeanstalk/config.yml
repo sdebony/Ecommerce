@@ -1,6 +1,6 @@
 branch-defaults:
   main:
-    environment: null
+    environment: django-ecomm-env
     group_suffix: null
 environment-defaults:
   django-ecomm-env:
