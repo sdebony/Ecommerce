@@ -21,13 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+#SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
-#DEBUG = config('DEBUG', default=True, cast=bool) # True
+#DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
 #ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
                   
 
@@ -95,14 +96,19 @@ AUTH_USER_MODEL = 'accounts.Account'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': config('ENGINE'),
+#        'NAME': BASE_DIR / config('DB_NAME'),
+#    }
+#}
+
 DATABASES = {
     'default': {
-        'ENGINE': config('ENGINE'),
-        'NAME': BASE_DIR / config('DB_NAME'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
