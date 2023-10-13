@@ -87,7 +87,7 @@ class UserProfile(models.Model):
         return f'{self.address_line_1} {self.address_line_2}'
 
 class Permition(models.Model):
-    codigo  = models.CharField(max_length=10)
+    codigo  = models.CharField(max_length=25)
     permiso = models.CharField(max_length=100)
     rootpath = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=255,blank=True)

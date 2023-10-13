@@ -104,8 +104,10 @@ def dashboard_ventas(request):
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
         print ("lim_fecha_hasta",lim_fecha_hasta )
         print ("lim_fecha_desde",lim_fecha_desde )
-        
-        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
+
+        mov_ing = Operaciones.objects.filter(codigo='ING').first()
+        #Solo los ingresos
+        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
        
 
        

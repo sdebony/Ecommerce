@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = config('DEBUG', default=False, cast=bool)
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
 #ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']

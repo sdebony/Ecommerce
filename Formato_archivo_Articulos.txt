@@ -1,0 +1,17 @@
+1) Nombre del archivo con extension xls
+2) Nombre del archivo sin espacios
+3) Orden de los campos - Linea 1 - Encabezado
+			 Linea 2 - Datos
+
+	Campos:
+	A = Nombre
+	B = Descripcion
+	C= Variedades Categoria
+	D = Variedades Valor
+	E = Precio
+	F = Imagen URL
+	G= Stock
+	H = Habilitado para venta Fornt (default=False)
+	I = Categoria
+
+		
