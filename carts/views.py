@@ -190,6 +190,7 @@ def cart(request, total=0, quantity=0, cart_items=None):
 @login_required(login_url='login')
 def checkout(request, total=0, quantity=0, cart_items=None):
     try:
+        print("Checkout")
         envio = 0
         grand_total = 0
         if request.user.is_authenticated:

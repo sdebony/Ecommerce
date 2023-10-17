@@ -40,7 +40,27 @@ class Cuentas(models.Model):
     class Meta:        
         verbose_name = "Cuenta"
         verbose_name_plural = "Cuentas"
-        
+
+class Cierres(models.Model):
+
+    fecha = models.DateField(null=False) 
+    mes = models.BigIntegerField(null=False)
+    ano = models.BigIntegerField(null=False)
+    cuenta = models.ForeignKey(Cuentas, on_delete=models.CASCADE)
+    total_ultimo_cierre=models.FloatField(default=0) #Saldo cierre anterior ajustado (REAL)
+    total_movimientos_registrados=models.FloatField(default=0) #Sumatoria de movimientos (ING + EGR) en el período
+    total_saldo_real=models.FloatField(default=0)  # Saldo real de la cuenta
+    total_diferencia=models.FloatField(default=0)  # Saldo real - total movimientos registrados
+    observaciones = models.CharField(max_length=250,default='',null=False,blank=True)
+
+    def __str__(self):
+        return '{}'.format(self.id)
+
+
+    class Meta:
+        verbose_name_plural = "Cierres"
+        ordering = ['-fecha','-id',]
+
 class Operaciones(models.Model):
         
     codigo = models.CharField(max_length=3)
@@ -63,7 +83,8 @@ class Movimientos(models.Model):
     observaciones = models.CharField(max_length=250,default='',null=False,blank=True)
     idtransferencia = models.BigIntegerField(default=0)
     ordernumber = models.ForeignKey(Order,on_delete=models.CASCADE,null=True)
-
+    idcierre = models.ForeignKey(Cierres, on_delete=models.CASCADE,null=True)
+    
 
     def __str__(self):
         return '{}'.format(self.id)
@@ -95,3 +116,4 @@ class Transferencias(models.Model):
     class Meta:
         verbose_name_plural = "Transferencias"
         ordering = ['-fecha','-id',]
+

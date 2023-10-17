@@ -63,7 +63,6 @@ def register(request):
     }
     return render(request, 'accounts/register.html', context)
 
-
 def login(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -128,13 +127,11 @@ def login(request):
             return redirect('login')
     return render(request, 'accounts/login.html')
 
-
 @login_required(login_url = 'login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'You are logged out.')
     return redirect('login')
-
 
 def activate(request, uidb64, token):
     try:
@@ -151,7 +148,6 @@ def activate(request, uidb64, token):
     else:
         messages.error(request, 'Invalid activation link')
         return redirect('register')
-
 
 @login_required(login_url = 'login')
 def dashboard(request):
@@ -230,7 +226,6 @@ def dashboard(request):
         
             return render(request, 'accounts/dashboard.html', context)
 
-
 def forgotPassword(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -257,7 +252,6 @@ def forgotPassword(request):
             return redirect('forgotPassword')
     return render(request, 'accounts/forgotPassword.html')
 
-
 def resetpassword_validate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -272,7 +266,6 @@ def resetpassword_validate(request, uidb64, token):
     else:
         messages.error(request, 'This link has been expired!')
         return redirect('login')
-
 
 def resetPassword(request):
     if request.method == 'POST':
@@ -292,7 +285,6 @@ def resetPassword(request):
     else:
         return render(request, 'accounts/resetPassword.html')
 
-
 @login_required(login_url='login')
 def my_orders(request):
 
@@ -305,7 +297,6 @@ def my_orders(request):
         'orders': orders,
     }
     return render(request, 'accounts/my_orders.html', context)
-
 
 @login_required(login_url='login')
 def edit_profile(request):
@@ -327,7 +318,6 @@ def edit_profile(request):
         'userprofile': userprofile,
     }
     return render(request, 'accounts/edit_profile.html', context)
-
 
 @login_required(login_url='login')
 def change_password(request):
@@ -354,7 +344,6 @@ def change_password(request):
             return redirect('change_password')
     return render(request, 'accounts/change_password.html')
 
-
 @login_required(login_url='login')
 def order_detail(request, order_id):
     order_detail = OrderProduct.objects.filter(order__order_number=order_id)
@@ -369,7 +358,6 @@ def order_detail(request, order_id):
         'subtotal': subtotal,
     }
     return render(request, 'accounts/order_detail.html', context)
-
 
 @login_required(login_url='login')
 def edit_dir_entrega(request,dir_id=None):

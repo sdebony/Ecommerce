@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.panel_home, name='panel'),
     path('dashboard/ventas', views.dashboard_ventas, name='dashboard_ventas'),
+    path('dashboard/cuentas', views.dashboard_cuentas, name='dashboard_cuentas'),
     #PRODUCTOS
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
     path('producto/<int:product_id>', views.panel_product_detalle, name='panel_producto_detalle'),
@@ -60,6 +61,10 @@ urlpatterns = [
     path('mov/tranf/del/<int:idtrans>', views.panel_transferencias_eliminar, name='panel_transferencias_eliminar'),
     path('mov/registros/<int:idmov>',views.registrar_movimiento, name="mov_registros"),
     path('mov/mov/del/<int:idmov>', views.panel_movimiento_eliminar, name='panel_movimiento_eliminar'),
+    path('mov/cierre/', views.panel_cierre_list, name='panel_cierre_list'),
+    path('mov/cierre/calcular/<int:mes>/<int:anio>/<int:cuenta>', views.panel_cierre_obtener, name='panel_cierre_obtener'),
+    
+    
 
     
     

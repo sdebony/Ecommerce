@@ -1,0 +1,207 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+   <!-- INI SALDO TARJETAS
+    <div class="container-fluid">
+
+       <h1 class="h3 mb-4 text-gray-800">Control - Cierre Mensual</h1>
+         <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
+       <div class="row">
+        {% for item in totales %}
+        <div class="col-xl-3 col-md-6 mb-4">
+          {% if item.cuenta__moneda == 1 %}
+            <div class="card border-left-primary shadow h-100 py-2">
+          {% else %}
+              <div class="card border-left-success shadow h-100 py-2">  
+            {% endif %}
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <a href="">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-3">Total  {{ item.cuenta__nombre }}</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {% if item.cuenta__moneda == 1 %}
+                      $ {{ item.total }}  
+                    {% else %}
+                      USD  {{ item.total }}
+                    {% endif %}
+                    </div>
+                  {% for cajas in totales_ingresos %}
+                    {% if cuentas.nombre == item.cuenta__nombre %}
+                    <h6 class="m-0 font-weight-bold text-uppercase align-items-center"> {{ item.caja__moneda}}  </h6>
+                      <div class="h6 mb-0 font-weight-bold text-gray-500">$ {{ cajas.total }}  </div>
+                    {% endif %} 
+                  {%  endfor %}
+                </a>
+                </div>
+                <div class="col-auto">
+                  {% if item.cuenta__moneda == 1 %}
+                      <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                  {% else %}
+                      <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
+
+                  {%endif%}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %} 
+
+              
+            </div>
+          </div>
+        </div>
+      FIN SALDO TARJETAS --> 
+
+  <!--  TABLA FACTURAS-->
+  <div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary align-items-center">Contabilizar Mes: <B>{{ fecha_desde |date:'d/m/Y' }} - {{ fecha_hasta |date:'d/m/Y' }}</B></h6>
+      
+    </div>
+  
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="row">
+        <!-- Ini Form -->
+        <form action="{% url 'panel_cierre_obtener' mes=11,anio=2023,cuenta=1 %}" method="POST">
+          {% csrf_token %}
+          <div class="card-body login-card-body">
+
+              <div style="width:1500px; margin:0 auto;">
+                <section class="content">
+                  <div class="container-fluid">
+                    <div class="row">
+                      <!-- left column -->
+                      <div class="col-md-8">
+                        <!-- general form elements -->
+                        <div class="card card-primary">
+                          <div class="card-header">
+                            <h3 class="card-title">Cierre - Mes </h3>
+                          
+                            <div class="form-row">
+                              <div class="col form-group">
+                                <label><b> Mes: </b></label>
+                                  <select class="form-control" id="mes" name="mes">
+                                  {% for item in mes %}
+                                      {% if item == sel_mes %}
+                                          <option value="{{ item }}" selected>{{ item }} </option>
+                                      {% else %}
+                                          <option value="{{ item }}">{{ item}} </option>
+                                      {% endif %}
+                                  {% endfor %}
+                                  </select>
+                              </div>
+                              <div class="col form-group">
+                                <label for="">Año: </label>
+                                <select class="form-control" id="anio" name="anio">
+                                  {% for item in anio %}
+                                    {% if item == sel_anio %}
+                                      <option value="{{ item }}" selected>{{ item}}</option>
+                                    {% else %}
+                                      <option value="{{ item }}">{{ item}}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                                  </select>
+                                </div>
+                                <div class="col form-group">
+                                  <label><b> Cuenta: </b></label>
+                                    <select class="form-control" id="cuenta" name="cuenta">
+                                    {% for item in cuentas %}
+                                        {% if item.id == mov.cuenta.id %}
+                                            <option value="{{item.id}}" selected >{{item.nombre}} - {{ item.moneda.moneda }} </option>
+                                        {% else %}
+                                            <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                                        {% endif%}
+                                    {% endfor %}
+                                    </select>
+                                  </div>
+                                  <label></label>
+                                  <a href="" class="btn btn-primary" title="Buscar"> <i class="fas fa-search"></i></a>   
+                                
+                            </div>
+                          </div>
+                          <!-- /.card-header -->
+                          <!-- form start -->
+                          <div class="form-row">
+                           
+                            <div class="col form-group">
+                              <label for="">Total último Cierre: </label>
+                              <input type="text" name="cierre_anterior" id="cierre_anterior" class="form-control" value="100000" disabled >
+                           </div>
+
+                          </div>
+                          <div class="form-row">
+                            
+                             <div class="col form-group">
+                                <label for="">Total Movimientos registrados</label>
+                                <input type="text" name="mov_registrados" id="mov_registrados" class="form-control" value="900000"  required disabled>
+                              </div>
+                              <div class="col form-group">
+                                <label for="">Saldo Actual en cuenta:</label>
+                                <input type="text" name="saldo_actual" id="saldo_actual" class="form-control" value="1500000"  required disabled>
+                                </div>
+                                
+                          </div>
+                          
+                          <div class="form-row">
+                              <div class="col form-group">
+                              <label for="">Saldo Real:</label>
+                              <input type="text" name="saldo_actual" id="saldo_actual" class="form-control" value="1500000"  required>
+                              </div>
+                              <div class="col form-group">
+                                <label for="">Diferencia:</label>
+                                <input type="text" name="saldo_actual" id="saldo_actual" class="form-control" value="1500000"  required disabled>
+                                </div>
+  
+                              
+                            </div>
+                          
+                            <div class="form-row">
+                              <div class="col form-group">
+                                <label for="">Observaciones</label>
+                                <textarea type="textarea" name="observaciones" id="observaciones" rows="3" class="form-control"> {{mov.observaciones}}</textarea>
+                                </div>
+                              
+                          </div>
+                          <!-- / .card-body -->
+                          <div class="card-footer">
+                            <button type="submit" class="btn btn-success">Contabilizar</button>
+                            <a href="{% url 'panel_movimientos' %}" class="btn btn-secondary">Cancelar</a>
+                          </div>
+                      
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+          </div>
+        </form>
+        <!-- end Form-->
+      </div>
+      <hr>
+    </div>
+    <!-- end Card Body-->
+{% endblock %}
+{% block js_page %}
+
+
+<script>
+
+  $(function () {
+
+       $("#fecha, #fecha").datetimepicker({
+           format: 'Y-m-d',
+           timepicker:false
+       });
+
+      });
+
+  
+</script>
+{% endblock %}

@@ -11,7 +11,8 @@ from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Trans
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail
 
 from accounts.forms import UserForm, UserProfileForm
-from django.db.models import Q, Sum, Count,Max
+from django.db.models import Q, Sum, Count,Max , DecimalField
+from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import timedelta,datetime
@@ -82,7 +83,6 @@ def dashboard_ventas(request):
         #print(fecha_desde,fecha_hasta)
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=Sum('monto')).order_by('cuenta')
         pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('status').annotate(cantidad=Count('order_number')).order_by('status')
         
         clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name').annotate(total=Sum('order_total')).order_by('-order_total')[:5]
@@ -102,21 +102,14 @@ def dashboard_ventas(request):
         mt = int(mt) + 1
         lim_fecha_hasta = datetime(yr,mt,dt)
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
-        print ("lim_fecha_hasta",lim_fecha_hasta )
-        print ("lim_fecha_desde",lim_fecha_desde )
-
-        mov_ing = Operaciones.objects.filter(codigo='ING').first()
-        #Solo los ingresos
-        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
-       
-
+      
        
         form = []
         context = {
             'permisousuario':permisousuario,
             'hist_pedidos':hist_pedidos,
-            'data': saldos,
-            'cuentas':cuentas,
+            #'data': saldos,
+            #'cuentas':cuentas,
             'pedidos':pedidos,
             'clientes':clientes,
             'form': form,
@@ -129,6 +122,73 @@ def dashboard_ventas(request):
         print("Acceso Panel")
         return render (request,"panel/dashboard_ventas.html",context)
     print('Sin acceso DASHBOARD VENTAS')
+    return render(request,'dashboard',)
+
+def dashboard_cuentas(request):
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='DASHBOARD CUENTAS')
+        else:
+            print("sin acceso")
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            print("exception")
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =="DASHBOARD CUENTAS":
+        
+        fecha_1 = request.POST.get("fecha_desde")
+        fecha_2 = request.POST.get("fecha_hasta")
+
+        # POR DEFAULT TOMAMOS EL MES CORRIENTE
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        lim_fecha_desde = datetime(yr,mt,dt)
+ 
+        mt = int(mt) + 1
+        lim_fecha_hasta = datetime(yr,mt,dt)
+        lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
+
+        if not fecha_1 and not fecha_2 :
+            #fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            #dias = timedelta(days=90) 
+            #fecha_desde = fecha_hasta - dias
+            fecha_desde = lim_fecha_desde
+            fecha_hasta = lim_fecha_hasta
+
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+        print(fecha_desde,fecha_hasta)
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=Sum('monto')).order_by('cuenta')
+        
+        mov_ing = Operaciones.objects.filter(codigo='ING').first()
+        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
+       
+        print(saldos)
+
+       
+        form = []
+        context = {
+            'permisousuario':permisousuario,
+            'data': saldos,
+            'cuentas':cuentas,
+            'form': form,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta,
+            'lim_fecha_desde':lim_fecha_desde,
+            'lim_fecha_hasta':lim_fecha_hasta
+           
+            }
+        print("Acceso Panel")
+        return render (request,"panel/dashboard_cuentas.html",context)
+    print('Sin acceso DASHBOARD CUENTAS')
     return render(request,'dashboard',)
 
 def panel_product_list(request):
@@ -229,7 +289,7 @@ def panel_pedidos_list(request,status=None):
         fecha_2 = request.POST.get("fecha_hasta")     
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=240) 
+            dias = timedelta(days=15) 
             fecha_desde = fecha_hasta - dias
         else:
            
@@ -1048,6 +1108,8 @@ def panel_confirmar_pago(request,order_number=None):
             envio = request.POST.get("envio")
             cuenta_id = request.POST.get("cuenta")
 
+           
+            envio = envio.replace(",", ".")
              # If the cart count is less than or equal to 0, then redirect back to shop
             order = Order.objects.get(order_number=order_number, is_ordered=True)
             ordered_products = OrderProduct.objects.filter(order_id=order.id)
@@ -1170,6 +1232,148 @@ def panel_transferencias_list(request):
         }
         
         return render(request,'panel/lista_transferencias.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def panel_cierre_list(request):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CIERRE CONTABLE')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='CIERRE CONTABLE':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        #***************************************
+        # POR DEFAULT TOMAMOS EL MES CORRIENTE
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        fecha_desde = datetime(yr,mt,dt)
+        sel_mes = datetime.today().strftime('%B')
+        sel_anio = yr
+        mt = int(mt) + 1
+        fecha_hasta = datetime(yr,mt,dt)
+        fecha_hasta = fecha_hasta + timedelta(days=-1)
+        
+       
+        print(fecha_desde,fecha_hasta)
+        mes = ['January','February','March','April','May','June','July','August','September','October','November','December']
+        anio = [yr-1, yr,yr+1]
+        print("Mes:", sel_mes, "Año:", sel_anio )
+
+        
+        totales = Movimientos.objects.filter(fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre','cuenta__moneda').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+    
+        totales_ingresos = Movimientos.objects.filter(movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+
+        cuentas = Cuentas.objects.all()
+       
+        
+
+        context = {
+            'totales':totales,      # Saldo + y -
+            'totales_ingresos':totales_ingresos,  #Solo los + para los limites
+            'permisousuario':permisousuario,
+            'cuentas':cuentas,
+            'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta,
+            'mes':mes,
+            'anio':anio,
+            'sel_mes': sel_mes,
+            'sel_anio':sel_anio,
+
+                       
+        }
+        
+        return render(request,'panel/registrar_cierre_list.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def panel_cierre_obtener(request):
+    
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CIERRE CONTABLE')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                    return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    #Si tiene acceso a PANEL
+   
+    if accesousuario.codigo.codigo =='CIERRE CONTABLE':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        #***************************************
+        # POR DEFAULT TOMAMOS EL MES CORRIENTE
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        fecha_desde = datetime(yr,mt,dt)
+        sel_mes = datetime.today().strftime('%B')
+        sel_anio = yr
+        mt = int(mt) + 1
+        fecha_hasta = datetime(yr,mt,dt)
+        fecha_hasta = fecha_hasta + timedelta(days=-1)
+        
+       
+        print(fecha_desde,fecha_hasta)
+        mes = ['January','February','March','April','May','June','July','August','September','October','November','December']
+        anio = [yr-1, yr,yr+1]
+        print("Mes:", sel_mes, "Año:", sel_anio )
+
+        
+        totales = Movimientos.objects.filter(fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre','cuenta__moneda').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+    
+        totales_ingresos = Movimientos.objects.filter(movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+
+        cuentas = Cuentas.objects.all()
+       
+        
+
+        context = {
+            'totales':totales,      # Saldo + y -
+            'totales_ingresos':totales_ingresos,  #Solo los + para los limites
+            'permisousuario':permisousuario,
+            'cuentas':cuentas,
+            'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta,
+            'mes':mes,
+            'anio':anio,
+            'sel_mes': sel_mes,
+            'sel_anio':sel_anio,
+
+                       
+        }
+        
+        return render(request,'panel/registrar_cierre_list.html',context) 
 
     return render(request,'panel/login.html',)
 
@@ -2359,6 +2563,7 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                        
                         movimiento = Movimientos.objects.get(ordernumber=id_orden)
                         if movimiento:
+                            
                             id_mov = movimiento.id
                             print("Mov --> ",id_mov )
                             movimiento.id = id_mov
@@ -2366,7 +2571,8 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                         else:
                             print("Error al eliminar el movimiento")
                         ordenes.id = id_orden
-                        ordenes.payment = ""
+                        ordenes.payment = pago
+                        ordenes.status="New"
                         ordenes.save()
                         pago.id = id_pago
                         pago.delete()
@@ -2778,34 +2984,3 @@ def panel_movimiento_eliminar(request,idmov=None):
     
     
     return render(request,'panel/login.html',)
-
-def get_usage_percentage_for_all_accounts(fecha_inicio, fecha_fin):
-    """Obtiene el porcentaje de uso del límite establecido en todas las cuentas para un rango de fechas determinado.
-    Args:
-        fecha_inicio (str): La fecha de inicio del rango de fechas.
-        fecha_fin (str): La fecha de fin del rango de fechas.
-    Returns:
-        list: Una lista de diccionarios, donde cada diccionario contiene el nombre de la cuenta, el total de monto de las transacciones, el límite establecido en la cuenta y el porcentaje de uso del límite.
-    """
-    # Obtiene el total de monto de las transacciones realizadas en el rango de fechas especificado para cada cuenta.
-    subconsulta = Movimientos.objects.filter(
-        fecha__gte=fecha_inicio,
-        fecha__lte=fecha_fin,   
-    ).values('cuenta_id').annotate(monto_total=Sum('monto'))
-    # Realiza un JOIN entre la tabla `cuentas` y la subconsulta, para obtener el nombre de la cuenta, el total de monto de las transacciones y el límite establecido en cada cuenta.
-    cuentas = Cuentas.objects.all().select_related('cuenta').annotate(
-        monto_total=Subquery(subconsulta, field='cuenta_id'),
-    )
-    # Calcula el porcentaje de uso del límite para cada cuenta.
-    porcentajes_uso = []
-    for cuenta in cuentas:
-        porcentaje_uso = (cuenta.monto_total / cuenta.limite) * 100
-        porcentajes_uso.append({
-            'nombre': cuenta.nombre,
-            'monto_total': cuenta.monto_total,
-            'limite': cuenta.limite,
-            'porcentaje_uso': porcentaje_uso,
-        })
-    # Crea un queryset para mostrar los resultados en HTML.
-    queryset = QuerySet(porcentajes_uso)
-    return queryset
