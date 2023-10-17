@@ -637,18 +637,23 @@ def panel_producto_img(request):
             product_id = request.POST.get("product_id")
 
             try:
-                if request.FILES["imgFile"]:
-                    fileitem = request.FILES["imgFile"]
+                if request.POST.get("imgFile"):
+                    fileitem = request.POST.get("imgFile")
                     
-                imgroot = "photos/products/none.jpg" #default
+                #imgroot = "photos/products/none.jpg" #default
                 # check if the file has been uploaded
-                if fileitem.name:
-                    # strip the leading path from the file name
-                    fn = os.path.basename(fileitem.name)
-                    # open read and write the file into the server
-                    open(f"media/photos/products/{fn}", 'wb').write( fileitem.file.read())  #"/media/photos/products/
-                    
-                    imgroot = f"photos/products/{fileitem}"
+                #if fileitem.name:
+                #    # strip the leading path from the file name
+                #    fn = os.path.basename(fileitem.name)
+                #    # open read and write the file into the server
+                #    open(f"media/photos/products/{fn}", 'wb').write( fileitem.file.read())  #"/media/photos/products/
+                #    
+                #    imgroot = f"photos/products/{fileitem}"
+                if not fileitem:
+                    fileitem = 'none.jpg'
+
+
+                print(fileitem)
 
                 if product_id:
                     producto = Product.objects.filter(id=product_id).first()
@@ -656,7 +661,7 @@ def panel_producto_img(request):
                     print("***  UPDATE IMAGE ***")
                     producto = Product(
                             id=product_id ,
-                            images=imgroot,
+                            images=fileitem,
                             product_name=producto.product_name,
                             slug=slugify(producto.product_name).lower(),
                             description=producto.description,

@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = config('DEBUG', default=False, cast=bool)
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
 #ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
@@ -150,9 +150,14 @@ STATIC_ROOT = BASE_DIR /'static'
 STATICFILES_DIRS = [
     'ecomm/static',
 ]
+#ORIGINAL ******
+#MEDIA_URL = '/media/'
+#MEDIA_ROOT = BASE_DIR /'media'
+#ORIGINAL ******
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR /'media'
+MEDIA_URL = ''
+MEDIA_ROOT = BASE_DIR /''
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

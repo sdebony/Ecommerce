@@ -93,7 +93,7 @@
                     <aside class="col-md-6">
                         <article class="gallery-wrap">
                             <div class="img-big-wrap mainImage">
-                                <center><img src="{{ producto.images.url }}"></center>
+                                <center><img src="https://yourfiles.cloud/uploads/{{ producto.images.url }}"></center>
                             </div> <!-- img-big-wrap.// -->
                         </article> <!-- gallery-wrap .end// -->
                     </aside>
@@ -102,8 +102,8 @@
                         <div class="col form-group">
                             <label for="">Imagen:</label>
                             <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                            <input id="imgFile" type="file" name="imgFile" class="form-control" >
-                            <button type="submit" class="btn btn-primary"><span class=""></span> Cargar imagen </button>
+                            <input id="imgFile" type="text" name="imgFile" class="form-control" value="{{producto.images}}">
+                            <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
                         </div>
                         
                     </div>
