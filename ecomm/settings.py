@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = config('DEBUG', default=False, cast=bool)
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
 #ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
@@ -66,9 +66,9 @@ MIDDLEWARE = [
     #'django_session_timeout.middleware.SessionTimeoutMiddleware',
 ]
 
-SESSION_EXPIRE_SECONDS = 60  # 3600 1 hour
-SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
-SESSION_TIMEOUT_REDIRECT = 'accounts/login'
+#SESSION_EXPIRE_SECONDS = 60  # 3600 1 hour
+#SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+#SESSION_TIMEOUT_REDIRECT = 'accounts/login'
 
 ROOT_URLCONF = 'ecomm.urls'
 
@@ -145,13 +145,13 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR /'static'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     'ecomm/static',
 ]
 
-MEDIA_URL = '/media/'
+MEDIA_URL = ''
 MEDIA_ROOT = BASE_DIR /''
 
 

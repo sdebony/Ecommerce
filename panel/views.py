@@ -28,20 +28,32 @@ import csv
 
 import os
 # Create your views here.
-def panel_home(request):
+
+def validar_permisos(request,codigo=None):
+    
     try:
         if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PANEL')
+            accesousuario =  AccountPermition.objects.filter(user=request.user, codigo__codigo =codigo,modo_ver=True).first()
+            if not accesousuario:
+                print("No tiene permiso para el modulo: ", codigo)
+                return False  
         else:
-            print("sin acceso")
-            return render(request,'panel/login.html',)  
+            print("Usuario no registrado: ", codigo)
+            return False
     except ObjectDoesNotExist:
-            print("exception")
-            return render(request,'panel/login.html',)
+            print("Excepcion: ", codigo)
+            return False
+            
+    if accesousuario.codigo.codigo ==codigo:
+        print("Acceso modulo:  ", codigo)
+        return True
+    else:
+        print("No tiene permiso para el modulo: ", codigo)
+        return False
 
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =="PANEL":
+def panel_home(request):
+
+    if validar_permisos(request,'PANEL'):
         
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -50,24 +62,12 @@ def panel_home(request):
             }
         print("Acceso Panel")
         return render (request,"panel/base.html",context)
+    else:
+        return render (request,"accounts/login.html")
 
-    print('Sin modulo PANEL')
-    return render(request,'dashboard',)
-    
 def dashboard_ventas(request):
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='DASHBOARD VENTAS')
-        else:
-            print("sin acceso")
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            print("exception")
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
    
-    if accesousuario.codigo.codigo =="DASHBOARD VENTAS":
+    if validar_permisos(request,'DASHBOARD VENTAS'):
         
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")     
@@ -121,24 +121,13 @@ def dashboard_ventas(request):
             }
         print("Acceso Panel")
         return render (request,"panel/dashboard_ventas.html",context)
-    print('Sin acceso DASHBOARD VENTAS')
-    return render(request,'dashboard',)
+    else:
+        return render (request,"accounts/login.html")
 
 def dashboard_cuentas(request):
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='DASHBOARD CUENTAS')
-        else:
-            print("sin acceso")
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            print("exception")
-            return render(request,'panel/login.html',)
+    
+    if validar_permisos(request,'DASHBOARD CUENTAS'):
 
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =="DASHBOARD CUENTAS":
-        
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")
 
@@ -188,26 +177,14 @@ def dashboard_cuentas(request):
             }
         print("Acceso Panel")
         return render (request,"panel/dashboard_cuentas.html",context)
-    print('Sin acceso DASHBOARD CUENTAS')
-    return render(request,'dashboard',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_product_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PRODUCTO')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
    
-    if accesousuario.codigo.codigo =='PRODUCTO':
-
+    if validar_permisos(request,'PRODUCTO'):
+       
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
         catalogo = Product.objects.filter().all()
@@ -219,26 +196,12 @@ def panel_product_list(request):
         }
        
         return render(request,'panel/lista_productos.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_product_detalle(request,product_id=None):
     
-    
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PRODUCTO')
-            if accesousuario:
-                if accesousuario.modo_editar==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
+    if validar_permisos(request,'PRODUCTO'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         if product_id:
@@ -262,29 +225,15 @@ def panel_product_detalle(request,product_id=None):
         }
     
         return render(request,'panel/productos_detalle.html',context) 
-       
+    else:
+        return render (request,"accounts/login.html")
+
 def panel_pedidos_list(request,status=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PEDIDOS':
-
+    if validar_permisos(request,'PEDIDOS'):
         if not status:
             status='New'
 
-       
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")     
         if not fecha_1 and not fecha_2 :
@@ -346,27 +295,13 @@ def panel_pedidos_list(request,status=None):
 
         }
         return render(request,'panel/lista_pedidos.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_pedidos_detalle(request,order_number=None):
 
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
+    if validar_permisos(request,'PEDIDOS'):
 
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PEDIDOS':
-        print("Ingreso")
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
         ordenes = Order.objects.get(order_number=order_number)
@@ -398,27 +333,12 @@ def panel_pedidos_detalle(request,order_number=None):
         }
         
         return render(request,'panel/pedidos_detalle.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_pedidos_eliminar(request,order_number=None):
 
-    
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
         print("Eliminar")
         if order_number:
                 ordenes = Order.objects.get(order_number=order_number)
@@ -430,25 +350,12 @@ def panel_pedidos_eliminar(request,order_number=None):
                 messages.success(request,"Pedido eliminado con exito.")
         
         return redirect('panel_pedidos','New')
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_productos_variantes(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PRODUCTO')
-            if accesousuario:
-                if accesousuario.modo_editar==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
+    if validar_permisos(request,'PRODUCTO'):
 
         if request.method =="POST":
 
@@ -472,23 +379,12 @@ def panel_productos_variantes(request):
                 vari.save()
             
             return redirect('panel_producto_detalle', str(product_id)) 
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_productos_variantes_del(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PRODUCTO')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
+    if validar_permisos(request,'PRODUCTO'):
 
         if request.method =="POST":
 
@@ -503,24 +399,12 @@ def panel_productos_variantes_del(request):
                 vari.delete()
             
             return redirect('panel_producto_detalle', str(product_id)) 
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_product_crud(request):
     
-    try:
-        
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user.id, codigo__codigo ='PRODUCTO')  
-            if accesousuario:
-                if accesousuario.modo_editar==False:
-                    return render(request,'panel/login.html',)     
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Validar Acceso
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
+    if validar_permisos(request,'PRODUCTO'):
 
         if request.method =="GET":
             #ALTA
@@ -611,28 +495,12 @@ def panel_product_crud(request):
                     product_id = producto.id
 
             return redirect('panel_catalogo')
-    
-    return redirect('panel') 
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_producto_img(request):
 
-    
-    try:
-        
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user.id, codigo__codigo ='PRODUCTO')  
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)     
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Validar Acceso
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
-          
+    if validar_permisos(request,'PRODUCTO'):          
         if request.method =="POST":
             product_id = request.POST.get("product_id")
 
@@ -678,25 +546,12 @@ def panel_producto_img(request):
                 print("No selecciono imagen")
                 return redirect('panel_producto_detalle', str(product_id))
         return redirect('panel')
-    return redirect('panel') 
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_producto_habilitar(request,product_id=None,estado=None):
 
-    try:
-        
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user.id, codigo__codigo ='PRODUCTO')  
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)     
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Validar Acceso
-    
-    if accesousuario.codigo.codigo =='PRODUCTO':
+    if validar_permisos(request,'PRODUCTO'):    
           
             print(product_id,"product ID")
             habilitado = estado
@@ -729,25 +584,12 @@ def panel_producto_habilitar(request,product_id=None,estado=None):
                     return redirect('panel_catalogo')
             except:
                 print("Error: ", producto.product_name)        
-            
-    return redirect('panel_catalogo')
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_usuario_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PERMISOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PERMISOS':
+    if validar_permisos(request,'PERMISOS'): 
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         usuarios = Account.objects.filter(is_staff=True)
@@ -761,24 +603,12 @@ def panel_usuario_list(request):
         print(usuarios)
         return render(request,'panel/lista_usuarios.html',context) 
 
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_usuario_permisos(request,user_id=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PERMISOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PERMISOS':
+    if validar_permisos(request,'PERMISOS'): 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         usuario = Account.objects.filter(id=user_id)
         cantidad = usuario.count()
@@ -795,8 +625,8 @@ def panel_usuario_permisos(request,user_id=None):
             }
      
         return render(request,'panel/usuario_permisos.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_edit_profile(request):
 
@@ -821,20 +651,7 @@ def panel_edit_profile(request):
 
 def panel_usuario_permisos_reasignar(request,user_id=None):
     #Carga los permisos no asignados al usuario para poder editarlos.
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PERMISOS')
-            if accesousuario:
-                if accesousuario.modo_editar==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PERMISOS':
+    if validar_permisos(request,'PERMISOS'): 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
         permisos_usr = AccountPermition.objects.filter(user=user_id) #Todo lo asignado
@@ -853,25 +670,12 @@ def panel_usuario_permisos_reasignar(request,user_id=None):
             }
         
         return render(request,'panel/usuario_permisos.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_usuario_permisos_actualizar(request,user_id=None,id_pk=None,codigo=None,tipo=None,valor=None):  #Tipo (Ver (1) / Modificar(2)) - Valor (True / False)
     #Carga los permisos no asignados al usuario para poder editarlos.
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PERMISOS')
-            if accesousuario:
-                if accesousuario.modo_editar==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PERMISOS':
+    if validar_permisos(request,'PERMISOS'): 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
 
@@ -978,26 +782,12 @@ def panel_usuario_permisos_actualizar(request,user_id=None,id_pk=None,codigo=Non
         
         
         return redirect('panel_usuarios_reasignar',user_id) 
-       
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_cliente_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CLIENTE')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CLIENTE':
+    if validar_permisos(request,'CLIENTE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         usuarios = Account.objects.filter(is_staff=False)
@@ -1010,25 +800,12 @@ def panel_cliente_list(request):
         }
         print(usuarios)
         return render(request,'panel/lista_clientes.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_cliente_detalle(request,id_cliente=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CLIENTE')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CLIENTE':
+    if validar_permisos(request,'CLIENTE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         usuarios = Account.objects.filter(id=id_cliente).first()
@@ -1043,26 +820,12 @@ def panel_cliente_detalle(request,id_cliente=None):
         }
         print(usuarios.email,compras)
         return render(request,'panel/cliente_detalle.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_registrar_pago(request,order_number=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -1079,27 +842,12 @@ def panel_registrar_pago(request,order_number=None):
         }
         print(orden)
         return render(request,'panel/registrar_pago.html',context) 
+    else:
+        return render (request,"accounts/login.html")
 
-    return render(request,'panel/login.html',)
-    
 def panel_confirmar_pago(request,order_number=None):
 
-    
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-    print("confirmar pago efectivo / transferencia")
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
        
         if request.method =="POST":
             # GRABAR TRX EN PAYMENT
@@ -1173,25 +921,12 @@ def panel_confirmar_pago(request,order_number=None):
                 trx.save()
                 
                 return redirect('panel_pedidos','New') 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_movimientos_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='MOVIMIENTOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='MOVIMIENTOS':
+    if validar_permisos(request,'MOVIMIENTOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         mov = Movimientos.objects.filter()
@@ -1206,24 +941,12 @@ def panel_movimientos_list(request):
         
         return render(request,'panel/lista_movimientos.html',context) 
 
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_transferencias_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+    if validar_permisos(request,'TRANSFERENCIAS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         transf = Transferencias.objects.filter()
@@ -1237,25 +960,12 @@ def panel_transferencias_list(request):
         }
         
         return render(request,'panel/lista_transferencias.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_cierre_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CIERRE CONTABLE')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CIERRE CONTABLE':
+    if validar_permisos(request,'CIERRE CONTABLE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -1308,25 +1018,12 @@ def panel_cierre_list(request):
         }
         
         return render(request,'panel/registrar_cierre_list.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_cierre_obtener(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CIERRE CONTABLE')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CIERRE CONTABLE':
+    if validar_permisos(request,'CIERRE CONTABLE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -1380,24 +1077,12 @@ def panel_cierre_obtener(request):
         
         return render(request,'panel/registrar_cierre_list.html',context) 
 
-    return render(request,'panel/login.html',)
+    else:
+        return render (request,"accounts/login.html")
 
 def panel_importar_productos(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='IMPORTAR PRODUCTOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='IMPORTAR PRODUCTOS':
+    if validar_permisos(request,'IMPORTAR PRODUCTOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
        
@@ -1408,206 +1093,217 @@ def panel_importar_productos(request):
         }
         
         return render(request,'panel/importar_productos.html',context) 
+    else:
+        return render (request,"accounts/login.html")
 
-    return render(request,'panel/login.html',)
-    
 def export_xls(request,modelo=None):
 
-    #MODELO:
-    #1 - Movimientos 
-    #2 - Pedidos
-    #3 - Productos
+        if validar_permisos(request,'EXPORTAR MOVIMIENTOS'):
+            #MODELO:
+            #1 - Movimientos 
+            #2 - Pedidos
+            #3 - Productos
 
-    print("Export to Excel")
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition']='attachment; filename=movimiento'+ str(datetime.now()) + '.xls'
-    wb = xlwt.Workbook(encoding='utf-8')
+            print("Export to Excel")
+            response = HttpResponse(content_type='application/ms-excel')
+            response['Content-Disposition']='attachment; filename=movimiento'+ str(datetime.now()) + '.xls'
+            wb = xlwt.Workbook(encoding='utf-8')
 
+            if modelo==1: #MOVIMIENTOS
 
-    if modelo==1: #MOVIMIENTOS
+                #Para cada Caja genero una pagina
+                cuentas = Cuentas.objects.all()
 
-        #Para cada Caja genero una pagina
-        cuentas = Cuentas.objects.all()
+                if cuentas:
+                    for i in cuentas:
+                        sheet = str(i)
+                        ws = wb.add_sheet(sheet)
+                        
+                        row_num=0
+                        font_style= xlwt.Style.XFStyle()
+                        font_style.font.bold = True
+                        columns = ['fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber']
+                        for col_num in range(len(columns)):
+                            ws.write(row_num,col_num,columns[col_num],font_style)
+                        font_style = xlwt.Style.XFStyle()
+                        rows = Movimientos.objects.filter(cuenta=i).all().values_list(
+                            'fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber')
+                        for row in rows:
+                            row_num += 1
+                            for col_num in range(len(row)):
+                                if col_num==3:
+                                    monto = float("{0:.2f}".format((float)(row[3])))
+                                    #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
+                                    ws.write(row_num,col_num,int(round(monto)))
+                                else:
+                                    ws.write(row_num,col_num, str(row[col_num]),font_style)
+                    wb.save(response)
 
-        if cuentas:
-            for i in cuentas:
-                sheet = str(i)
-                ws = wb.add_sheet(sheet)
+                return response
+        else:
+            return render (request,"accounts/login.html")
+        if validar_permisos(request,'EXPORTAR PEDIDOS'):
+            if modelo==2: #PEDIDOS
+                count_status=3
                 
-                row_num=0
-                font_style= xlwt.Style.XFStyle()
-                font_style.font.bold = True
-                columns = ['fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber']
-                for col_num in range(len(columns)):
-                    ws.write(row_num,col_num,columns[col_num],font_style)
-                font_style = xlwt.Style.XFStyle()
-                rows = Movimientos.objects.filter(cuenta=i).all().values_list(
-                    'fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber')
-                for row in rows:
-                    row_num += 1
-                    for col_num in range(len(row)):
-                        if col_num==3:
-                            monto = float("{0:.2f}".format((float)(row[3])))
-                            #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
-                            ws.write(row_num,col_num,int(round(monto)))
-                        else:
-                            ws.write(row_num,col_num, str(row[col_num]),font_style)
-            wb.save(response)
-    if modelo==2: #PEDIDOS
-        count_status=3
-        
-        for i in range(count_status):
-           
-            if i  == 0:
-                sheet = "New"
-                ws = wb.add_sheet(sheet)
-            elif i == 1 :
-                sheet = "Cobrado"
-                ws = wb.add_sheet(sheet)
-            elif i == 2 :
-                sheet = "Entregado"
-                ws = wb.add_sheet(sheet)
-        
-            row_num=0
-            font_style= xlwt.Style.XFStyle()
-            font_style.font.bold = True
-            columns = ['user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
+                for i in range(count_status):
+                
+                    if i  == 0:
+                        sheet = "New"
+                        ws = wb.add_sheet(sheet)
+                    elif i == 1 :
+                        sheet = "Cobrado"
+                        ws = wb.add_sheet(sheet)
+                    elif i == 2 :
+                        sheet = "Entregado"
+                        ws = wb.add_sheet(sheet)
+                
+                    row_num=0
+                    font_style= xlwt.Style.XFStyle()
+                    font_style.font.bold = True
+                    columns = ['user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
+                                'dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo','order_note','order_total','envio','status',
+                                'ip','is_ordered','created_at','updated_at']
+                    for col_num in range(len(columns)):
+                        ws.write(row_num,col_num,columns[col_num],font_style)
+                    font_style = xlwt.Style.XFStyle()
+
+                    rows = Order.objects.filter(status=sheet).all().values_list(
+                        'user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
                         'dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo','order_note','order_total','envio','status',
-                        'ip','is_ordered','created_at','updated_at']
-            for col_num in range(len(columns)):
-                ws.write(row_num,col_num,columns[col_num],font_style)
-            font_style = xlwt.Style.XFStyle()
+                        'ip','is_ordered','created_at','updated_at').order_by('-created_at')
+                    for row in rows:
+                        row_num += 1
+                        for col_num in range(len(row)):
+                            if col_num==15 or col_num==16:
+                                monto = float("{0:.2f}".format((float)(row[col_num])))
+                                ws.write(row_num,col_num,int(round(monto)))
+                            else:
+                                ws.write(row_num,col_num, str(row[col_num]),font_style)
+                wb.save(response)
 
-            rows = Order.objects.filter(status=sheet).all().values_list(
-                'user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
-                'dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo','order_note','order_total','envio','status',
-                'ip','is_ordered','created_at','updated_at').order_by('-created_at')
-            for row in rows:
-                row_num += 1
-                for col_num in range(len(row)):
-                    if col_num==15 or col_num==16:
-                        monto = float("{0:.2f}".format((float)(row[col_num])))
-                        ws.write(row_num,col_num,int(round(monto)))
-                    else:
-                        ws.write(row_num,col_num, str(row[col_num]),font_style)
-        wb.save(response)
-
-
-    return response
+            return response
+        else:
+            return render (request,"accounts/login.html")
 
 def import_productos_xls(request):
 
-    cant_ok = 0
-    cant_error =0
-    error_str=""
-    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-    articulos_tmp = ImportTempProduct.objects.filter(usuario=request.user)
+    if validar_permisos(request,'IMPORTAR PRODUCTOS'):
+        cant_ok = 0
+        cant_error =0
+        error_str=""
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        articulos_tmp = ImportTempProduct.objects.filter(usuario=request.user)
 
-    #FORMATO PARA IMPORTAR PRODUCTOS
-    #product_name,description,variation_category,variation_value,price,images,stock,habilitado,category
-    #response = HttpResponse(content_type='application/ms-excel')
-    #Copio el archivo localmente
-    if request.method=="POST":
-        try:
-            myfile = request.FILES['rootfile']
-            if myfile:
-                fs = FileSystemStorage()
-                filename = fs.save(myfile.name,myfile)
-                archivo = fs.url(filename)
-        
-                int_fin = len(archivo)
-                archivo = archivo[1:int_fin]
-        except:
-            archivo=""
-
-        #archivo="media/FULL_LIFCHE.xls"
-        if archivo:
-        
-            print("*********--->", archivo, "<------******************")
-            workbook = xlrd.open_workbook(archivo)
+        #FORMATO PARA IMPORTAR PRODUCTOS
+        #product_name,description,variation_category,variation_value,price,images,stock,habilitado,category
+        #response = HttpResponse(content_type='application/ms-excel')
+        #Copio el archivo localmente
+        if request.method=="POST":
+            try:
+                myfile = request.FILES['rootfile']
+                if myfile:
+                    fs = FileSystemStorage()
+                    filename = fs.save(myfile.name,myfile)
+                    archivo = fs.url(filename)
             
-            #Get the first sheet in the workbook by index
-            sheet1 = workbook.sheet_by_index(0)
+                    int_fin = len(archivo)
+                    archivo = archivo[1:int_fin]
+            except:
+                archivo=""
 
-            #Borro todo lo anterior
-            tmp_producto = ImportTempProduct.objects.filter(usuario = request.user)
-            if tmp_producto:
-                tmp_producto.delete()
+            #archivo="media/FULL_LIFCHE.xls"
+            if archivo:
+            
+                print("*********--->", archivo, "<------******************")
+                workbook = xlrd.open_workbook(archivo)
+                
+                #Get the first sheet in the workbook by index
+                sheet1 = workbook.sheet_by_index(0)
 
-            #Get each row in the sheet as a list and print the list
-            for rowNumber in range(sheet1.nrows):
-                try:
-                    row = sheet1.row_values(rowNumber)
-                    if sheet1.cell_value(rowNumber, 0) != "product_name":
-                        product_id=0
-                        product_name = sheet1.cell_value(rowNumber, 0)
-                        tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
-                        if not tmp_producto:
-                            #Valido que exista la categoria
-                            cat_name = sheet1.cell_value(rowNumber, 8).lower()
+                #Borro todo lo anterior
+                tmp_producto = ImportTempProduct.objects.filter(usuario = request.user)
+                if tmp_producto:
+                    tmp_producto.delete()
 
-                            cat = Category.objects.get(category_name__icontains=cat_name)
-                            if cat:
-                                tmp_producto = ImportTempProduct(
-                                    product_name=product_name,
-                                    slug=slugify(product_name).lower(),
-                                    description= sheet1.cell_value(rowNumber, 1),
-                                    variation_category = sheet1.cell_value(rowNumber, 2),
-                                    variation_value = sheet1.cell_value(rowNumber, 3),
-                                    price=sheet1.cell_value(rowNumber, 4),
-                                    images=sheet1.cell_value(rowNumber, 5),
-                                    stock=sheet1.cell_value(rowNumber, 6),
-                                    is_available=sheet1.cell_value(rowNumber, 7),
-                                    category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
-                                    created_date= datetime.today(),
-                                    modified_date=datetime.today(),
-                                    usuario = request.user,
-                                        )
-                                tmp_producto.save()
-                                if tmp_producto:
-                                    product_id = tmp_producto.id
-                                    cant_ok=cant_ok+1
+                #Get each row in the sheet as a list and print the list
+                for rowNumber in range(sheet1.nrows):
+                    try:
+                        row = sheet1.row_values(rowNumber)
+                        if sheet1.cell_value(rowNumber, 0) != "product_name":
+                            product_id=0
+                            product_name = sheet1.cell_value(rowNumber, 0)
+                            tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
+                            if not tmp_producto:
+                                #Valido que exista la categoria
+                                cat_name = sheet1.cell_value(rowNumber, 8).lower()
+                                img_name = sheet1.cell_value(rowNumber, 5),
+                                if not img_name:
+                                    img_name = 'none.jpg'
+                                cat = Category.objects.get(category_name__icontains=cat_name)
+                                if cat:
+                                    tmp_producto = ImportTempProduct(
+                                        product_name=product_name,
+                                        slug=slugify(product_name).lower(),
+                                        description= sheet1.cell_value(rowNumber, 1),
+                                        variation_category = sheet1.cell_value(rowNumber, 2),
+                                        variation_value = sheet1.cell_value(rowNumber, 3),
+                                        price=sheet1.cell_value(rowNumber, 4),
+                                        images=img_name,
+                                        stock=sheet1.cell_value(rowNumber, 6),
+                                        is_available=sheet1.cell_value(rowNumber, 7),
+                                        category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
+                                        created_date= datetime.today(),
+                                        modified_date=datetime.today(),
+                                        usuario = request.user,
+                                            )
+                                    tmp_producto.save()
+                                    if tmp_producto:
+                                        product_id = tmp_producto.id
+                                        cant_ok=cant_ok+1
+                                    else:
+                                        cant_error=cant_error+1
+                                        error_str = error_str + "Error al grabar el registro ROW: " + str(rowNumber)
                                 else:
+                                    error_str = error_str + "Categoría inexistente " + cat_name + " ROW: " + str(rowNumber)
                                     cant_error=cant_error+1
-                                    error_str = error_str + "Error al grabar el registro ROW: " + str(rowNumber)
-                            else:
-                                error_str = error_str + "Categoría inexistente " + cat_name + " ROW: " + str(rowNumber)
-                                cant_error=cant_error+1
 
-                    #print("OK",cant_ok,"Error",cant_error)
-                    
-                except OSError as err:
-                    print("OS error:", err)
-                    error_str = error_str + err + " ROW: " + str(rowNumber)
-                    cant_error=cant_error+1
-                    pass
-                except ValueError:
-                    cant_error=cant_error+1
-                    error_str = error_str  + " Error al convertir int -  ROW: " + str(rowNumber)  
-                    print("Could not convert data to an integer.")
-                    pass
-                except Exception as err:
-                    error_str= error_str + product_name
-                    error_str= error_str + f"Unexpected {err=}, {type(err)=}"
-                    cant_error=cant_error+1
-                    pass
-                    #raise:
-                    #print("Salio por Exception")
-                    #print("Linea", rowNumber, "Producto", product_name, KeyError())
-                    #return render (request,'panel/importar.html',{'error':'No se pudo cargar el archivo'})
-
-            #Borro el archivo
-            os.remove(archivo)
-            
-    context = {
-                'cant_ok':cant_ok,
-                'permisousuario':permisousuario,
-                'cant_error':cant_error,
-                'error_str':error_str,
-                'articulos_tmp':articulos_tmp,
+                        #print("OK",cant_ok,"Error",cant_error)
                         
-                }
-    return render(request,'panel/importar_productos.html',context)
+                    except OSError as err:
+                        print("OS error:", err)
+                        error_str = error_str + err + " ROW: " + str(rowNumber)
+                        cant_error=cant_error+1
+                        pass
+                    except ValueError:
+                        cant_error=cant_error+1
+                        error_str = error_str  + " Error al convertir int -  ROW: " + str(rowNumber)  
+                        print("Could not convert data to an integer.")
+                        pass
+                    except Exception as err:
+                        error_str= error_str + product_name
+                        error_str= error_str + f"Unexpected {err=}, {type(err)=}"
+                        cant_error=cant_error+1
+                        pass
+                        #raise:
+                        #print("Salio por Exception")
+                        #print("Linea", rowNumber, "Producto", product_name, KeyError())
+                        #return render (request,'panel/importar.html',{'error':'No se pudo cargar el archivo'})
+
+                #Borro el archivo
+                os.remove(archivo)
+                
+        context = {
+                    'cant_ok':cant_ok,
+                    'permisousuario':permisousuario,
+                    'cant_error':cant_error,
+                    'error_str':error_str,
+                    'articulos_tmp':articulos_tmp,
+                            
+                    }
+        return render(request,'panel/importar_productos.html',context)
+    else:
+            return render (request,"accounts/login.html")
 
 def guardar_tmp_productos(request): 
    
@@ -1657,23 +1353,9 @@ def guardar_tmp_productos(request):
 
 def panel_importar_productos_del(request,product_id=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='IMPORTAR PRODUCTOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
+    if validar_permisos(request,'IMPORTAR PRODUCTOS'):
 
-    #Si tiene acceso a PANEL
-    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
-    if accesousuario.codigo.codigo =='IMPORTAR PRODUCTOS':
-
-       
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         
         if product_id:
             producto = ImportTempProduct.objects.filter(id=product_id,usuario= request.user)
@@ -1692,26 +1374,12 @@ def panel_importar_productos_del(request,product_id=None):
                         
                 }
         return render(request,'panel/importar_productos.html',context)
-
-
-    return render(request,'panel/login.html',)             
+    else:
+            return render (request,"accounts/login.html")
 
 def panel_categoria_list(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CATEGORIA')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CATEGORIA':
+    if validar_permisos(request,'CATEGORIA'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -1723,25 +1391,12 @@ def panel_categoria_list(request):
         }
        
         return render(request,'panel/lista_categorias.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+            return render (request,"accounts/login.html")
 
 def panel_categoria_del(request,id_categoria=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CATEGORIA')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CATEGORIA':
+    if validar_permisos(request,'CATEGORIA'):
 
 
         if id_categoria:
@@ -1760,25 +1415,12 @@ def panel_categoria_del(request,id_categoria=None):
         }
        
         return render(request,'panel/lista_categorias.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+            return render (request,"accounts/login.html")
 
 def panel_categoria_detalle(request,categoria_id=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CATEGORIA')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='CATEGORIA':
+    if validar_permisos(request,'CATEGORIA'):
 
         if request.method =="GET":
 
@@ -1858,42 +1500,32 @@ def panel_categoria_detalle(request,categoria_id=None):
             }
         
             return render(request,'panel/lista_categorias.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+            return render (request,"accounts/login.html")
 
 def import_pedidos_xls(request):
 
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='IMPORTAR PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-    #Borro todo lo anterior Encabezado
-    pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user)
-    if pedidos_tmp:
-        pedidos_tmp.delete()
+    if validar_permisos(request,'IMPORTAR PEDIDOS'):
+        #Si tiene acceso a PANEL
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        #Borro todo lo anterior Encabezado
+        pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user)
+        if pedidos_tmp:
+            pedidos_tmp.delete()
 
 
-    #Borro todo lo anterior Detalle
-    articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user)
-    if articulos_tmp:
-        articulos_tmp.delete()
+        #Borro todo lo anterior Detalle
+        articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user)
+        if articulos_tmp:
+            articulos_tmp.delete()
+        
+        cant_ok=0
+        cant_error=0
+        error_str = ""
+        articulos_tmp = []
+        pedidos_tmp=[]
     
-    cant_ok=0
-    cant_error=0
-    error_str = ""
-    articulos_tmp = []
-    pedidos_tmp=[]
-   
-    if accesousuario.codigo.codigo =='IMPORTAR PEDIDOS':
+  
 
         #Leer archivo
         archivo=""
@@ -1916,7 +1548,7 @@ def import_pedidos_xls(request):
         
             print("*********--->", archivo, "<------******************")
             workbook = xlrd.open_workbook(archivo)
-             #Get the first sheet in the workbook by index
+            #Get the first sheet in the workbook by index
             sheet1 = workbook.sheet_by_index(0)
             
             
@@ -1925,13 +1557,13 @@ def import_pedidos_xls(request):
             if pedidos_tmp:
                 pedidos_tmp.delete()
 
-           
+        
             #Borro todo lo anterior Detalle
             articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user)
             if articulos_tmp:
                 articulos_tmp.delete()
             
-           
+        
             #Get each row in the sheet as a list and print the list
             for rowNumber in range(sheet1.nrows):
                 try:
@@ -2014,7 +1646,7 @@ def import_pedidos_xls(request):
                                             i_end_ped = mensaje.find('*',i_start_ped)
                                             codigo_ped = mensaje[i_start_ped + 8 :i_end_ped]
                                             print("Codigo Detalle",codigo_ped,codigo)
-                                       
+                                    
                                         if codigo == codigo_ped:
                                             #Recorro artiuclos
                                             if "*Pedido:*" in mensaje:
@@ -2026,9 +1658,9 @@ def import_pedidos_xls(request):
                                                 i=1
                                                 i_fin_linea=0
                                                 total_items=0
-                                               
+                                            
                                             while i_end_ped > 0:
-                                               
+                                            
                                                 i_end_ped = mensaje.find('Subtotal',i_start_ped)
                                                 i_end_ped = mensaje.find('*',i_end_ped) # proxima cantidad
                                                 linea = mensaje[i_start_ped:i_end_ped]
@@ -2117,20 +1749,22 @@ def import_pedidos_xls(request):
             #print("Ejecutar validacion de articulos")
             validar_tmp_pedidos(request)   
     
-    pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user).order_by('codigo')
-    articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user).order_by('codigo')
-    cant_ok = pedidos_tmp.count()
-    
-    context = {
-                'cant_ok':cant_ok,
-                'permisousuario':permisousuario,
-                'cant_error':cant_error,
-                'error_str':error_str,
-                'pedidos_tmp':pedidos_tmp,
-                'articulos_tmp':articulos_tmp,
-                                        
-                }
-    return render(request,'panel/importar_pedidos.html',context)
+        pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user).order_by('codigo')
+        articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user).order_by('codigo')
+        cant_ok = pedidos_tmp.count()
+        
+        context = {
+                    'cant_ok':cant_ok,
+                    'permisousuario':permisousuario,
+                    'cant_error':cant_error,
+                    'error_str':error_str,
+                    'pedidos_tmp':pedidos_tmp,
+                    'articulos_tmp':articulos_tmp,
+                                            
+                    }
+        return render(request,'panel/importar_pedidos.html',context)
+    else:
+            return render (request,"accounts/login.html")
 
 def validar_tmp_pedidos(request):
     
@@ -2458,21 +2092,7 @@ def guardar_tmp_pedidos_all(request):
 
 def panel_registrar_entrega(request,order_number=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    print("Sin acceso a ver pedidos")
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-        return render(request,'panel/login.html',)
-
-#Si tiene acceso a PANEL
-
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -2485,26 +2105,12 @@ def panel_registrar_entrega(request,order_number=None):
            }
         print(orden)
         return render(request,'panel/registrar_entrega.html',context) 
-
-    return render(request,'panel/login.html',)
+    else:
+            return render (request,"accounts/login.html")
 
 def panel_confirmar_entrega(request):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    print("Sin acceso a ver pedidos")
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-        return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
@@ -2532,26 +2138,12 @@ def panel_confirmar_entrega(request):
                             print("Ya se entrego", order_number)
 
             return redirect('panel_pedidos','Cobrado') 
-
-    return render(request,'panel/login.html',)
+    else:
+            return render (request,"accounts/login.html")
 
 def panel_pedidos_eliminar_pago(request,order_number=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='PEDIDOS':
+    if validar_permisos(request,'PEDIDOS'):
         print("---->>>>>>>Eliminar: ",order_number)
         try:
             if order_number:
@@ -2594,25 +2186,12 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
             error_str=  f"Unexpected {err=}, {type(err)=}"
             messages.error(request,"Error Exception:" + error_str,'red')
             return redirect('panel_pedidos','New')
-
-    return render(request,'panel/login.html',)
-
+    else:
+            return render (request,"accounts/login.html")
 def panel_pedidos_eliminar_entrega(request,order_number=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='PEDIDOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a ver pedidos")
-                   return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
+    if validar_permisos(request,'PEDIDOS'):
 
-    #Si tiene acceso a PANEL 
-    if accesousuario.codigo.codigo =='PEDIDOS':
         print(">>>>Eliminar Entrega: ",order_number)
         try:
             if order_number:
@@ -2637,25 +2216,11 @@ def panel_pedidos_eliminar_entrega(request,order_number=None):
             messages.error(request,"Error Exception:" + error_str,'red')
             return redirect('panel_pedidos','Cobrado')
         return redirect('panel_pedidos','Cobrado')
-
-    return render(request,'panel/login.html',)
-
+    else:
+            return render (request,"accounts/login.html")
 def panel_movimientos_transf(request,idtrans=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+    if validar_permisos(request,'TRANSFERENCIAS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         
@@ -2786,26 +2351,11 @@ def panel_movimientos_transf(request,idtrans=None):
                 trans.save()
 
             return redirect('panel_transferencias') 
-
-
-    return render(request,'panel/login.html',)
-
+    else:
+            return render (request,"accounts/login.html")
 def registrar_movimiento(request,idmov=None):
         
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='MOVIMIENTOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='MOVIMIENTOS':
+    if validar_permisos(request,'MOVIMIENTOS'):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
 
@@ -2886,26 +2436,11 @@ def registrar_movimiento(request,idmov=None):
             #print("observaciones",observaciones)
 
         return redirect('panel_movimientos') 
-    
-    
-    return render(request,'panel/login.html',)
-
+    else:
+            return render (request,"accounts/login.html")
 def panel_transferencias_eliminar(request,idtrans=None):
     
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='TRANSFERENCIAS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='TRANSFERENCIAS':
+    if validar_permisos(request,'TRANSFERENCIAS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         
@@ -2941,28 +2476,12 @@ def panel_transferencias_eliminar(request,idtrans=None):
 
             
             return redirect('panel_transferencias') 
-
-
-    return render(request,'panel/login.html',)
-
+    else:
+            return render (request,"accounts/login.html")
 def panel_movimiento_eliminar(request,idmov=None):
         
-    try:
-        if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='MOVIMIENTOS')
-            if accesousuario:
-                if accesousuario.modo_ver==False:
-                    return render(request,'panel/login.html',)  
-        else:
-            return render(request,'panel/login.html',)  
-    except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
-
-    #Si tiene acceso a PANEL
-   
-    if accesousuario.codigo.codigo =='MOVIMIENTOS':
+    if validar_permisos(request,'MOVIMIENTOS'):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
 
         if request.method == "GET":
             if idmov:
@@ -2985,7 +2504,7 @@ def panel_movimiento_eliminar(request,idmov=None):
                 if movimiento: 
                     movimiento.delete()
                   
-        return redirect('panel_movimientos') 
-    
-    
-    return render(request,'panel/login.html',)
+        return redirect('panel_movimientos')     
+    else:
+            return render (request,"accounts/login.html")
+
