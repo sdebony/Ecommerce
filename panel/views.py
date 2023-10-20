@@ -19,6 +19,7 @@ from datetime import timedelta,datetime
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 
+from urllib.parse import unquote
 
 from django.db import connection
 
@@ -28,6 +29,32 @@ import csv
 
 import os
 # Create your views here.
+
+def search_lookup(request,keyword=None,order_number=None):
+
+    product_count=0
+    products = []
+
+    keyword = unquote(keyword)
+    keyword = keyword.replace(' ','-')
+    print("Buscar:", keyword)
+    if keyword:
+        if keyword == "all":
+            products = Product.objects.order_by('product_name').all()
+            product_count = products.count()
+        else:
+            products = Product.objects.order_by('product_name').filter(Q(product_name__icontains=keyword) | Q(slug__icontains=keyword))
+            product_count = products.count()
+    else:
+        products = Product.objects.order_by('product_name').all()
+        product_count = products.count()
+    context = {
+        'products': products,
+        'product_count': product_count,
+        'keyword':keyword,
+        'order_number':order_number,
+    }
+    return render(request, 'panel/productos_lookup.html' , context)
 
 def validar_permisos(request,codigo=None):
     
@@ -336,10 +363,60 @@ def panel_pedidos_detalle(request,order_number=None):
     else:
         return render (request,"accounts/login.html")
 
+def panel_pedidos_detalle_edit(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS EDIT'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        ordenes = Order.objects.get(order_number=order_number)
+        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+        subtotal = ordenes.order_total - ordenes.envio
+        if ordenes.status=="New":
+            pago_pendiente=True
+            entrega_pendinete=False
+            entregado=False
+        elif ordenes.status=="Cobrado":
+            pago_pendiente=False
+            entrega_pendinete=True
+            entregado=False
+        elif ordenes.status=="Entregado":
+            pago_pendiente=False
+            entrega_pendinete=False
+            entregado=True
+
+        print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
+        
+        context = {
+            'ordenes':ordenes,
+            'permisousuario':permisousuario,
+            'ordenes_detalle':ordenes_detalle,
+            'subtotal': subtotal,
+            'pago_pendiente': pago_pendiente,
+            'entrega_pendinete':entrega_pendinete,
+            'entregado':entregado
+        }
+        
+        return render(request,'panel/pedido_detalle_edit.html',context) 
+    else:
+        return render (request,"accounts/login.html")
+
+def panel_pedidos_confirmacion_eliminar(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS DEL'):
+
+        context = {
+            'order_number':order_number
+        }
+        print("panel_pedidos_confirmacion_eliminar",order_number)
+        return render(request,'panel/pedido_eliminar.html',context) 
+    else:
+        return render (request,"accounts/login.html")
+   
 def panel_pedidos_eliminar(request,order_number=None):
 
-    if validar_permisos(request,'PEDIDOS'):
-        print("Eliminar")
+    if validar_permisos(request,'PEDIDOS DEL'):
+        print("Eliminar",order_number)
         if order_number:
                 ordenes = Order.objects.get(order_number=order_number)
                 if ordenes:
@@ -352,6 +429,127 @@ def panel_pedidos_eliminar(request,order_number=None):
         return redirect('panel_pedidos','New')
     else:
         return render (request,"accounts/login.html")
+
+def panel_pedidos_del_detalle(request,order_number,id_linea):
+
+    if validar_permisos(request,'PEDIDOS EDIT'):
+
+        print("order_number",order_number)
+        print("idlinea",id_linea)
+
+        #articulo = Product.objects.filter(product_name=producto).first()
+        order = Order.objects.get(order_number=order_number, is_ordered=True)
+        ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
+    
+        if ordered_products:           
+            ordered_products = OrderProduct(
+                id = ordered_products.id,
+            )        
+            ordered_products.delete()
+            panel_recalcular_totales(order_number)
+            messages.success(request,"Articulo eliminado con exito.")
+            
+
+        panel_pedidos_detalle(request,order_number)          
+        return redirect('panel_pedidos_detalle',  str(order_number))  
+    else:
+        return render (request,"accounts/login.html")
+        
+def panel_pedidos_save_detalle(request):
+
+    if validar_permisos(request,'PEDIDOS EDIT'):
+
+       
+        if request.method =="POST":
+            
+            order_number = request.POST.get("edit_order_number")
+            id_linea = request.POST.get("edit_item_id")
+            cantidad = request.POST.get("edit_quantity")
+            precio = request.POST.get("edit_precio")
+
+            print("cantidad",cantidad,"order_number",order_number)
+            if cantidad:
+                if precio:
+                    if order_number:
+                        
+                        order = Order.objects.get(order_number=order_number, is_ordered=True)
+                        ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
+                    
+                        if ordered_products:           
+                            ordered_products = OrderProduct(
+                                id = ordered_products.id,
+                                quantity = cantidad,
+                                product_price = precio,
+                                order = ordered_products.order, 
+                                payment = ordered_products.payment,
+                                user =ordered_products.user,
+                                product=ordered_products.product,
+                                ordered=ordered_products.ordered,
+                                created_at = ordered_products.created_at,
+                                updated_at = datetime.today()
+                            )        
+                            ordered_products.save()
+                            panel_recalcular_totales(order_number)
+                            messages.success(request,"Articulo guardado con exito.")
+                    
+
+                        panel_pedidos_detalle(request,order_number)          
+                        return redirect('panel_pedidos_detalle',  str(order_number))  
+            else:
+                pass
+
+    else:
+        return render (request,"accounts/login.html")
+
+def panel_pedidos_save_enc(request):
+
+        print("panel_pedidos_save_enc")
+        if request.method =="POST":
+            
+            order_number = request.POST.get("order_number")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            dir_calle = request.POST.get("dir_calle")
+            dir_nro = request.POST.get("dir_nro")
+            dir_localidad = request.POST.get("dir_localidad")
+            dir_provincia = request.POST.get("dir_provincia")
+            dir_telefono = request.POST.get("dir_telefono")
+            email = request.POST.get("email")
+            
+
+            print("orde_number",order_number)
+
+            order = Order.objects.get(order_number=order_number)
+            if order:
+                Order_New = Order(
+                    id = order.id,
+                    order_number=order_number,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    created_at=order.created_at,
+                    fecha=order.fecha,
+                    updated_at=order.updated_at,
+                    #user=user_account,
+                    dir_telefono=dir_telefono,
+                    dir_calle=dir_calle,
+                    dir_nro =dir_nro,
+                    dir_localidad=dir_localidad,
+                    dir_provincia=dir_provincia,
+                    dir_cp = order.dir_cp,
+                    dir_obs = order.dir_obs,
+                    dir_correo= order.dir_correo,
+                    order_total = order.order_total,
+                    envio = 0,
+                    status = "New",
+                    is_ordered=True,
+                    ip = request.META.get('REMOTE_ADDR')
+                        ) 
+                Order_New.save()
+                messages.success(request,"Pedido guardado con exito.")
+
+              
+            return redirect('panel_pedidos_detalle',  str(order_number))  
 
 def panel_productos_variantes(request):
     
@@ -2188,6 +2386,7 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
             return redirect('panel_pedidos','New')
     else:
             return render (request,"accounts/login.html")
+
 def panel_pedidos_eliminar_entrega(request,order_number=None):
     
     if validar_permisos(request,'PEDIDOS'):
@@ -2218,6 +2417,7 @@ def panel_pedidos_eliminar_entrega(request,order_number=None):
         return redirect('panel_pedidos','Cobrado')
     else:
             return render (request,"accounts/login.html")
+
 def panel_movimientos_transf(request,idtrans=None):
     
     if validar_permisos(request,'TRANSFERENCIAS'):
@@ -2353,6 +2553,7 @@ def panel_movimientos_transf(request,idtrans=None):
             return redirect('panel_transferencias') 
     else:
             return render (request,"accounts/login.html")
+
 def registrar_movimiento(request,idmov=None):
         
     if validar_permisos(request,'MOVIMIENTOS'):
@@ -2438,6 +2639,7 @@ def registrar_movimiento(request,idmov=None):
         return redirect('panel_movimientos') 
     else:
             return render (request,"accounts/login.html")
+
 def panel_transferencias_eliminar(request,idtrans=None):
     
     if validar_permisos(request,'TRANSFERENCIAS'):
@@ -2478,6 +2680,7 @@ def panel_transferencias_eliminar(request,idtrans=None):
             return redirect('panel_transferencias') 
     else:
             return render (request,"accounts/login.html")
+
 def panel_movimiento_eliminar(request,idmov=None):
         
     if validar_permisos(request,'MOVIMIENTOS'):
@@ -2508,3 +2711,178 @@ def panel_movimiento_eliminar(request,idmov=None):
     else:
             return render (request,"accounts/login.html")
 
+def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
+    
+    if validar_permisos(request,'PEDIDOS EDIT'):
+
+            print("Order:",order_number)
+            print("product_name",item)
+            print("Quantity", quantity)
+
+            if quantity == 0:
+                print("Error quantity")
+                messages.error(request, "La cantidad no puede ser cero.")
+                return redirect('pedidos/detalle/edit/' + order_number)
+
+
+            producto = Product.objects.filter(pk=item).first()
+            if producto:
+                print("Modificar Pedido: ",order_number)
+                product_price = producto.price
+                
+                try:
+                    if order_number:
+                        print("--->", order_number)
+                        pedido = Order.objects.get(order_number=order_number)
+                        if pedido:
+                            id_pedido = pedido.id
+                            #Si existe elimino el registro
+                            existe = OrderProduct.objects.filter(order_id=id_pedido,product=producto).exists()
+                            if existe:
+                                articulos = OrderProduct.objects.filter(order_id=id_pedido).first()
+                                articulos = OrderProduct (
+                                    id = articulos.id,
+                                    order = pedido,
+                                    user = request.user,
+                                    product = producto,
+                                    quantity = articulos.quantity + float(quantity),
+                                    product_price = product_price,
+                                    updated_at =  datetime.today(),
+                                    created_at = articulos.created_at
+                                )
+                                articulos.save()
+                            else:    
+                                #articulos = OrderProduct.objects.filter(order_id=id_pedido).values()
+                                articulos = OrderProduct (
+                                    order = pedido,
+                                    user = request.user,
+                                    product = producto,
+                                    quantity = quantity,
+                                    product_price = product_price,
+                                    updated_at =  datetime.today()
+                                )
+                                articulos.save()
+                            print("Recalcular Totales")
+                            panel_recalcular_totales(order_number)
+
+                            messages.error(request,"Articulo ingresado ",'green')          
+                            return redirect('/panel/pedidos/detalle/edit/' + order_number)                 
+                    else:
+                        print("No se encontro el Nro de Orden")        
+                    return redirect('/panel/pedidos/detalle/edit/' + order_number)
+                except Exception as err:
+                    error_str=  f"panel_pedidos_modificar {err=}, {type(err)=}"
+                    messages.error(request,"Error Exception:" + error_str,'red')
+                    return redirect('panel_pedidos','New')
+    else:
+            return render (request,"accounts/login.html")
+
+def panel_recalcular_totales(order_number=None):
+
+    print("panel_recalcular_totales",order_number)
+    subtotal = 0
+    pedido = Order.objects.get(order_number=order_number)
+    if pedido:
+        id_pedido = pedido.id
+        print("order_number",order_number)
+        order_product = OrderProduct.objects.filter(order=id_pedido)
+        print("items",order_product)
+        if order_product:
+            for i in order_product:
+                subtotal += i.product_price * i.quantity
+              
+
+            pedido = Order(
+                pk = id_pedido,
+                order_number = order_number,
+                order_total = subtotal,
+                created_at = pedido.created_at,
+                envio= pedido.envio,
+                fecha = pedido.fecha,
+                user = pedido.user,
+                payment = pedido.payment, 
+                
+                first_name = pedido.first_name, 
+                last_name  =pedido.last_name, 
+                email  = pedido.email,
+                dir_telefono  = pedido.dir_telefono,
+                dir_calle  = pedido.dir_calle,
+                dir_nro  = pedido.dir_nro,
+                dir_localidad  = pedido.dir_localidad,
+                dir_provincia  = pedido.dir_provincia,
+                dir_cp  = pedido.dir_cp,
+                dir_obs  = pedido.dir_obs,
+                dir_correo  = pedido.dir_correo,
+                order_note  = pedido.order_note,
+           
+                status = "New",
+                ip  = pedido.ip,
+                is_ordered  = pedido.is_ordered,
+                updated_at  = datetime.today()
+
+            )
+            pedido.save()
+
+def panel_pedidos_obtener_linea(request,item=None):
+    
+    if validar_permisos(request,'PEDIDOS EDIT'):
+
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        item_line = OrderProduct.objects.filter(id=item).first()
+        if item_line:
+            precio = item_line.product_price
+            quantity = float(item_line.quantity)
+            item_subtotal = float(item_line.product_price) * float(item_line.quantity)
+            product = item_line.product.id
+            order_number = item_line.order.order_number
+
+            producto = Product.objects.filter(pk=product).first()
+            if producto:
+                nombre_producto = producto.product_name
+
+        ordenes = Order.objects.get(order_number=order_number)
+        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+        subtotal = ordenes.order_total - ordenes.envio
+        if ordenes.status=="New":
+            pago_pendiente=True
+            entrega_pendinete=False
+            entregado=False
+        elif ordenes.status=="Cobrado":
+            pago_pendiente=False
+            entrega_pendinete=True
+            entregado=False
+        elif ordenes.status=="Entregado":
+            pago_pendiente=False
+            entrega_pendinete=False
+            entregado=True
+
+   
+        print("order_number",order_number)
+        print("item",product)
+        print("quantity",quantity)
+        print("item_subtotal",item_subtotal)
+        print("precio",precio)
+        print("nombre_producto",nombre_producto)
+
+        context = {
+            'edit_order_number':order_number,
+            'edit_item':item_line,
+            'edit_quantity':quantity,
+            'edit_item_subtotal': item_subtotal,
+            'edit_precio':precio,
+            'edit_product_name':nombre_producto,
+            'edit_item_id':item,
+            'ordenes':ordenes,
+            'permisousuario':permisousuario,
+            'ordenes_detalle':ordenes_detalle,
+            'subtotal': subtotal,
+            'pago_pendiente': pago_pendiente,
+            'entrega_pendinete':entrega_pendinete,
+            'entregado':entregado        
+             }
+        return render(request,'panel/pedido_detalle_edit.html',context) 
+            
+    else:
+            return render (request,"accounts/login.html")

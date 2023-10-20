@@ -82,6 +82,7 @@ def search(request):
     return render(request, 'store/store.html', context)
 
 
+
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
     if request.method == 'POST':

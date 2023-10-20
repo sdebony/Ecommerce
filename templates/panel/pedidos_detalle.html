@@ -146,7 +146,9 @@
                  {% if pago_pendiente %}
                   <a href="{% url 'registrar_pago' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Registrar Pago</a>
                   <pre style='display:inline'  class="float-right"> </pre>
-                  <a href="{% url 'panel_pedidos_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
+                  <a href="{% url 'panel_pedidos_confirmacion_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
+                  <pre style='display:inline'  class="float-right"> </pre>
+                  <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
                   
                   {% endif %} 
                   <pre style='display:inline'  class="float-right"> </pre>
@@ -159,6 +161,8 @@
                   {% if entregado %} 
                     <a href="{% url 'panel_pedidos_eliminar_entrega' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Entrega</a> 
                   {% endif %} 
+
+
                    
                 </div>
               </div>
