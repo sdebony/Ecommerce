@@ -42,10 +42,10 @@
                                 var myChart = new Chart(ctx, {
                                     type: 'bar',
                                     data: {
-                                        labels: [{% for data in data %} '{{ data.cuenta__nombre }}', {% endfor %}],
+                                        labels: [{% for item in data %} '{{ item.cuenta__nombre }}', {% endfor %}],
                                 datasets: [{
                                     label: '#Saldo de cuentas',
-                                    data: [{% for data in data %} {{ data.total }}, {% endfor %}],
+                                    data: [{% for item in data %} {{ item.total }}, {% endfor %}],
                                     backgroundColor: [
                                             'rgba(255, 99, 132, 0.2)',
                                             'rgba(255, 159, 64, 0.2)',

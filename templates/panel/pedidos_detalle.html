@@ -144,14 +144,24 @@
                 <div class="col-12">
                   <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
                  {% if pago_pendiente %}
-                  <a href="{% url 'registrar_pago' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Registrar Pago</a>
-                  <pre style='display:inline'  class="float-right"> </pre>
-                  <a href="{% url 'panel_pedidos_confirmacion_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
-                  <pre style='display:inline'  class="float-right"> </pre>
-                  <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
+                    <a href="{% url 'registrar_pago' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Registrar Pago</a>
+                    <pre style='display:inline'  class="float-right"> </pre>
+                    {% for items in permisousuario %}
+                        {% if items.codigo.codigo == 'PEDIDOS DEL' %}
+                          {% if items.modo_ver %}
+                            <a href="{% url 'panel_pedidos_confirmacion_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
+                            <pre style='display:inline'  class="float-right"> </pre>
+                          {% endif %}
+                        {% endif %}
+                        {% if items.codigo.codigo == 'PEDIDOS EDIT' %}
+                          {% if items.modo_ver %}
+                            <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
+                            <pre style='display:inline'  class="float-right"> </pre>
+                          {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %} 
                   
-                  {% endif %} 
-                  <pre style='display:inline'  class="float-right"> </pre>
                   {% if entrega_pendinete %} 
                     <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
                     <pre style='display:inline'  class="float-right"> </pre>

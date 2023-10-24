@@ -90,7 +90,7 @@ def panel_home(request):
         print("Acceso Panel")
         return render (request,"panel/base.html",context)
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def dashboard_ventas(request):
    
@@ -112,8 +112,12 @@ def dashboard_ventas(request):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('status').annotate(cantidad=Count('order_number')).order_by('status')
         
-        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name').annotate(total=Sum('order_total')).order_by('-order_total')[:5]
-      
+        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
+                     Round(
+                Sum('order_total'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('-order_total')[:5]
+
+            
         hist_pedidos = []
 
         for i in range(1, 13): 
@@ -149,7 +153,7 @@ def dashboard_ventas(request):
         print("Acceso Panel")
         return render (request,"panel/dashboard_ventas.html",context)
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def dashboard_cuentas(request):
     
@@ -169,9 +173,6 @@ def dashboard_cuentas(request):
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
 
         if not fecha_1 and not fecha_2 :
-            #fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            #dias = timedelta(days=90) 
-            #fecha_desde = fecha_hasta - dias
             fecha_desde = lim_fecha_desde
             fecha_hasta = lim_fecha_hasta
 
@@ -180,16 +181,19 @@ def dashboard_cuentas(request):
             fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
             fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
 
-        print(fecha_desde,fecha_hasta)
+
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=Sum('monto')).order_by('cuenta')
+        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2)))
         
         mov_ing = Operaciones.objects.filter(codigo='ING').first()
-        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=Sum('monto') * 100 / Max('cuenta__limite')).order_by('cuenta')
-       
-        print(saldos)
-
-       
+        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=
+         Round(
+                Sum('monto') * 100 / Max('cuenta__limite'),
+                output_field=DecimalField(max_digits=12, decimal_places=2)))
+        
         form = []
         context = {
             'permisousuario':permisousuario,
@@ -205,7 +209,7 @@ def dashboard_cuentas(request):
         print("Acceso Panel")
         return render (request,"panel/dashboard_cuentas.html",context)
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_product_list(request):
     
@@ -224,7 +228,7 @@ def panel_product_list(request):
        
         return render(request,'panel/lista_productos.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_product_detalle(request,product_id=None):
     
@@ -253,7 +257,7 @@ def panel_product_detalle(request,product_id=None):
     
         return render(request,'panel/productos_detalle.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_list(request,status=None):
     
@@ -323,7 +327,7 @@ def panel_pedidos_list(request,status=None):
         }
         return render(request,'panel/lista_pedidos.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_detalle(request,order_number=None):
 
@@ -361,7 +365,7 @@ def panel_pedidos_detalle(request,order_number=None):
         
         return render(request,'panel/pedidos_detalle.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_detalle_edit(request,order_number=None):
 
@@ -399,7 +403,7 @@ def panel_pedidos_detalle_edit(request,order_number=None):
         
         return render(request,'panel/pedido_detalle_edit.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_confirmacion_eliminar(request,order_number=None):
 
@@ -411,7 +415,7 @@ def panel_pedidos_confirmacion_eliminar(request,order_number=None):
         print("panel_pedidos_confirmacion_eliminar",order_number)
         return render(request,'panel/pedido_eliminar.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
    
 def panel_pedidos_eliminar(request,order_number=None):
 
@@ -428,7 +432,7 @@ def panel_pedidos_eliminar(request,order_number=None):
         
         return redirect('panel_pedidos','New')
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_del_detalle(request,order_number,id_linea):
 
@@ -453,7 +457,7 @@ def panel_pedidos_del_detalle(request,order_number,id_linea):
         panel_pedidos_detalle(request,order_number)          
         return redirect('panel_pedidos_detalle',  str(order_number))  
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
         
 def panel_pedidos_save_detalle(request):
 
@@ -499,7 +503,7 @@ def panel_pedidos_save_detalle(request):
                 pass
 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_pedidos_save_enc(request):
 
@@ -578,7 +582,7 @@ def panel_productos_variantes(request):
             
             return redirect('panel_producto_detalle', str(product_id)) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_productos_variantes_del(request):
     
@@ -598,7 +602,7 @@ def panel_productos_variantes_del(request):
             
             return redirect('panel_producto_detalle', str(product_id)) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_product_crud(request):
     
@@ -694,7 +698,7 @@ def panel_product_crud(request):
 
             return redirect('panel_catalogo')
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_producto_img(request):
 
@@ -745,7 +749,7 @@ def panel_producto_img(request):
                 return redirect('panel_producto_detalle', str(product_id))
         return redirect('panel')
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_producto_habilitar(request,product_id=None,estado=None):
 
@@ -783,7 +787,7 @@ def panel_producto_habilitar(request,product_id=None,estado=None):
             except:
                 print("Error: ", producto.product_name)        
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_usuario_list(request):
     
@@ -802,7 +806,7 @@ def panel_usuario_list(request):
         return render(request,'panel/lista_usuarios.html',context) 
 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_usuario_permisos(request,user_id=None):
     
@@ -824,7 +828,7 @@ def panel_usuario_permisos(request,user_id=None):
      
         return render(request,'panel/usuario_permisos.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_edit_profile(request):
 
@@ -869,7 +873,7 @@ def panel_usuario_permisos_reasignar(request,user_id=None):
         
         return render(request,'panel/usuario_permisos.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_usuario_permisos_actualizar(request,user_id=None,id_pk=None,codigo=None,tipo=None,valor=None):  #Tipo (Ver (1) / Modificar(2)) - Valor (True / False)
     #Carga los permisos no asignados al usuario para poder editarlos.
@@ -981,7 +985,7 @@ def panel_usuario_permisos_actualizar(request,user_id=None,id_pk=None,codigo=Non
         
         return redirect('panel_usuarios_reasignar',user_id) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_cliente_list(request):
     
@@ -999,7 +1003,7 @@ def panel_cliente_list(request):
         print(usuarios)
         return render(request,'panel/lista_clientes.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_cliente_detalle(request,id_cliente=None):
     
@@ -1019,7 +1023,7 @@ def panel_cliente_detalle(request,id_cliente=None):
         print(usuarios.email,compras)
         return render(request,'panel/cliente_detalle.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_registrar_pago(request,order_number=None):
     
@@ -1041,7 +1045,7 @@ def panel_registrar_pago(request,order_number=None):
         print(orden)
         return render(request,'panel/registrar_pago.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_confirmar_pago(request,order_number=None):
 
@@ -1120,7 +1124,7 @@ def panel_confirmar_pago(request,order_number=None):
                 
                 return redirect('panel_pedidos','New') 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_movimientos_list(request):
     
@@ -1140,7 +1144,7 @@ def panel_movimientos_list(request):
         return render(request,'panel/lista_movimientos.html',context) 
 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_transferencias_list(request):
     
@@ -1159,7 +1163,7 @@ def panel_transferencias_list(request):
         
         return render(request,'panel/lista_transferencias.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_cierre_list(request):
     
@@ -1217,7 +1221,7 @@ def panel_cierre_list(request):
         
         return render(request,'panel/registrar_cierre_list.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_cierre_obtener(request):
     
@@ -1276,7 +1280,7 @@ def panel_cierre_obtener(request):
         return render(request,'panel/registrar_cierre_list.html',context) 
 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def panel_importar_productos(request):
     
@@ -1292,7 +1296,7 @@ def panel_importar_productos(request):
         
         return render(request,'panel/importar_productos.html',context) 
     else:
-        return render (request,"accounts/login.html")
+        return render (request,"panel/login.html")
 
 def export_xls(request,modelo=None):
 
@@ -1339,7 +1343,7 @@ def export_xls(request,modelo=None):
 
                 return response
         else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
         if validar_permisos(request,'EXPORTAR PEDIDOS'):
             if modelo==2: #PEDIDOS
                 count_status=3
@@ -1382,7 +1386,7 @@ def export_xls(request,modelo=None):
 
             return response
         else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def import_productos_xls(request):
 
@@ -1501,7 +1505,7 @@ def import_productos_xls(request):
                     }
         return render(request,'panel/importar_productos.html',context)
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def guardar_tmp_productos(request): 
    
@@ -1573,7 +1577,7 @@ def panel_importar_productos_del(request,product_id=None):
                 }
         return render(request,'panel/importar_productos.html',context)
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_categoria_list(request):
     
@@ -1590,7 +1594,7 @@ def panel_categoria_list(request):
        
         return render(request,'panel/lista_categorias.html',context) 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_categoria_del(request,id_categoria=None):
     
@@ -1614,7 +1618,7 @@ def panel_categoria_del(request,id_categoria=None):
        
         return render(request,'panel/lista_categorias.html',context) 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_categoria_detalle(request,categoria_id=None):
     
@@ -1699,7 +1703,7 @@ def panel_categoria_detalle(request,categoria_id=None):
         
             return render(request,'panel/lista_categorias.html',context) 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def import_pedidos_xls(request):
 
@@ -1962,7 +1966,7 @@ def import_pedidos_xls(request):
                     }
         return render(request,'panel/importar_pedidos.html',context)
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def validar_tmp_pedidos(request):
     
@@ -2304,7 +2308,7 @@ def panel_registrar_entrega(request,order_number=None):
         print(orden)
         return render(request,'panel/registrar_entrega.html',context) 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_confirmar_entrega(request):
     
@@ -2337,7 +2341,7 @@ def panel_confirmar_entrega(request):
 
             return redirect('panel_pedidos','Cobrado') 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_pedidos_eliminar_pago(request,order_number=None):
     
@@ -2385,7 +2389,7 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
             messages.error(request,"Error Exception:" + error_str,'red')
             return redirect('panel_pedidos','New')
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_pedidos_eliminar_entrega(request,order_number=None):
     
@@ -2416,7 +2420,7 @@ def panel_pedidos_eliminar_entrega(request,order_number=None):
             return redirect('panel_pedidos','Cobrado')
         return redirect('panel_pedidos','Cobrado')
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_movimientos_transf(request,idtrans=None):
     
@@ -2552,7 +2556,7 @@ def panel_movimientos_transf(request,idtrans=None):
 
             return redirect('panel_transferencias') 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def registrar_movimiento(request,idmov=None):
         
@@ -2638,7 +2642,7 @@ def registrar_movimiento(request,idmov=None):
 
         return redirect('panel_movimientos') 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_transferencias_eliminar(request,idtrans=None):
     
@@ -2679,7 +2683,7 @@ def panel_transferencias_eliminar(request,idtrans=None):
             
             return redirect('panel_transferencias') 
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_movimiento_eliminar(request,idmov=None):
         
@@ -2709,7 +2713,7 @@ def panel_movimiento_eliminar(request,idmov=None):
                   
         return redirect('panel_movimientos')     
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
     
@@ -2775,7 +2779,7 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                     messages.error(request,"Error Exception:" + error_str,'red')
                     return redirect('panel_pedidos','New')
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")
 
 def panel_recalcular_totales(order_number=None):
 
@@ -2885,4 +2889,4 @@ def panel_pedidos_obtener_linea(request,item=None):
         return render(request,'panel/pedido_detalle_edit.html',context) 
             
     else:
-            return render (request,"accounts/login.html")
+            return render (request,"panel/login.html")

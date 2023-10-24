@@ -7,8 +7,14 @@
   <!-- Card Header - Dropdown -->
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
     <h6 class="m-2 font-weight-bold text-primary">Productos - ({{ cantidad }})</h6>
-  </div>  
-     
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <a href="{% url 'mov_export_xls' 1 %}" class="btn btn-secondary">Exportar xls</a>
+      
+    </div>
+  </div>
   <!-- Card Body -->
   <div class="card-body">
     {% if not catalogo %}

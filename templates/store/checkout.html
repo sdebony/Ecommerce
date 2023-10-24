@@ -31,13 +31,18 @@
         </div>
       </div>
       <hr>
+      <pre style='display:inline'  class="float-right"> 
+        <a href="{% url 'edit_dir_entrega' 0 %}"> Agregar direccion </a>
+      </pre>
+    
       <br>
       <h4 class="card-title mb-4">Dirección de Entrega</h4>
+        
       <div class="form-row">
           <div class="col form-group">
             <label for="">Direcciones disponibles:</label>
             <select name="direccion" id="direccion" class="form-control" required>
-              <option value="0" selected disabled >Seleccione una direccion</option>
+              <option value="0" selected disabled >Seleccione una direccion</option> 
               {% for item in direccion %}
                 <option value="{{item.dir_id}}" >{{ item.dir_nombre}}</option>
               {% endfor %}

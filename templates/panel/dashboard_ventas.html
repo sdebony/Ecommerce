@@ -144,7 +144,7 @@
                             var myChart = new Chart(ctx, {
                                 type: 'bar',
                                 data: {
-                                    labels: [{% for data in clientes %} '{{ data.last_name }}', {% endfor %}],
+                                    labels: [{% for data in clientes %} '{{ data.last_name  }}, {{data.first_name}}', {% endfor %}],
                             datasets: [{
                                 label: 'Clientes',
                                 data: [{% for data in clientes %} {{ data.total }}, {% endfor %}],
