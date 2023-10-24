@@ -117,7 +117,10 @@ def dashboard_ventas(request):
                 Sum('order_total'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('-order_total')[:5]
 
-            
+        
+        items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
+        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(cantidad=Sum('quantity')).order_by('-quantity')[:5]
+       
         hist_pedidos = []
 
         for i in range(1, 13): 
@@ -139,7 +142,7 @@ def dashboard_ventas(request):
         context = {
             'permisousuario':permisousuario,
             'hist_pedidos':hist_pedidos,
-            #'data': saldos,
+            'items': items,
             #'cuentas':cuentas,
             'pedidos':pedidos,
             'clientes':clientes,
@@ -155,6 +158,8 @@ def dashboard_ventas(request):
     else:
         return render (request,"panel/login.html")
 
+
+            
 def dashboard_cuentas(request):
     
     if validar_permisos(request,'DASHBOARD CUENTAS'):
