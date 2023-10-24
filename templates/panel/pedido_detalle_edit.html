@@ -35,6 +35,9 @@
 
             <!-- Main content -->
             <div class="invoice p-3 mb-3">
+            <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
+            {% csrf_token %}
+            
               <!-- title row -->
               <div class="row">
                 <div class="col-12">
@@ -59,8 +62,6 @@
               <!-- info row -->
               <div class="row invoice-info">
                 <div class="col-sm-6 invoice-col">
-                  <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
-                    {% csrf_token %}
                         Para
                         <address>
                             <input type="text" name="order_number" id="order_number"  class="form-control" value="{{ ordenes.order_number }}" required hidden>
@@ -108,10 +109,10 @@
                             </div>   
                         </div>
                         </address>
-                  </form>
+                
                 </div>
               </div>
-             
+            </form> 
               <!-- /.row -->
             <hr>
             
@@ -257,7 +258,6 @@
                 <div class="col-12">
                   <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
                  {% if pago_pendiente %}
-                  <a href="{% url 'panel_pedidos_save_enc' %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Guardar</a>
                   <pre style='display:inline'  class="float-right"> </pre>
                   <a href=""  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Cancelar</a>
                   <pre style='display:inline'  class="float-right"> </pre>

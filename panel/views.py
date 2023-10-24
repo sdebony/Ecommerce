@@ -157,9 +157,7 @@ def dashboard_ventas(request):
         return render (request,"panel/dashboard_ventas.html",context)
     else:
         return render (request,"panel/login.html")
-
-
-            
+          
 def dashboard_cuentas(request):
     
     if validar_permisos(request,'DASHBOARD CUENTAS'):
@@ -516,6 +514,7 @@ def panel_pedidos_save_enc(request):
         if request.method =="POST":
             
             order_number = request.POST.get("order_number")
+            fecha = request.POST.get("fecha")
             first_name = request.POST.get("first_name")
             last_name = request.POST.get("last_name")
             dir_calle = request.POST.get("dir_calle")
@@ -525,9 +524,8 @@ def panel_pedidos_save_enc(request):
             dir_telefono = request.POST.get("dir_telefono")
             email = request.POST.get("email")
             
-
-            print("orde_number",order_number)
-
+            fecha = datetime.strptime(fecha, '%d/%m/%Y')
+            
             order = Order.objects.get(order_number=order_number)
             if order:
                 Order_New = Order(
@@ -537,7 +535,7 @@ def panel_pedidos_save_enc(request):
                     last_name=last_name,
                     email=email,
                     created_at=order.created_at,
-                    fecha=order.fecha,
+                    fecha=fecha,
                     updated_at=order.updated_at,
                     #user=user_account,
                     dir_telefono=dir_telefono,
@@ -558,7 +556,7 @@ def panel_pedidos_save_enc(request):
                 messages.success(request,"Pedido guardado con exito.")
 
               
-            return redirect('panel_pedidos_detalle',  str(order_number))  
+        return redirect('panel_pedidos_detalle',  str(order_number))  
 
 def panel_productos_variantes(request):
     
