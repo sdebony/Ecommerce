@@ -11,7 +11,7 @@
       <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
       </a>
-      <a href="{% url 'mov_export_xls' 1 %}" class="btn btn-secondary">Exportar xls</a>
+      <a href="{% url 'mov_export_xls' 3 %}" class="btn btn-secondary">Exportar xls</a>
       
     </div>
   </div>
@@ -44,7 +44,7 @@
 -->       <th data-sortable="true" data-field="stock">Stock</th>
           <th data-sortable="true" data-field="is_available">Habilitado</th>
           <th data-sortable="true" data-field="category">Categoria</th>
-<!--          <th data-sortable="true" data-field="created_date">Fecha Creación</th>  -->
+          <th data-sortable="true" data-field="subcategory">Subcategoria</th> 
           <th data-sortable="true" data-field="modified_date">Fecha Modificaciòn</th>
 
           <th class="all">Acciones</th>  
@@ -55,7 +55,6 @@
           
           <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
           <td>$ {{ item.price }}</td>
-<!--          <td>{{ item.images.url }}</td>  -->
           <td>{{ item.stock }}</td>
           {% if item.is_available %}
               <td> 
@@ -69,11 +68,11 @@
             </td>
           {% endif %}
            <td>{{ item.category }}</td>
-<!--      <td>{{ item.created_date }}</td> -->
+          <td>{{ item.subcategory }}</td>
           <td>{{ item.modified_date | date:"d/m/Y" }}</td>
           <td>  
-            <!--  <a href="{% url 'panel_producto_detalle' item.id %}" class="href btn btn-warning btn-circle" title="Editar">  <i class="far fa-edit"> </i></a>   
-            -->  <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+            <!--  <a href="{% url 'panel_productos_del' item.id %}" class="href btn btn-warning btn-circle" title="Editar">  <i class="far fa-edit"> </i></a>   
+            -->  <a href="{% url 'panel_productos_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
           </td>
         </tr>
         {% endfor %}

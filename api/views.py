@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 
-from .serializers import DireccionesSerializer,CuentasSerializer
+from .serializers import DireccionesSerializer,CuentasSerializer, SubcategorySerializer
 from accounts.models import AccountDirecciones
 from contabilidad.models import Cuentas
+from category.models import SubCategory
 
 from django.db.models import Q
 
@@ -41,6 +42,23 @@ class CuentasApi(APIView):
         print("Cuentas API ")
         cuentas = Cuentas.objects.all()
         data = CuentasSerializer(cuentas,many=True).data
+        return Response(data)
+
+class SubcategoryList(APIView):
+          
+    def get(self,request,category):
+        print("SubCategory API List")
+        #subcategory = get_object_or_404(SubCategory,Q(category=category))
+        subcategory = SubCategory.objects.filter(Q(category=category))
+        data = SubcategorySerializer(subcategory,many=True).data
+        return Response(data)
+
+class SubcategoryApi(APIView):
+          
+    def get(self,request):
+        print("SubCategory API ")
+        subcategory = SubCategory.objects.all()
+        data = SubcategorySerializer(subcategory,many=True).data
         return Response(data)
 
 

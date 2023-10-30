@@ -73,14 +73,20 @@
             <!-- left column -->
             <div class="col-md-12" >
                 <!-- general form elements -->
-                <div class="card card-primary"><b>Categorias:</b>
+                <div class="card card-primary"><b>Sub Categorias:</b>
+                    <div class="dropdown no-arrow">
+                        <a href="{% url 'panel_subcategoria_save' categoria.id  %}" class="href btn btn-success"> Agregar
+                            
+                        </a>
+                        
+                    </div>
                     <div class="card-header">
                             <!-- tabla articulos -->
                             <table 
                                 id="table"
                                 data-toggle="table"
                                 data-pagination="false"
-                                data-search="true"
+                                data-search="false"
                                 data-show-columns="false"
                                 data-show-toggle="false"
                                 data-show-fullscreen="false"
@@ -88,34 +94,23 @@
                                 data-locale="es-AR"
                                 >
                                 <thead>
-                                    <th data-sortable="true" data-field="id">Nro</th>
-                                    <th data-sortable="true" data-field="product_name">Pducto</th>
-                                    <th data-sortable="true" data-field="description">Descripcion</th>   
-                                    <th data-sortable="true" data-field="price">Precio</th>
-                                    <th data-sortable="true" data-field="images">Imagen</th>
-                                    <th data-sortable="true" data-field="stock">Stock</th>
-                                    <th data-sortable="true" data-field="category">Categoria</th>
-                                    <th data-sortable="true" data-field="is_available">habilitado</th>
                                     
+                                    <th data-sortable="true" data-field="id">ID</th>
+                                    <th data-sortable="true" data-field="subcategory_name">Sub Categoría</th>
+                                    <th data-sortable="true" data-field="sub_category_slug">Slug</th>   
+                                    <th data-sortable="true" data-field="sub_category_description">Descripcion</th>
                                     <th class="all">Acciones</th>  
                                 </thead>
                                 <tbody>
-                                    {% for item in articulos_tmp %}
+                                    {% for item in subcategoria %}
                                     <tr>
                                     <td>{{ item.id }}</td>
-                                    <td>{{ item.product_name }}</td>
-                                    <td>{{ item.description }}</td> 
-                                    <td>{{ item.price }}</td>
-                                    <td>{{ item.images }}</td>
-                                    <td>{{ item.stock }}</td>
-                                    <td>{{ item.category }}</td>
-                                    {% if item.is_available %}
-                                        <td> <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
-                                    {% else %}
-                                        <td> <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
-                                    {% endif %}
+                                    <td>{{ item.subcategory_name }}</td>
+                                    <td>{{ item.sub_category_slug }}</td> 
+                                    <td>{{ item.sub_category_description }}</td>
+                                  
                                     <td >         
-                                       <a href="{% url 'panel_importar_productos_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                                       <a href="{% url 'panel_subcategoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
                                     </div>
                                     
                                     </td>

@@ -59,6 +59,29 @@
                             </select> 
                         </div>
                     </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            
+                        <label for="">Sub Categoria: </label>
+                            <select name="subcategory" id="subcategory" class="form-control" required>
+                                {% for subcat in subcategoria %}
+                                    {% if producto %}
+                                        {% if subcat.id == producto.subcategory.id %}
+                                            <option value="{{subcat.id}}" selected >{{producto.subcategory.subcategory_name}}  </option>
+                                        {% else %}
+                                            <option value="{{subcat.id}}" >{{subcat.subcategory_name}}  </option>
+                                        {% endif %}
+                                    {% else%}
+                                        <option value="{{subcat.id}}" >{{subcat.subcategory_name}}  </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select> 
+
+                           
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="col form-group">
                         <label for="">Fecha Creación</label>
@@ -209,5 +232,64 @@
 
 
       
+
+{% endblock %}
+
+{% block js_page %}
+
+<script>
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+
+
+
+              
+                  
+                
+                
+            },
+        });
+    }
+
+    
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
+      
+    });
+
+    
+   
+
+</script>
 
 {% endblock %}

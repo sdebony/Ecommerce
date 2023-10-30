@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from store.models import Product,Variation
 from orders.models import Order, OrderProduct,Payment,OrderShipping
-from category.models import Category
+from category.models import Category, SubCategory
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail
@@ -264,7 +264,7 @@ def panel_product_list(request):
        
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
-        catalogo = Product.objects.filter().all()
+        catalogo = Product.objects.filter().all().order_by('product_name')
         cantidad = catalogo.count()
         context = {
             'catalogo':catalogo,
@@ -287,17 +287,21 @@ def panel_product_detalle(request,product_id=None):
             producto = Product.objects.get(product_name=product.product_name)
             categorias = Category.objects.all()
             variantes = Variation.objects.filter(product=product)
+            subcategoria = SubCategory.objects.filter(category=producto.category).all()
 
-            
+            print(subcategoria)
+
         else:
             categorias = Category.objects.all()
             producto = []
             variantes = []
+            subcategoria=[]
 
         context = {
             'producto':producto,
             'permisousuario':permisousuario,
             'categorias': categorias,
+            'subcategoria':subcategoria,
             'variantes':variantes,
         }
     
@@ -708,6 +712,22 @@ def panel_productos_variantes(request):
     else:
         return render (request,"panel/login.html")
 
+def panel_productos_del(request,product_id):
+    
+    if validar_permisos(request,'PRODUCTO'):
+
+      
+            producto = Product.objects.get(id=product_id)
+            if producto:
+                vari = Variation.objects.filter(product=producto)
+                if vari:
+                    vari.delete()
+                producto.delete()
+            
+            return redirect('panel_catalogo') 
+    else:
+        return render (request,"panel/login.html")
+
 def panel_productos_variantes_del(request):
     
     if validar_permisos(request,'PRODUCTO'):
@@ -761,25 +781,26 @@ def panel_product_crud(request):
             images = request.POST.get("images")
             stock = request.POST.get("stock")
             cat_id = request.POST.get("category")
+            subcat_id = request.POST.get("subcategory")
            
             category = Category.objects.get(id=cat_id)
-         
+            subcategory = SubCategory.objects.get(id=subcat_id)
+            print("subcat_id",subcat_id)
             if product_id:
                 producto = Product.objects.filter(id=product_id).first()
                 created_date = producto.created_date
                 
                 if not images:
-                    images = "photos/products/none.jpg" #default      
+                    images = "none.jpg" #default      
                 else:
                     images = producto.images
-                print("habilitado inicial", habilitado)
+                
                 if habilitado:
                     habilitado=True
                 else:
                     habilitado=False
 
 
-                print("habilitado final", habilitado)
                 if producto:
                     print("POST --> UPDATE")
                     # UPDATE 
@@ -793,6 +814,7 @@ def panel_product_crud(request):
                         stock=stock,
                         is_available=habilitado,
                         category=category,
+                        subcategory = subcategory,
                         created_date =created_date, 
                         modified_date=datetime.today(),
                     )
@@ -813,6 +835,7 @@ def panel_product_crud(request):
                         stock=stock,
                         is_available=True,
                         category=category,
+                        subcategory = subcategory,
                         created_date= datetime.today(),
                         modified_date=datetime.today(),
                         )
@@ -1425,67 +1448,65 @@ def panel_importar_productos(request):
         return render (request,"panel/login.html")
 
 def export_xls(request,modelo=None):
+    #MODELO:
+    #1 - Movimientos 
+    #2 - Pedidos
+    #3 - Productos
 
-        if validar_permisos(request,'EXPORTAR MOVIMIENTOS'):
-            #MODELO:
-            #1 - Movimientos 
-            #2 - Pedidos
-            #3 - Productos
+        print("Export to Excel")
+        response = HttpResponse(content_type='application/ms-excel')
+        if modelo==1:
+            response['Content-Disposition']='attachment; filename=Movimientos'+ str(datetime.now()) + '.xls'
+        elif modelo==2:
+            response['Content-Disposition']='attachment; filename=Pedidos_'+ str(datetime.now()) + '.xls'
+        elif modelo==3:
+            response['Content-Disposition']='attachment; filename=Articulos_'+ str(datetime.now()) + '.xls'
+        else:
+            response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
+        
+        wb = xlwt.Workbook(encoding='utf-8')
 
-            print("Export to Excel")
-            response = HttpResponse(content_type='application/ms-excel')
-            if modelo==1:
-                response['Content-Disposition']='attachment; filename=Movimientos'+ str(datetime.now()) + '.xls'
-            elif modelo==2:
-                response['Content-Disposition']='attachment; filename=Pedidos_'+ str(datetime.now()) + '.xls'
-            elif modelo==3:
-                response['Content-Disposition']='attachment; filename=Articulos_'+ str(datetime.now()) + '.xls'
-            else:
-                response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
-            
-            wb = xlwt.Workbook(encoding='utf-8')
 
+        if validar_permisos(request,'EXPORTAR MOVIMIENTOS'):    
             if modelo==1: #MOVIMIENTOS
 
-                    
-                    
-                    sheet = "balance"
-                    ws = wb.add_sheet(sheet)
-                    if request.method =="POST":
-                        fecha_desde = request.POST.get("fechadesde")
-                        fecha_hasta = request.POST.get("fechahasta")
-               
-                    if not fecha_desde or not fecha_hasta:
-                        fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-                        dias = timedelta(days=356) 
-                        fecha_desde = fecha_hasta - dias
-                    else:
-                    
-                        fecha_desde = datetime.strptime(fecha_desde, '%d/%m/%Y')
-                        fecha_hasta = datetime.strptime(fecha_hasta, '%d/%m/%Y')
+                sheet = "balance"
+                ws = wb.add_sheet(sheet)
+                if request.method =="POST":
+                    fecha_desde = request.POST.get("fechadesde")
+                    fecha_hasta = request.POST.get("fechahasta")
+            
+                if not fecha_desde or not fecha_hasta:
+                    fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+                    dias = timedelta(days=356) 
+                    fecha_desde = fecha_hasta - dias
+                else:
+                
+                    fecha_desde = datetime.strptime(fecha_desde, '%d/%m/%Y')
+                    fecha_hasta = datetime.strptime(fecha_hasta, '%d/%m/%Y')
 
-                    
-                    row_num=0
-                    font_style= xlwt.Style.XFStyle()
-                    font_style.font.bold = True
-                    columns = ['Fecha','Cliente','Movimiento','Cuenta','Monto','observaciones','Nro de Transferencia','Nro de Pedido']
-                    for col_num in range(len(columns)):
-                        ws.write(row_num,col_num,columns[col_num],font_style)
-                    font_style = xlwt.Style.XFStyle()
-                    rows = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values_list(
-                        'fecha','cliente','movimiento__movimiento','cuenta__nombre','monto','observaciones','idtransferencia','ordernumber__order_number')
-                    for row in rows:
-                        row_num += 1
-                        for col_num in range(len(row)):
-                            if col_num==4:
-                                monto = float("{0:.2f}".format((float)(row[4])))
-                                #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
-                                ws.write(row_num,col_num,int(round(monto)))
-                            else:
-                                ws.write(row_num,col_num, str(row[col_num]),font_style)
-                    wb.save(response)
+                
+                row_num=0
+                font_style= xlwt.Style.XFStyle()
+                font_style.font.bold = True
+                columns = ['Fecha','Cliente','Movimiento','Cuenta','Monto','observaciones','Nro de Transferencia','Nro de Pedido']
+                for col_num in range(len(columns)):
+                    ws.write(row_num,col_num,columns[col_num],font_style)
+                font_style = xlwt.Style.XFStyle()
+                rows = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values_list(
+                    'fecha','cliente','movimiento__movimiento','cuenta__nombre','monto','observaciones','idtransferencia','ordernumber__order_number')
+                for row in rows:
+                    row_num += 1
+                    for col_num in range(len(row)):
+                        if col_num==4:
+                            monto = float("{0:.2f}".format((float)(row[4])))
+                            #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
+                            ws.write(row_num,col_num,int(round(monto)))
+                        else:
+                            ws.write(row_num,col_num, str(row[col_num]),font_style)
+                wb.save(response)
 
-                    return response
+                return response
         else:
              return render (request,"panel/login.html")
         if validar_permisos(request,'EXPORTAR PEDIDOS'):
@@ -1538,8 +1559,38 @@ def export_xls(request,modelo=None):
                             else:
                                 ws.write(row_num,col_num, str(row[col_num]),font_style)
                 wb.save(response)
+                return response
+        else:
+            return render (request,"panel/login.html")
 
-            return response
+        if validar_permisos(request,'EXPORTAR PRODUCTOS'):
+
+            if modelo==3: #PRODCUTOS
+
+                sheet = "productos"
+
+                ws = wb.add_sheet(sheet)
+                row_num=0
+                font_style= xlwt.Style.XFStyle()
+                font_style.font.bold = True
+                columns = ['Nombre','Description','Precio','images','stock','Habilitado','Category','Sub Category']
+                for col_num in range(len(columns)):
+                    ws.write(row_num,col_num,columns[col_num],font_style)
+                font_style = xlwt.Style.XFStyle()
+
+                rows = Product.objects.filter().values_list('product_name','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name').order_by('product_name')
+                
+                for row in rows:
+                    row_num += 1      
+                    for col_num in range(len(row)):              
+                        if col_num==2 or col_num==4: #Numericos
+                            monto = float("{0:.2f}".format((float)(row[col_num])))
+                            ws.write(row_num,col_num,int(round(monto)))
+                        else:
+                            ws.write(row_num,col_num, str(row[col_num]),font_style)
+                    
+                wb.save(response)
+                return response
         else:
             return render (request,"panel/login.html")
 
@@ -1593,37 +1644,56 @@ def import_productos_xls(request):
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
                             if not tmp_producto:
                                 #Valido que exista la categoria
-                                cat_name = sheet1.cell_value(rowNumber, 8).lower()
-                                img_name = sheet1.cell_value(rowNumber, 5),
+                                cat_name = sheet1.cell_value(rowNumber, 6).lower()
+                                sub_cat_name = sheet1.cell_value(rowNumber, 7).lower()
+
+                                img_name = sheet1.cell_value(rowNumber, 3)
                                 if not img_name:
                                     img_name = 'none.jpg'
                                 cat = Category.objects.get(category_name__icontains=cat_name)
+                                sub_cat = SubCategory.objects.filter(category=cat,subcategory_name=sub_cat_name).first()
+                                slug_subcat = cat.slug +'-'+ sub_cat_name.strip()
+                                slug_subcat = slugify(slug_subcat).lower()
+
                                 if cat:
-                                    tmp_producto = ImportTempProduct(
-                                        product_name=product_name,
-                                        slug=slugify(product_name).lower(),
-                                        description= sheet1.cell_value(rowNumber, 1),
-                                        variation_category = sheet1.cell_value(rowNumber, 2),
-                                        variation_value = sheet1.cell_value(rowNumber, 3),
-                                        price=sheet1.cell_value(rowNumber, 4),
-                                        images=img_name,
-                                        stock=sheet1.cell_value(rowNumber, 6),
-                                        is_available=sheet1.cell_value(rowNumber, 7),
-                                        category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
-                                        created_date= datetime.today(),
-                                        modified_date=datetime.today(),
-                                        usuario = request.user,
+                                    if not sub_cat:
+                                       
+                                        sub_cat = SubCategory(
+                                            category=cat,
+                                            subcategory_name=sub_cat_name.strip(),
+                                            sub_category_slug=slug_subcat,
+                                            sub_category_description=""
                                             )
-                                    tmp_producto.save()
-                                    if tmp_producto:
-                                        product_id = tmp_producto.id
-                                        cant_ok=cant_ok+1
+                                        sub_cat.save()
+                                        print("sub Categoria .Save")
+                                        sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
+                                    if sub_cat:
+                                        tmp_producto = ImportTempProduct(
+                                            product_name=product_name,
+                                            slug=slugify(product_name).lower(),
+                                            description= sheet1.cell_value(rowNumber, 1),
+                                            variation_category = "", #sheet1.cell_value(rowNumber, 2),
+                                            variation_value = "", #sheet1.cell_value(rowNumber, 3),
+                                            price=sheet1.cell_value(rowNumber, 2),
+                                            images=img_name,
+                                            stock=sheet1.cell_value(rowNumber, 4),
+                                            is_available=sheet1.cell_value(rowNumber, 5),
+                                            category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
+                                            subcategory=sub_cat.subcategory_name,# sheet1.cell_value(rowNumber, 9),
+                                            created_date= datetime.today(),
+                                            modified_date=datetime.today(),
+                                            usuario = request.user,
+                                                )
+                                        tmp_producto.save()
+                                        if tmp_producto:
+                                            product_id = tmp_producto.id
+                                            cant_ok=cant_ok+1
+                                        else:
+                                            cant_error=cant_error+1
+                                            error_str = error_str + "Error al grabar el registro ROW: " + str(rowNumber)
                                     else:
+                                        error_str = error_str + "Categoría / SubCategoria inexistente " + cat_name + " ROW: " + str(rowNumber)
                                         cant_error=cant_error+1
-                                        error_str = error_str + "Error al grabar el registro ROW: " + str(rowNumber)
-                                else:
-                                    error_str = error_str + "Categoría inexistente " + cat_name + " ROW: " + str(rowNumber)
-                                    cant_error=cant_error+1
 
                         #print("OK",cant_ok,"Error",cant_error)
                         
@@ -1639,7 +1709,7 @@ def import_productos_xls(request):
                         pass
                     except Exception as err:
                         error_str= error_str + product_name
-                        error_str= error_str + f"Unexpected {err=}, {type(err)=}"
+                        error_str= error_str + f" - Unexpected {err=}, {type(err)=}"
                         cant_error=cant_error+1
                         pass
                         #raise:
@@ -1682,6 +1752,7 @@ def guardar_tmp_productos(request):
                         slug=slugify(a.product_name).lower(),
                         description = a.description,
                         category = Category.objects.get(category_name=a.category),
+                        subcategory = SubCategory.objects.get(subcategory_name=a.subcategory),
                         images = imagen,
                         stock = a.stock,
                         price = float(a.price),
@@ -1775,6 +1846,87 @@ def panel_categoria_del(request,id_categoria=None):
     else:
             return render (request,"panel/login.html")
 
+def panel_subcategoria_save(request,id_categoria=None):
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+           
+    if validar_permisos(request,'SUBCATEGORIA'):
+        if request.method =="GET":
+            if id_categoria:
+                categoria = Category.objects.get(id=id_categoria)
+            else:
+                categoria=[]
+                subcategoria =[]
+
+            context = {
+                'categoria':categoria,
+               
+                'permisousuario':permisousuario,
+                   }
+        
+            return render(request,'panel/subcategoria.html',context)
+
+        if request.method =="POST":
+            
+            nombre = request.POST['nombre']
+            description = request.POST['description']
+            id_categoria = request.POST['id_categoria']
+
+            if id_categoria:
+                categoria = Category.objects.get(id=id_categoria)
+                if categoria:
+                    subcategoria = SubCategory(
+                        category=categoria,
+                        subcategory_name  = nombre,
+                        sub_category_slug = slugify(nombre),
+                        sub_category_description = description
+                        )
+                    subcategoria.save()
+                    messages.success(request, f'SubCategoria creada con exito!')
+
+                    subcategoria = SubCategory.objects.filter(category=categoria)
+
+            context = {
+                'categoria':categoria,
+                'subcategoria':subcategoria,
+                'permisousuario':permisousuario,
+                       }
+
+            return render(request,'panel/categoria_detalle.html',context) 
+
+    else:
+        return render (request,"panel/login.html")
+
+def panel_subcategoria_del(request,id_subcategoria=None):
+        
+    if validar_permisos(request,'SUBCATEGORIA'):
+
+        
+        if id_subcategoria:
+            subcategoria = SubCategory.objects.filter(id=id_subcategoria).first()
+
+            if subcategoria:
+                id_categoria = subcategoria.category.id
+                print("id_categoria",id_categoria)
+                subcategoria.delete()
+
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        categoria = Category.objects.get(id=id_categoria)
+        subcategoria = SubCategory.objects.filter(category=categoria)
+
+        context = {
+            'categoria':categoria,
+            'subcategoria':subcategoria,
+            'permisousuario':permisousuario,
+           
+        }
+       
+        return render(request,'panel/categoria_detalle.html',context) 
+
+    else:
+            return render (request,"panel/login.html")
+            
 def panel_categoria_detalle(request,categoria_id=None):
     
     if validar_permisos(request,'CATEGORIA'):
@@ -1784,11 +1936,14 @@ def panel_categoria_detalle(request,categoria_id=None):
             permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
             if categoria_id:
                 categoria = Category.objects.get(id=categoria_id)
+                subcategoria = SubCategory.objects.filter(category=categoria)
             else:
                 categoria=[]
+                subcategoria =[]
 
             context = {
                 'categoria':categoria,
+                'subcategoria':subcategoria,
                 'permisousuario':permisousuario,
            
                 }

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, ReviewRating, ProductGallery
-from category.models import Category
+from category.models import Category,SubCategory
 from carts.models import CartItem
 from django.db.models import Q
 
@@ -13,19 +13,33 @@ from orders.models import OrderProduct
 
 
 
-def store(request, category_slug=None):
+def store(request, category_slug=None,subcategory_slug=None):
     categories = None
     products = None
-
+    product_count=0
+    print("Store",category_slug,subcategory_slug)
     if category_slug != None:
-        categories = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.filter(category=categories, is_available=True)
-        paginator = Paginator(products, 20)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        product_count = products.count()
+        if subcategory_slug != None:
+            categories = get_object_or_404(Category, slug=category_slug)
+            subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
+            products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+            product_count = products.count()
+
+            paginator = Paginator(products, 20)
+            page = request.GET.get('page')
+            paged_products = paginator.get_page(page)
+        
+        else:
+            categories = get_object_or_404(Category, slug=category_slug)
+            products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
+            print("filter Categories: ",categories)
+            paginator = Paginator(products, 20)
+            page = request.GET.get('page')
+            paged_products = paginator.get_page(page)
+            product_count = products.count()
     else:
-        products = Product.objects.all().filter(is_available=True).order_by('id')
+        products = Product.objects.all().filter(is_available=True).order_by('product_name')
+        print("filter All: ")
         paginator = Paginator(products, 20)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)

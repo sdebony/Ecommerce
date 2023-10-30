@@ -14,6 +14,7 @@ class ImportTempProduct(models.Model):
     stock           = models.IntegerField(default=0) #Columna 6
     is_available    = models.BooleanField(default=False) #Columna 7
     category        = models.CharField(max_length=200,blank=True) #Columna 8
+    subcategory     = models.CharField(max_length=200,blank=True) #Columna 8
     created_date    = models.DateTimeField(auto_now_add=True) 
     modified_date   = models.DateTimeField(auto_now=True) 
     usuario         = models.CharField(max_length=25) 
