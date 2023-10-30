@@ -6,7 +6,7 @@ from django.contrib import messages
 from store.models import Product,Variation
 from orders.models import Order, OrderProduct,Payment,OrderShipping
 from category.models import Category
-from accounts.models import Account, UserProfile
+from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail
 
@@ -16,6 +16,18 @@ from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import timedelta,datetime
+
+from django.template.loader import render_to_string
+
+import smtplib
+import getpass
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 
@@ -29,6 +41,37 @@ import csv
 
 import os
 # Create your views here.
+def monthToNum(shortMonth):
+    return {
+            'Enero': 1,
+            'Febrero': 2,
+            'Marzo': 3,
+            'Abril': 4,
+            'Mayo': 5,
+            'Junio': 6,
+            'Julio': 7,
+            'Agosto': 8,
+            'Septiembre': 9, 
+            'Octubre': 10,
+            'Noviembre': 11,
+            'Diciembre': 12
+    }[shortMonth]
+
+def NumTomonth(shortMonth):
+    return {
+            1:'Enero',
+            2: 'Febrero',
+            3:'Marzo',
+            4:'Abril',
+            5: 'Mayo',
+            6: 'Junio',
+            7 :'Julio',
+            8 : 'Agosto',
+            9 : 'Septiembre', 
+            10 : 'Octubre',
+            11 : 'Noviembre',
+            12 : 'Diciembre'
+    }[shortMonth]
 
 def search_lookup(request,keyword=None,order_number=None):
 
@@ -367,6 +410,84 @@ def panel_pedidos_detalle(request,order_number=None):
         }
         
         return render(request,'panel/pedidos_detalle.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
+def panel_pedidos_enviar_factura(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS FACTURA'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        pedido = Order.objects.get(order_number=order_number)
+        archivo=""     
+        if request.method =="POST":
+            print("Cargando factura...")
+            try:
+                if request.FILES["imgFile"]:
+                    fileitem = request.FILES["imgFile"]
+                    # check if the file has been uploaded
+                    archivo=fileitem
+                    if fileitem.name:
+                        # strip the leading path from the file name
+                        fn = os.path.basename(fileitem.name)
+                        # open read and write the file into the server
+                        open(f"media/facturas/{fn}", 'wb').write( fileitem.file.read())  
+                        #pdf_root = f"media/facturas/{fileitem}"
+                        pdf_root = f"{fileitem}"
+                                
+            except:
+                 pass
+
+            archivo = pdf_root
+            print("Cargando factura...",pdf_root)
+            if archivo:
+                
+                if pedido:
+                    if  pedido.email:
+
+                        mensaje = MIMEMultipart()
+                        mensaje['From']='santidebony@gmail.com'
+                        mensaje['To']='santidebony@hotmail.com'
+                        mensaje['Subject']='Factura de su compra ' + str(order_number)
+
+                        mensaje.attach(MIMEText("Gracias por su compra.  Aqui le enviamos su factura",'plain'))
+                        
+                        archivo_adjunto = open('media/facturas/' + archivo,'rb')
+
+                        adjunto_MIME = MIMEBase('aplication','octet-stream')
+                        adjunto_MIME.set_payload((archivo_adjunto).read())
+                        encoders.encode_base64(adjunto_MIME)
+
+                        adjunto_MIME.add_header('Content-Disposition',"attachment; filename= %s" %archivo)
+                        mensaje.attach(adjunto_MIME)
+
+                        try:
+
+                            session_smtp = smtplib.SMTP('smtp.gmail.com' ,587)
+                            session_smtp.starttls()
+                            session_smtp.login('santidebony@gmail.com' ,'ocfawkbtfogoliia')
+                            texto = mensaje.as_string()
+                            session_smtp.sendmail('santidebony@gmail.com',pedido.email,texto)
+                            session_smtp.quit()
+                           
+                            messages.success(request,"Factura enviada con exito.")
+                            return redirect('panel_pedidos','Cobrado')
+                             
+                        except Exception as err:
+                            error_str=  f"Unexpected {err=}, {type(err)=}"
+                            messages.error(request,"Error Exception:" + error_str,'red')
+                
+                try:
+                    os.remove(archivo)
+                except:
+                    pass                        
+        
+        context = {
+            'pedido':pedido,
+            'permisousuario':permisousuario,
+        }
+        
+        return render(request,'panel/enviar_factura_email.html',context) 
     else:
         return render (request,"panel/login.html")
 
@@ -1134,13 +1255,35 @@ def panel_movimientos_list(request):
     if validar_permisos(request,'MOVIMIENTOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        mov = Movimientos.objects.filter()
-        cuentas = Cuentas.objects.all()
+
+        print("panel_movimientos_list")
+        fecha_1=None
+        fecha_2=None
+        if request.method =="POST":
+          
+            fecha_1 = request.POST.get("fecha_desde")
+            fecha_2 = request.POST.get("fecha_hasta")     
         
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=15) 
+            fecha_desde = fecha_hasta - dias
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+        mov = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
+        #cuentas = Cuentas.objects.all()
+        print("fecha_desde",fecha_desde)
+        print("Fecha_hasta",fecha_hasta)
+
         context = {
             'mov':mov,
             'permisousuario':permisousuario,
-            'cuentas':cuentas,
+        #    'cuentas':cuentas,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta,
                        
         }
         
@@ -1168,119 +1311,99 @@ def panel_transferencias_list(request):
     else:
         return render (request,"panel/login.html")
 
-def panel_cierre_list(request):
+def panel_cierre_registrar(request):
     
     if validar_permisos(request,'CIERRE CONTABLE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
-        #***************************************
-        # POR DEFAULT TOMAMOS EL MES CORRIENTE
-        yr = int(datetime.today().strftime('%Y'))
-        dt = 1
-        mt = int(datetime.today().strftime('%m'))
-        fecha_desde = datetime(yr,mt,dt)
-        sel_mes = datetime.today().strftime('%B')
+        mes = 0
+        anio=0
+        cuenta=0
+
+        if request.method =="POST":
+            mes = request.POST.get("mes")
+            anio = request.POST.get("anio")
+           
+
+        if mes==0 and anio==0:
+            #***************************************
+            # POR DEFAULT TOMAMOS EL MES CORRIENTE
+            yr = int(datetime.today().strftime('%Y'))
+            dt = 1
+            mt = int(datetime.today().strftime('%m'))
+            fecha_desde = datetime(yr,mt,dt)
+        else:
+            yr = int(anio)
+            mt = int(monthToNum(mes))
+            dt = 1
+            fecha_desde = datetime(yr,mt,dt)
+        
+
+        sel_mes =  NumTomonth(mt)
         sel_anio = yr
+        
         mt = int(mt) + 1
         fecha_hasta = datetime(yr,mt,dt)
         fecha_hasta = fecha_hasta + timedelta(days=-1)
         
-       
-        print(fecha_desde,fecha_hasta)
-        mes = ['January','February','March','April','May','June','July','August','September','October','November','December']
-        anio = [yr-1, yr,yr+1]
-        print("Mes:", sel_mes, "Año:", sel_anio )
+        if cuenta==0:
+            cuenta = 1
 
-        
-        totales = Movimientos.objects.filter(fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre','cuenta__moneda').annotate(total=
+       
+        meses = ['Enero','Febro','Marzo','April','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+        anios = [yr-1, yr,yr+1]
+      
+        print(yr, fecha_desde,fecha_hasta)
+
+
+        totales_ingresos_ventas = Movimientos.objects.filter(idcierre__isnull=True,ordernumber__isnull=False,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
+
+        totales_ingresos_varios = Movimientos.objects.filter(idcierre__isnull=True,ordernumber__isnull=True,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
+
+
+        totales_ingresos = Movimientos.objects.filter(idcierre__isnull=True,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
     
-        totales_ingresos = Movimientos.objects.filter(movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre').annotate(total=
+    
+        totales_egresos = Movimientos.objects.filter(idcierre__isnull=True,movimiento=2,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
 
-        cuentas = Cuentas.objects.all()
-       
-        
 
+        totales_resultado = Movimientos.objects.filter(idcierre__isnull=True,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
+      
+     
         context = {
-            'totales':totales,      # Saldo + y -
-            'totales_ingresos':totales_ingresos,  #Solo los + para los limites
             'permisousuario':permisousuario,
-            'cuentas':cuentas,
+            'totales_egresos':totales_egresos,      
+            'totales_ingresos_ventas':totales_ingresos_ventas,  
+            'totales_ingresos_varios':totales_ingresos_varios, 
+            'totales_ingresos':totales_ingresos,
+            'totales_resultado':totales_resultado,
             'fecha_desde': fecha_desde,
             'fecha_hasta': fecha_hasta,
-            'mes':mes,
-            'anio':anio,
+            'meses':meses,
+            'anios':anios,
             'sel_mes': sel_mes,
             'sel_anio':sel_anio,
 
                        
         }
         
-        return render(request,'panel/registrar_cierre_list.html',context) 
-    else:
-        return render (request,"panel/login.html")
-
-def panel_cierre_obtener(request):
-    
-    if validar_permisos(request,'CIERRE CONTABLE'):
-
-        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
-        #***************************************
-        # POR DEFAULT TOMAMOS EL MES CORRIENTE
-        yr = int(datetime.today().strftime('%Y'))
-        dt = 1
-        mt = int(datetime.today().strftime('%m'))
-        fecha_desde = datetime(yr,mt,dt)
-        sel_mes = datetime.today().strftime('%B')
-        sel_anio = yr
-        mt = int(mt) + 1
-        fecha_hasta = datetime(yr,mt,dt)
-        fecha_hasta = fecha_hasta + timedelta(days=-1)
-        
-       
-        print(fecha_desde,fecha_hasta)
-        mes = ['January','February','March','April','May','June','July','August','September','October','November','December']
-        anio = [yr-1, yr,yr+1]
-        print("Mes:", sel_mes, "Año:", sel_anio )
-
-        
-        totales = Movimientos.objects.filter(fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre','cuenta__moneda').annotate(total=
-            Round(
-                Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
-    
-        totales_ingresos = Movimientos.objects.filter(movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__nombre').annotate(total=
-            Round(
-                Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta')
-
-        cuentas = Cuentas.objects.all()
-       
-        
-
-        context = {
-            'totales':totales,      # Saldo + y -
-            'totales_ingresos':totales_ingresos,  #Solo los + para los limites
-            'permisousuario':permisousuario,
-            'cuentas':cuentas,
-            'fecha_desde': fecha_desde,
-            'fecha_hasta': fecha_hasta,
-            'mes':mes,
-            'anio':anio,
-            'sel_mes': sel_mes,
-            'sel_anio':sel_anio,
-
-                       
-        }
-        
-        return render(request,'panel/registrar_cierre_list.html',context) 
+        return render(request,'panel/registrar_cierre.html',context) 
 
     else:
         return render (request,"panel/login.html")
@@ -1311,46 +1434,78 @@ def export_xls(request,modelo=None):
 
             print("Export to Excel")
             response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition']='attachment; filename=movimiento'+ str(datetime.now()) + '.xls'
+            if modelo==1:
+                response['Content-Disposition']='attachment; filename=Movimientos'+ str(datetime.now()) + '.xls'
+            elif modelo==2:
+                response['Content-Disposition']='attachment; filename=Pedidos_'+ str(datetime.now()) + '.xls'
+            elif modelo==3:
+                response['Content-Disposition']='attachment; filename=Articulos_'+ str(datetime.now()) + '.xls'
+            else:
+                response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
+            
             wb = xlwt.Workbook(encoding='utf-8')
 
             if modelo==1: #MOVIMIENTOS
 
-                #Para cada Caja genero una pagina
-                cuentas = Cuentas.objects.all()
+                    
+                    
+                    sheet = "balance"
+                    ws = wb.add_sheet(sheet)
+                    if request.method =="POST":
+                        fecha_desde = request.POST.get("fechadesde")
+                        fecha_hasta = request.POST.get("fechahasta")
+               
+                    if not fecha_desde or not fecha_hasta:
+                        fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+                        dias = timedelta(days=356) 
+                        fecha_desde = fecha_hasta - dias
+                    else:
+                    
+                        fecha_desde = datetime.strptime(fecha_desde, '%d/%m/%Y')
+                        fecha_hasta = datetime.strptime(fecha_hasta, '%d/%m/%Y')
 
-                if cuentas:
-                    for i in cuentas:
-                        sheet = str(i)
-                        ws = wb.add_sheet(sheet)
-                        
-                        row_num=0
-                        font_style= xlwt.Style.XFStyle()
-                        font_style.font.bold = True
-                        columns = ['fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber']
-                        for col_num in range(len(columns)):
-                            ws.write(row_num,col_num,columns[col_num],font_style)
-                        font_style = xlwt.Style.XFStyle()
-                        rows = Movimientos.objects.filter(cuenta=i).all().values_list(
-                            'fecha','cliente','movimiento','monto','observaciones','idtransferencia','ordernumber')
-                        for row in rows:
-                            row_num += 1
-                            for col_num in range(len(row)):
-                                if col_num==3:
-                                    monto = float("{0:.2f}".format((float)(row[3])))
-                                    #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
-                                    ws.write(row_num,col_num,int(round(monto)))
-                                else:
-                                    ws.write(row_num,col_num, str(row[col_num]),font_style)
+                    
+                    row_num=0
+                    font_style= xlwt.Style.XFStyle()
+                    font_style.font.bold = True
+                    columns = ['Fecha','Cliente','Movimiento','Cuenta','Monto','observaciones','Nro de Transferencia','Nro de Pedido']
+                    for col_num in range(len(columns)):
+                        ws.write(row_num,col_num,columns[col_num],font_style)
+                    font_style = xlwt.Style.XFStyle()
+                    rows = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values_list(
+                        'fecha','cliente','movimiento__movimiento','cuenta__nombre','monto','observaciones','idtransferencia','ordernumber__order_number')
+                    for row in rows:
+                        row_num += 1
+                        for col_num in range(len(row)):
+                            if col_num==4:
+                                monto = float("{0:.2f}".format((float)(row[4])))
+                                #ws.write(row_num,col_num,'$ '+str('{0:,}'.format(int(round(monto)))))
+                                ws.write(row_num,col_num,int(round(monto)))
+                            else:
+                                ws.write(row_num,col_num, str(row[col_num]),font_style)
                     wb.save(response)
 
-                return response
+                    return response
         else:
-            return render (request,"panel/login.html")
+             return render (request,"panel/login.html")
         if validar_permisos(request,'EXPORTAR PEDIDOS'):
             if modelo==2: #PEDIDOS
                 count_status=3
+
+                if request.method =="POST":
+                    fecha_desde = request.POST.get("fechadesde")
+                    fecha_hasta = request.POST.get("fechahasta")
+               
+                if not fecha_desde or not fecha_hasta:
+                    fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+                    dias = timedelta(days=30) 
+                    fecha_desde = fecha_hasta - dias
+                else:
                 
+                    fecha_desde = datetime.strptime(fecha_desde, '%d/%m/%Y')
+                    fecha_hasta = datetime.strptime(fecha_hasta, '%d/%m/%Y')
+
+                print(fecha_desde,fecha_hasta)
                 for i in range(count_status):
                 
                     if i  == 0:
@@ -1366,21 +1521,18 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
-                                'dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo','order_note','order_total','envio','status',
-                                'ip','is_ordered','created_at','updated_at']
+                    columns = ['Pedido','Fecha','Total','Nombre','Apellido','email','Producto','Cantidad','Precio']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
-                    rows = Order.objects.filter(status=sheet).all().values_list(
-                        'user','payment','order_number','first_name','last_name','email','dir_telefono','dir_calle','dir_nro',
-                        'dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo','order_note','order_total','envio','status',
-                        'ip','is_ordered','created_at','updated_at').order_by('-created_at')
+                    items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price')
+     
                     for row in rows:
-                        row_num += 1
-                        for col_num in range(len(row)):
-                            if col_num==15 or col_num==16:
+                        row_num += 1      
+                        for col_num in range(len(row)):              
+                            if col_num==7 or col_num==8 or col_num==2:
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,int(round(monto)))
                             else:

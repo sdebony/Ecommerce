@@ -6,11 +6,30 @@
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
     <h6 class="m-0 font-weight-bold text-primary">Movimientos</h6>
     <div class="dropdown no-arrow">
-      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-      </a>
-      <a href="{% url 'mov_export_xls' 1 %}" class="btn btn-secondary">Exportar xls</a>
-      
+
+    <form action="{% url 'panel_movimientos' %}" enctype="multipart/form-data" method="POST">
+      {% csrf_token %}
+      Desde:
+       <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde|date:'d/m/Y'}}" />Hasta:
+       <input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta|date:'d/m/Y'}}"/>
+       <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+     </form>
+     <!-- Form Export-->
+     <form action="{% url 'mov_export_xls' 1 %}" enctype="multipart/form-data" method="POST">
+       {% csrf_token %}
+       
+       <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde|date:'d/m/Y'}}" hidden/>
+       <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta|date:'d/m/Y'}}" hidden />
+       <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>  
+        
+     </form>
+           
+
+
+
+
+
+
     </div>
   </div>
   <!-- Card Body -->

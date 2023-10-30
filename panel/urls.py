@@ -43,6 +43,7 @@ urlpatterns = [
     path('pedidos/eliminar/<str:order_number>', views.panel_pedidos_eliminar, name='panel_pedidos_eliminar'), 
     path('pedidos/eliminar/conf/<str:order_number>', views.panel_pedidos_confirmacion_eliminar, name='panel_pedidos_confirmacion_eliminar'),
     path('pedidos/save/', views.panel_pedidos_save_enc, name='panel_pedidos_save_enc'), 
+     path('pedidos/mail/<str:order_number>', views.panel_pedidos_enviar_factura, name='panel_pedidos_enviar_factura'), 
     
     path('pedidos/eliminar/entrega/<str:order_number>', views.panel_pedidos_eliminar_entrega, name='panel_pedidos_eliminar_entrega'), 
     path('pedidos/detalle/modif/<str:order_number>/<str:item>/<str:quantity>', views.panel_pedidos_modificar, name='panel_pedidos_modificar'), 
@@ -75,8 +76,7 @@ urlpatterns = [
     path('mov/tranf/del/<int:idtrans>', views.panel_transferencias_eliminar, name='panel_transferencias_eliminar'),
     path('mov/registros/<int:idmov>',views.registrar_movimiento, name="mov_registros"),
     path('mov/mov/del/<int:idmov>', views.panel_movimiento_eliminar, name='panel_movimiento_eliminar'),
-    path('mov/cierre/', views.panel_cierre_list, name='panel_cierre_list'),
-    path('mov/cierre/calcular/<int:mes>/<int:anio>/<int:cuenta>', views.panel_cierre_obtener, name='panel_cierre_obtener'),
+    path('mov/cierre/calcular', views.panel_cierre_registrar, name='panel_cierre_registrar'),
     
     
 

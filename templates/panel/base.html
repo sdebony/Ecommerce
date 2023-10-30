@@ -66,7 +66,7 @@
       <!-- Nav Item - Dashboard -->
       <li class="nav-item">
         <br>
-              <a class="nav-link" href="{% url 'panel' %}"><i class="fas fa-fw fa-tachometer-alt"></i>
+              <a class="nav-link" href="{% url 'panel' %}"><i class="fas fa-home"></i>
               <span>Home</span></a>
 
         
@@ -85,7 +85,7 @@
     
        <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDashboard" aria-expanded="true" aria-controls="collapseDashboard">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span>
         </a>
         <div id="collapseDashboard" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -116,7 +116,7 @@
     
         <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo" aria-expanded="true" aria-controls="collapseCatalogo">
-            <i class="fas fa-fw fa-truck"></i>
+            <i class="fas fa-list"></i>
             <span>Catalogos</span>
           </a>
           <div id="collapseCatalogo" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -147,7 +147,7 @@
     
        <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClientes" aria-expanded="true" aria-controls="collapseClientes">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-user-check"></i>
           <span>Clientes</span>
         </a>
         <div id="collapseClientes" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -169,7 +169,7 @@
         <!-- INI MENU PEDIDOS-->
         <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePedidos" aria-expanded="true" aria-controls="collapsePedidos">
-            <i class="fas fa-fw fa-truck"></i>
+           <i class="fas fa-cash-register"></i>
             <span>Pedidos</span>
           </a>
           <div id="collapsePedidos" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -198,12 +198,12 @@
       <!-- INI MENU MOVIMIENTOS-->
       <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMovimientos" aria-expanded="true" aria-controls="collapseMovimientos">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-hand-holding-usd"></i>
           <span>Movimientos</span>
         </a>
         <div id="collapseMovimientos" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-        
+       
             <h6 class="collapse-header">Cash Flow </h6>
             {% for items in permisousuario %}
               {% if items.modo_ver %}
@@ -214,7 +214,7 @@
                     <a class="collapse-item" href="{% url 'panel_transferencias' %}">Transferencias</a>
                   {% endif %}
                   {% if items.codigo.codigo == 'CIERRE CONTABLE' %}
-                    <a class="collapse-item" href="{% url 'panel_cierre_list'  %}">Cierre contable</a>
+                    <a class="collapse-item" href="{% url 'panel_cierre_registrar'  %}">Resultados Contable</a>
                   {% endif %}
               {% endif %}
             {% endfor %}
@@ -229,7 +229,7 @@
     <!--  INICIO CONFIGURACION-->
     <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseConfig" aria-expanded="true" aria-controls="collapseConfig">
-        <i class="fas fa-calendar-check"></i>
+        <i class="fas fa-cogs"></i>
         <span>Configuración</span>
       </a>
       <div id="collapseConfig" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">

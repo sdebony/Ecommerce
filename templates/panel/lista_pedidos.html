@@ -4,20 +4,28 @@
 {% block page_content %}
 
 
-<div class="card shadow mb-6">
+<div class="card shadow mb-1">
   <!-- Card Header - Dropdown -->
-  <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary " >PANEL DE PEDIDOS - {{ cantidad }}</h6>
-  
-      {% csrf_token %}
-        <div class="dropdown no-arrow">Desde:
-          <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />
-                Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta}}"/>
-                
-                <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+    <h6 class="m-1 font-weight-bold text-primary " >PANEL DE PEDIDOS - {{ cantidad }}</h6>
+        <div class="dropdown no-arrow">
+        <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
+         {% csrf_token %}
+         Desde:
+          <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />Hasta:
+          <input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta}}"/>
+          <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+        </form>
+        <!-- Form Export-->
+        <form action="{% url 'mov_export_xls' 2 %}" enctype="multipart/form-data" method="POST">
+          {% csrf_token %}
+            <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde}}" hidden/>
+            <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta}}" hidden/>
+            <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>
+        </form>
+                   
         </div>
-      </form>
+     
   </div>
     
   <div class="container-fluid">
@@ -154,16 +162,4 @@
     </table>
   </div>
 </div>
-{% endblock %}
-{% block js_page %}
-<script>
-$(function () {
-
-  $("#fecha_desde, #fecha_hasta").datetimepicker({
-    format: 'd/m/Y',
-    timepicker:false
-    });
-  });
-
-</script>
 {% endblock %}

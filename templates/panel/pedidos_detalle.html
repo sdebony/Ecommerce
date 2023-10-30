@@ -166,12 +166,29 @@
                     <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
                     <pre style='display:inline'  class="float-right"> </pre>
                     <a href="{% url 'panel_pedidos_eliminar_pago' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Pago</a>
+                    
+                      {% for items in permisousuario %}
+                          {% if items.codigo.codigo == 'PEDIDOS FACTURA' %}
+                            {% if items.modo_editar %}
+                            <pre style='display:inline'  class="float-right"> </pre>
+                              <a href="{% url 'panel_pedidos_enviar_factura' ordenes.order_number %}"  class="btn btn-success float-right"><i class="fas fa-file"></i> Enviar Factura</a>
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
                   {% endif %} 
 
                   {% if entregado %} 
                     <a href="{% url 'panel_pedidos_eliminar_entrega' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Entrega</a> 
-                  {% endif %} 
-
+                      {% for items in permisousuario %}
+                          {% if items.codigo.codigo == 'PEDIDOS FACTURA' %}
+                              {% if items.modo_editar %}
+                                  <pre style='display:inline'  class="float-right"> </pre>
+                                  <a href="{% url 'panel_pedidos_enviar_factura' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-file"></i> Enviar Factura</a>
+                              {% endif %}
+                          {% endif %}
+                      {% endfor %}
+                  {% endif %}
+                  
 
                    
                 </div>
