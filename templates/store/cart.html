@@ -22,9 +22,9 @@
 <thead class="text-muted">
 <tr class="small text-uppercase">
   <th scope="col">Producto</th>
-  <th scope="col" width="120">Cantidad</th>
+  <th scope="col" width="200">Cantidad</th>
   <th scope="col" width="120">Precio</th>
-  <th scope="col" class="text-right" width="200"> </th>
+  <th scope="col" class="text-right" width="100"> </th>
 </tr>
 </thead>
 <tbody>
@@ -48,28 +48,29 @@
 	</td>
 	<td>
 		<!-- col.// -->
-					<div class="col">
-						<div class="input-group input-spinner">
-							<div class="input-group-prepend">
-							<a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
-							</div>
-							<input type="text" class="form-control"  value="{{ cart_item.quantity }}">
-							<div class="input-group-append">
-								<form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
-									{% csrf_token %}
-									{% for item in cart_item.variations.all %}
-										<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
-									{% endfor %}
-									<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
-								</form>
-							</div>
-						</div> <!-- input-group.// -->
-					</div> <!-- col.// -->
+		<form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
+		{% csrf_token %}
+			<div class="col">
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+					</div>
+					<input type="text" class="form-control input-sm"  id="quantity" name="quantity" value="{{ cart_item.quantity }}">
+					<div class="input-group-append">
+							{% for item in cart_item.variations.all %}
+								<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
+							{% endfor %}
+							<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
+					</div>
+				</div> <!-- input-group.// -->
+			</div> <!-- col.// -->
+		</form>
+	
 	</td>
 	<td>
 		<div class="price-wrap">
 			<var class="price">$ {{ cart_item.sub_total }}</var>
-			<small class="text-muted"> $ {{ cart_item.product.price }} each </small>
+			<small class="text-muted"> $ {{ cart_item.product.price }} Unidad </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">

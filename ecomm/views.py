@@ -2,7 +2,8 @@ from django.shortcuts import render
 from store.models import Product, ReviewRating
 
 def home(request):
-    products = Product.objects.all().filter(is_available=True).order_by('product_name')[:12]
+    #products = Product.objects.all().filter(is_available=True).order_by('product_name')[:20]
+    products = Product.objects.filter(is_available=True).order_by('product_name')[:16]
 
     # Get the reviews
     reviews = None
