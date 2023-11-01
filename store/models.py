@@ -18,6 +18,7 @@ class Product(models.Model):
     subcategory     = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
     created_date    = models.DateTimeField(auto_now_add=True)
     modified_date   = models.DateTimeField(auto_now=True)
+    is_popular      = models.BooleanField(default=False)
     
 
     def get_url(self):

@@ -16,11 +16,10 @@ from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import timedelta,datetime
-from decimal import Decimal
-from django.template.loader import render_to_string
+
 
 import smtplib
-import getpass
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -784,7 +783,11 @@ def panel_product_crud(request):
             stock = request.POST.get("stock")
             cat_id = request.POST.get("category")
             subcat_id = request.POST.get("subcategory")
+            is_popular = request.POST.getlist("is_popular[]")
+            
            
+            price = price.replace(",", ".") 
+
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
             print("subcat_id",subcat_id)
@@ -802,6 +805,10 @@ def panel_product_crud(request):
                 else:
                     habilitado=False
 
+                if is_popular:
+                    popular = True
+                else:
+                    popular = False
 
                 if producto:
                     print("POST --> UPDATE")
@@ -819,6 +826,7 @@ def panel_product_crud(request):
                         subcategory = subcategory,
                         created_date =created_date, 
                         modified_date=datetime.today(),
+                        is_popular=popular
                     )
                     producto.save()
                 else:
@@ -1685,6 +1693,7 @@ def import_productos_xls(request):
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
+                                            is_popular = False,
                                                 )
                                         tmp_producto.save()
                                         if tmp_producto:
@@ -1806,7 +1815,8 @@ def import_precios(request):
                                         category=tmp_producto.category,
                                         subcategory=tmp_producto.subcategory,
                                         created_date=tmp_producto.created_date,
-                                        modified_date=datetime.today()                                        
+                                        modified_date=datetime.today() ,
+                                        is_popular = False,                                       
                                             )
                                     tmp_producto.save()
                                     if tmp_producto:
@@ -1922,7 +1932,8 @@ def import_stock(request):
                                         category=tmp_producto.category,
                                         subcategory=tmp_producto.subcategory,
                                         created_date=tmp_producto.created_date,
-                                        modified_date=datetime.today()                                        
+                                        modified_date=datetime.today(),
+                                        is_popular = False,                                        
                                             )
                                     tmp_producto.save()
                                     if tmp_producto:

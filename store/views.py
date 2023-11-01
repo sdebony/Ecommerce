@@ -11,6 +11,9 @@ from .forms import ReviewForm
 from django.contrib import messages
 from orders.models import OrderProduct
 
+from django.conf import settings
+
+
 
 
 def store(request, category_slug=None,subcategory_slug=None):
@@ -25,7 +28,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
             product_count = products.count()
 
-            paginator = Paginator(products, 21)
+            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
         
@@ -33,14 +36,14 @@ def store(request, category_slug=None,subcategory_slug=None):
             categories = get_object_or_404(Category, slug=category_slug)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
             print("filter Categories: ",categories)
-            paginator = Paginator(products, 21)
+            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
             product_count = products.count()
     else:
         products = Product.objects.all().filter(is_available=True).order_by('product_name')
         print("filter All: ")
-        paginator = Paginator(products, 21)
+        paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)
         product_count = products.count()
