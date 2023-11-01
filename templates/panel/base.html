@@ -125,17 +125,35 @@
               <h6 class="collapse-header">Productos</h6>
               {% for items in permisousuario %}
                   {% if items.modo_ver %}
-                    {% if items.codigo.codigo == 'PRODUCTO' %}
-                        <a class="collapse-item" href="{% url 'panel_catalogo' %}" >Productos</a>
-                    {% endif %}
-                    {% if items.codigo.codigo == 'IMPORTAR PRODUCTOS' %}
-                        <a class="collapse-item" href="{% url 'panel_importar_productos' %}" >Importar Productos</a>
-                    {% endif %}
-                  
-                    {% if items.codigo.codigo == 'CATEGORIA' %}
+                      {% if items.codigo.codigo == 'PRODUCTO' %}
+                          <a class="collapse-item" href="{% url 'panel_catalogo' %}" >Productos</a>
+                      {% endif %}
+                  {% endif %}
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'CATEGORIA' %}
                         <a class="collapse-item" href="{% url 'panel_categoria' %}" >Categorías</a>
+                      {% endif %}
+                  {% endif %}
+                  
+                  {% if items.codigo.codigo == 'IMPORTAR PRECIOS' %}
+                      {% if items.modo_ver %}
+                          <a class="collapse-item" href="{% url 'panel_import_precios'  %}" >Importar Precios</a>
+                      {% endif %}
+                  {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR STOCK' %}
+                    {% if items.modo_ver %}
+                        <a class="collapse-item" href="{% url 'panel_import_stock'  %}" >Importar Stock</a>
                     {% endif %}
                   {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR PRODUCTOS' %}
+                    {% if items.modo_ver %}
+                      <a class="collapse-item" href="{% url 'panel_importar_productos' %}" >Importar Productos</a>
+                    {% endif %}
+                  {% endif %}
+        
+
               {% endfor %}
             </div>
           </div>
@@ -177,23 +195,23 @@
           
               <h6 class="collapse-header">Pedidos</h6>
               {% for items in permisousuario %}
-                {% if items.modo_ver %}
-                    {% if items.codigo.codigo == 'PEDIDOS' %}
-                      <a class="collapse-item" href="{% url 'panel_pedidos' 'New'  %}" >Pedidos</a>
-                    {% endif %}
-                {% endif %} 
-                {% if items.modo_ver %}
+                  {% if items.codigo.codigo == 'PEDIDOS' %}
+                      {% if items.modo_ver %}
+                          <a class="collapse-item" href="{% url 'panel_pedidos' 'New'  %}" >Pedidos</a>
+                      {% endif %}
+                  {% endif %} 
+                  
                   {% if items.codigo.codigo == 'IMPORTAR PEDIDOS' %}
-                    <a class="collapse-item" href="{% url 'panel_pedidos_import'  %}" >Importar Pedidos</a>
+                    {% if items.modo_ver %}
+                      <a class="collapse-item" href="{% url 'panel_pedidos_import'  %}" >Importar Pedidos</a>
+                    {% endif %}
                   {% endif %}
-                {% endif %}
 
-                
               {% endfor %}
             </div>
           </div>
         </li>
-      <!-- FIN MENU CATALOGO-->
+      <!-- FIN MENU PEDIDOS-->
 
       <!-- INI MENU MOVIMIENTOS-->
       <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">

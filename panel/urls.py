@@ -14,8 +14,11 @@ urlpatterns = [
     path('producto/variant/', views.panel_productos_variantes, name='panel_producto_variante'),
     path('producto/variant_del/', views.panel_productos_variantes_del, name='panel_producto_variante_del'),
     path('producto/del/<int:product_id>', views.panel_productos_del, name='panel_productos_del'),
-    
-    path('producto/import/productos/', views.import_productos_xls, name='panel_producto_import'), 
+
+    path('producto/import/stock/', views.import_stock, name='panel_import_stock'), 
+    path('producto/import/precios/', views.import_precios, name='panel_import_precios'), 
+    path('producto/import/productos/', views.import_productos_xls, name='panel_producto_import'),
+     
     path('producto/import/', views.panel_importar_productos, name='panel_importar_productos'),
     path('producto/save/', views.guardar_tmp_productos, name='panel_guardar_tmp_productos'),
     path('producto/habilitar/<int:product_id>/<int:estado>', views.panel_producto_habilitar, name='panel_producto_habilitar'),

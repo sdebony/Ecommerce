@@ -16,7 +16,7 @@ from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import timedelta,datetime
-
+from decimal import Decimal
 from django.template.loader import render_to_string
 
 import smtplib
@@ -449,9 +449,11 @@ def panel_pedidos_enviar_factura(request,order_number=None):
                 if pedido:
                     if  pedido.email:
 
+
+                        print("Enviado a:", pedido.email)
                         mensaje = MIMEMultipart()
-                        mensaje['From']='santidebony@gmail.com'
-                        mensaje['To']='santidebony@hotmail.com'
+                        mensaje['From']=  settings.EMAIL_HOST_USER 
+                        mensaje['To']=pedido.email 
                         mensaje['Subject']='Factura de su compra ' + str(order_number)
 
                         mensaje.attach(MIMEText("Gracias por su compra.  Aqui le enviamos su factura",'plain'))
@@ -467,11 +469,11 @@ def panel_pedidos_enviar_factura(request,order_number=None):
 
                         try:
 
-                            session_smtp = smtplib.SMTP('smtp.gmail.com' ,587)
+                            session_smtp = smtplib.SMTP(settings.EMAIL_HOST ,settings.EMAIL_PORT)
                             session_smtp.starttls()
-                            session_smtp.login('santidebony@gmail.com' ,'ocfawkbtfogoliia')
+                            session_smtp.login(settings.EMAIL_HOST_USER ,settings.EMAIL_HOST_PASSWORD)
                             texto = mensaje.as_string()
-                            session_smtp.sendmail('santidebony@gmail.com',pedido.email,texto)
+                            session_smtp.sendmail(settings.EMAIL_HOST_USER,pedido.email,texto)
                             session_smtp.quit()
                            
                             messages.success(request,"Factura enviada con exito.")
@@ -1729,6 +1731,235 @@ def import_productos_xls(request):
                             
                     }
         return render(request,'panel/importar_productos.html',context)
+    else:
+            return render (request,"panel/login.html")
+
+def import_precios(request):
+
+    print("IMPORTAR PRECIOS")
+    if validar_permisos(request,'IMPORTAR PRECIOS'):
+        cant_ok = 0
+        cant_error =0
+        error_str=""
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        if request.method=="POST":
+            try:
+                myfile = request.FILES['rootfile']
+                if myfile:
+                    #fs = FileSystemStorage()
+                    #filename = fs.save(myfile.name,myfile)
+                    #archivo = fs.url(filename)
+            
+                    #int_fin = len(archivo)
+                    #archivo = archivo[1:int_fin]
+                    print("myFile", myfile )
+                    fn = os.path.basename(myfile.name)
+                    # open read and write the file into the server
+                    open(f"media/{fn}", 'wb').write(myfile.file.read())
+                    archivo = f"media/{myfile}"
+                    #archivo = f"{myfile}"
+
+            except:
+                archivo=""
+           
+            if archivo:
+            
+                print("Archivo", archivo )
+                workbook = xlrd.open_workbook(archivo)
+                print("Abriendo arhcivo...")
+
+                
+                #Get the first sheet in the workbook by index
+                sheet1 = workbook.sheet_by_index(0)
+
+                #Get each row in the sheet as a list and print the list
+                for rowNumber in range(sheet1.nrows):
+                    try:
+                        row = sheet1.row_values(rowNumber)
+                        if sheet1.cell_value(rowNumber, 0) != "producto": # Saco la primera file
+                            producto = sheet1.cell_value(rowNumber, 0)
+                            precio = sheet1.cell_value(rowNumber, 1)
+
+                            print(producto,precio)
+                            try:
+                                print(precio)
+                                precio = float(precio)
+                                print(precio)
+                            except ValueError:
+                                cant_error += 1
+                                error_str+="<br> El precio del articulo "+ str(producto)+" no es valido."
+                                pass
+
+                            tmp_producto = Product.objects.get(product_name=producto)
+                            if tmp_producto:
+                                    tmp_producto = Product(
+                                        id=tmp_producto.id,
+                                        product_name=producto,
+                                        slug=tmp_producto.slug,
+                                        description=tmp_producto.description,
+                                        price=precio,
+                                        images=tmp_producto.images,
+                                        stock=tmp_producto.stock,
+                                        is_available=tmp_producto.is_available,
+                                        category=tmp_producto.category,
+                                        subcategory=tmp_producto.subcategory,
+                                        created_date=tmp_producto.created_date,
+                                        modified_date=datetime.today()                                        
+                                            )
+                                    tmp_producto.save()
+                                    if tmp_producto:
+                                        product_id = tmp_producto.id
+                                        cant_ok=cant_ok+1
+                                    else:
+                                        cant_error=cant_error+1
+                                        error_str = error_str + "<br> Error al grabar el articulo: " + str(producto)
+                                    
+                        
+                    except OSError as err:
+                        print("OS error:", err)
+                        error_str = error_str + err + " ROW: " + str(rowNumber)
+                        cant_error=cant_error+1
+                        pass
+                    except ValueError:
+                        cant_error=cant_error+1
+                        error_str = error_str  + " Error al convertir int -  ROW: " + str(rowNumber)  
+                        print("Could not convert data to an integer.")
+                        pass
+                    except Exception as err:
+                        error_str= error_str + producto
+                        error_str= error_str + f" - Unexpected {err=}, {type(err)=}"
+                        cant_error=cant_error+1
+                        
+                #Borro el archivo
+                os.remove(archivo)
+                
+        context = {
+                    'cant_ok':cant_ok,
+                    'permisousuario':permisousuario,
+                    'cant_error':cant_error,
+                    'error_str':error_str,
+                   
+                            
+                    }
+        return render(request,'panel/importar_precios.html',context)
+    else:
+            return render (request,"panel/login.html")
+
+def import_stock(request):
+
+    print("IMPORTAR STOCK")
+    if validar_permisos(request,'IMPORTAR STOCK'):
+        cant_ok = 0
+        cant_error =0
+        error_str=""
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        if request.method=="POST":
+            try:
+                myfile = request.FILES['rootfile']
+                if myfile:
+                    #fs = FileSystemStorage()
+                    #filename = fs.save(myfile.name,myfile)
+                    #archivo = fs.url(filename)
+            
+                    #int_fin = len(archivo)
+                    #archivo = archivo[1:int_fin]
+                    print("myFile", myfile )
+                    fn = os.path.basename(myfile.name)
+                    # open read and write the file into the server
+                    open(f"media/{fn}", 'wb').write(myfile.file.read())
+                    archivo = f"media/{myfile}"
+                    #archivo = f"{myfile}"
+
+            except:
+                archivo=""
+           
+            if archivo:
+            
+                print("Archivo", archivo )
+                workbook = xlrd.open_workbook(archivo)
+                print("Abriendo arhcivo...")
+
+                
+                #Get the first sheet in the workbook by index
+                sheet1 = workbook.sheet_by_index(0)
+
+                #Get each row in the sheet as a list and print the list
+                for rowNumber in range(sheet1.nrows):
+                    try:
+                        row = sheet1.row_values(rowNumber)
+                        if sheet1.cell_value(rowNumber, 0) != "producto": # Saco la primera file
+                            producto = sheet1.cell_value(rowNumber, 0)
+                            stock = sheet1.cell_value(rowNumber, 1)
+
+                            print(producto,stock)
+                            try:
+                               stock = int(stock)
+                                
+                            except ValueError:
+                                cant_error += 1
+                                error_str+="<br> El stock del articulo "+ str(producto)+" no es valido."
+                                pass
+
+                            tmp_producto = Product.objects.get(product_name=producto)
+                            if tmp_producto:
+                                    estado = tmp_producto.is_available
+                                    if stock < 1:
+                                        estado = False
+
+                                    tmp_producto = Product(
+                                        id=tmp_producto.id,
+                                        product_name=producto,
+                                        slug=tmp_producto.slug,
+                                        description=tmp_producto.description,
+                                        price=tmp_producto.price,
+                                        images=tmp_producto.images,
+                                        stock=stock,
+                                        is_available=estado,
+                                        category=tmp_producto.category,
+                                        subcategory=tmp_producto.subcategory,
+                                        created_date=tmp_producto.created_date,
+                                        modified_date=datetime.today()                                        
+                                            )
+                                    tmp_producto.save()
+                                    if tmp_producto:
+                                        product_id = tmp_producto.id
+                                        cant_ok=cant_ok+1
+                                    else:
+                                        cant_error=cant_error+1
+                                        error_str = error_str + "<br> Error al grabar el articulo: " + str(producto)
+                                    
+                        
+                    except OSError as err:
+                        print("OS error:", err)
+                        error_str = error_str + err + " ROW: " + str(rowNumber)
+                        cant_error=cant_error+1
+                        pass
+                    except ValueError:
+                        cant_error=cant_error+1
+                        error_str = error_str  + " Error al convertir int -  ROW: " + str(rowNumber)  
+                        print("Could not convert data to an integer.")
+                        pass
+                    except Exception as err:
+                        error_str= error_str + producto
+                        error_str= error_str + f" - Unexpected {err=}, {type(err)=}"
+                        cant_error=cant_error+1
+                        
+                #Borro el archivo
+                os.remove(archivo)
+                
+        context = {
+                    'cant_ok':cant_ok,
+                    'permisousuario':permisousuario,
+                    'cant_error':cant_error,
+                    'error_str':error_str,
+                   
+                            
+                    }
+        return render(request,'panel/importar_stock.html',context)
     else:
             return render (request,"panel/login.html")
 
