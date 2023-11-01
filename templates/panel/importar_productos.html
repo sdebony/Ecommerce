@@ -7,7 +7,7 @@
 
 <section class="content">
     <div class="container-fluid">
-      <div class="row">
+        <div class="row">
             <!-- left column -->
             <div class="col-md-6" >
                
@@ -16,6 +16,7 @@
                         <div class="card-header">
                             <h3 class="card-title" align="center">Importar Productos </h3>
                         </div>
+                        
                         <div class="card-footer">
                             <form action="{% url 'panel_producto_import' %}" method="POST" enctype="multipart/form-data">
                                 {% csrf_token %}
@@ -29,10 +30,36 @@
                     </div>
             </div>
 
-            <!-- rigth column-->
+            <div class="col-md-6" >
+               
+                <!-- general form elements -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
+                    </div>
+                    <div class="card-footer">
+                        <span> Arhivo Excel (XLS) con las siguientes columnas</span>
+                            <ul>
+                                <li> <b>Producto</b> - Ejemplo: Abacus 14 mm - AZUL CIELO</li>
+                                <li> <b>Descripcion</b> - Ejemplo:  Todas las cuentas de silicona son 100% de silicona de grado alimenticio</li>
+                                <li> <b>Precio</b> - Ejemplo:  1234.56.</li>
+                                <li> <b>Nombre Imagen</b>  - Ejemplo:  cd58b2389d911eb731c09cc8051e31f1/Abacus-14-mm---AMARILLO-PASTEL.jpg</li>
+                                <li> <b>Stock</b> - Ejemplo:  1234</li>
+                                <li> <b>Habilitado</b> - Ejemplo:  True / False </li>
+                                <li> <b>Categoria</b> - Ejemplo: Abacus.</li>
+                                <li> <b>Sub Categoria</b> - Ejemplo:  14 mm</li>
+                                
+                            </ul>
+                      </div>
+              
+                </div>
+            </div>
 
+        </div>
+            <!-- rigth column-->
+        <div class="row">
+        
             <aside class="col-lg-6">
-                <div class="card">
                     <div class="card-body">
                     <!-- Collapsable Card Example -->
                         <div class="card shadow mb-4">
@@ -50,18 +77,14 @@
                                 </div>
                             </div>
                         </div>
-                         </form>
+                 
                     </div>
-                        <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a>
-                    </div><br>
-            <!-- fin rigth column-->
+                    <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a>
+            </aside>
 
         </div>
-    </div>
                 
 </section>
-<br>
-<br>
 
 <section class="content">
     <div class="container-fluid">
