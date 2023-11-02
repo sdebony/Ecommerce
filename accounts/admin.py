@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Account, UserProfile, Permition, AccountPermition
+from .models import Account, UserProfile, Permition, AccountPermition,AccountDirecciones
 from django.utils.html import format_html
 
 # Register your models here.
@@ -21,8 +21,19 @@ class UserProfileAdmin(admin.ModelAdmin):
     thumbnail.short_description = 'Profile Picture'
     list_display = ('thumbnail', 'user', 'city', 'state', 'country')
 
+class AccountDireccionesAdmin(admin.ModelAdmin):
+
+    list_display = ('dir_id', 'user', 'dir_nombre', 'dir_cp', 'dir_calle', 'dir_nro', 'dir_localidad','dir_provincia','dir_telefono','dir_obs','dir_correo')
+    list_display_links = ('dir_id', 'user', 'dir_nombre')
+    ordering = ('-user','dir_id',)
+
+    filter_horizontal = ()
+    list_filter = ()
+    fieldsets = ()
+
 admin.site.register(Account, AccountAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Permition)
 admin.site.register(AccountPermition)
+admin.site.register(AccountDirecciones,AccountDireccionesAdmin)
 
