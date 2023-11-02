@@ -43,6 +43,7 @@
             <label for="">Direcciones disponibles:</label>
             <select name="direccion" id="direccion" class="form-control" required>
               <option value="0" selected disabled >Seleccione una direccion</option> 
+              <option value="99" >RETIRO POR CAPITAL</option> 
               {% for item in direccion %}
                 <option value="{{item.dir_id}}" >{{ item.dir_nombre}}</option>
               {% endfor %}
@@ -178,6 +179,7 @@
        if (dir_id==0){
             return false;
         }
+        console.log(dir_id)
         var path = "{% url 'api:api_direccion' %}" + dir_id;
 
         $.ajax({

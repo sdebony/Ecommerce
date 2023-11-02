@@ -152,39 +152,45 @@ def activate(request, uidb64, token):
 @login_required(login_url = 'login')
 def dashboard(request):
 
-        
-        if request.user.is_authenticated:
-            #accesousuario =  get_object_or_404(AccountPermition, user=request.user.id, codigo__codigo ='PANEL',modo_ver=True)  #Permiso de Ver  
+        if request.user.is_authenticated and request.user.is_staff:
             id_permiso = Permition.objects.get(codigo='PANEL')
-            print(id_permiso)
             if id_permiso:
+                accesousuario =  AccountPermition.objects.filter(user=request.user.id, codigo=id_permiso,modo_ver=True)  #Permiso de Ver  
                 try:
-                    accesousuario =  AccountPermition.objects.get(user=request.user.id, codigo=id_permiso,modo_ver=True)  #Permiso de Ver  
                     if accesousuario:
-                       
-                        if accesousuario.codigo.codigo =='PANEL':
+                        return redirect('panel')
                         
-                            return redirect('panel')
-                        else:
-                            print("Sin Acceso Panel")
-                            orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
-                            orders_count = orders.count()
+                    else:
+                        print("Sin Acceso Panel")
+                        orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+                        orders_count = orders.count()
 
-                            userprofile = UserProfile.objects.get(user_id=request.user.id)
-                    
-                            context = {
-                                'orders_count': orders_count,
-                                'userprofile': userprofile,
-                            }
-                            print("accounts/dashboard.html")
-                            return render(request, 'accounts/dashboard.html', context)  
+                        userprofile = UserProfile.objects.filter(user_id=request.user.id).first()
+                        if not userprofile:
+                            user_profile = UserProfile (
+                                user = request.user,
+                                address_line_1 = "",
+                                address_line_2 = "",
+                                profile_picture = "userprofile/default_user.png",
+                                city="",
+                                state = "",
+                                country = ""
+                            )
+                            user_profile.save()
+                            userprofile =  get_object_or_404(UserProfile, user_id=request.user.id)
                 
+                        context = {
+                            'orders_count': orders_count,
+                            'userprofile': userprofile,
+                        }
+                        print("accounts/dashboard.html")
+                        return render(request, 'accounts/dashboard.html', context)  
+
                 except ObjectDoesNotExist:
                     print("Sin Acceso Panel")
                     orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
                     orders_count = orders.count()
-
-
+           
                     userprofile = UserProfile.objects.get(user_id=request.user.id)
                 
                     context = {
@@ -196,7 +202,6 @@ def dashboard(request):
                     return render(request, 'accounts/dashboard.html', context)
                  
             else:
-        
                 print("Sin Acceso Panel")
                 orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
                 orders_count = orders.count()
@@ -214,10 +219,21 @@ def dashboard(request):
             print("Sin Acceso Panel")
             orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
             orders_count = orders.count()
+            userprofile = UserProfile.objects.filter(user_id=request.user.id).first()
+            if not userprofile:
+                user_profile = UserProfile (
+                    user = request.user,
+                    address_line_1 = "",
+                    address_line_2 = "",
+                    profile_picture = "userprofile/default_user.png",
+                    city="",
+                    state = "",
+                    country = ""
+                )
+                user_profile.save()
+                userprofile =  get_object_or_404(UserProfile, user_id=request.user.id)
 
 
-            userprofile = UserProfile.objects.get(user_id=request.user.id)
-        
             context = {
                 'orders_count': orders_count,
                 'userprofile': userprofile,
