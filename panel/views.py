@@ -256,17 +256,68 @@ def dashboard_cuentas(request):
     else:
         return render (request,"panel/login.html")
 
+def panel_product_list_category(request):
+    
+    if validar_permisos(request,'PRODUCTO'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        categorias = Category.objects.all()
+        catalogo = Product.objects.all().order_by('product_name')
+        cantidad = catalogo.count()
+        categoria=0
+       
+    
+        if request.method =="GET":
+            catalogo = Product.objects.all().order_by('product_name')
+            cantidad = catalogo.count()
+    
+        if request.method =="POST":
+        
+            category = request.POST.get("category")
+            categoria=int(category)
+           
+
+            print("category",category)
+         
+
+            if category:
+                if category=='0':
+                    catalogo = Product.objects.all().order_by('product_name')
+                    cantidad = catalogo.count()
+                else:
+                    catalogo = Product.objects.filter(category=category).order_by('product_name')
+                    cantidad = catalogo.count()
+  
+
+        context = {
+            'catalogo':catalogo,
+            'categorias':categorias,
+            'permisousuario':permisousuario,
+            'cantidad':cantidad,
+            'categoria':categoria,
+          
+        }
+       
+        return render(request,'panel/lista_productos.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
 def panel_product_list(request):
     
    
     if validar_permisos(request,'PRODUCTO'):
        
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        categorias = Category.objects.all()
+        subcategoria = []
+       
 
         catalogo = Product.objects.filter().all().order_by('product_name')
         cantidad = catalogo.count()
         context = {
             'catalogo':catalogo,
+            'categorias':categorias,
+            'subcategoria':subcategoria,
             'permisousuario':permisousuario,
             'cantidad':cantidad
         }

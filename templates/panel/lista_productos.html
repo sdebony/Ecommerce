@@ -5,8 +5,12 @@
 
 <div class="card shadow mb-4">
   <!-- Card Header - Dropdown -->
-  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary">Productos - ({{ cantidad }})</h6>
+  <form action="{% url 'producto_list_category' %}" enctype="multipart/form-data" method="POST">
+    {% csrf_token %} 
+  <div class="card-header py-6 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="mb-9 font-weight-bold text-primary">Productos - {{ cantidad }}</h6>
+              
+      
     <div class="dropdown no-arrow">
       <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
@@ -14,6 +18,7 @@
       <a href="{% url 'mov_export_xls' 3 %}" class="btn btn-secondary">Exportar xls</a>
       
     </div>
+ 
   </div>
   <!-- Card Body -->
   <div class="card-body">
@@ -23,8 +28,32 @@
     <div class="buttons-toolbar">
         <a class="btn btn-primary" href="{% url 'panel_producto_crud' %}"><i class="fa fa-plus"></i> Nuevo</a>
     </div>
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+          <div class="col-md-3" >
+            <div class="input-group-append">
+              <h3 class="h3 mb-0 text-gray-800">Categorias:  </h3>
+            <select name="category" id="category" class="form-control">
+              <option value="0" selected > - TODOS - </option> 
+              {% for cat in categorias %}
+                  {%if cat.id == categoria %}
+                    <option value="{{cat.id}}" selected >{{ cat.category_name }}</option>
+                  {% else %}
+                    <option value="{{cat.id}}"  >{{ cat.category_name }} </option>
+                  {% endif %}
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">
+              <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-3" >
+          </div>
+      </div>
+    </div>
 
-
+  </form>
     <table 
       id="table"
       data-toggle="table"
@@ -82,41 +111,51 @@
   </div>
 </div>
 {% endblock %}
+
 {% block js_page %}
 
 <script>
-  function inactivar(id)
-  {
-    var data = {id:id};
-    data = JSON.stringify(data);
-    var token = '{{csrf_token}}';
-    // alert(token);
-    // alert(id);
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+            },
+        });
+    }
     
-    $.ajax({
-      headers : {"X-CSRFToken": token},
-      type:"POST",
-      url:"/fac/clientes/estado/"+id,
-      data: data,
-      success: function(response){
-        if(response==="OK")
-        {
-          location.reload(true);
-        }
-        else{
-          mensaje("Error Intentado Cambiar Estado a Cliente");
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrow){
-        console.log(textStatus, errorThrow);
-        mensaje(errorThrow,'red');
-        cerrar_modal();
-      }
+   $(function () {
+
+      
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
+      
     });
-  }
-// Call the dataTables jQuery plugin
-// $(document).ready(function() {
-//   $('.table').DataTable();
-// });
+
+    
+   
+
 </script>
+
 {% endblock %}

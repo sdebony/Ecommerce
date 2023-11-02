@@ -4,14 +4,14 @@
 			 Linea 2 - Datos
 
 	Campos:
-	A = Nombre
-	B = Descripcion
-	C= Variedades Categoria
-	D = Variedades Valor
-	E = Precio
-	F = Imagen URL
-	G= Stock
-	H = Habilitado para venta Fornt (default=False)
-	I = Categoria
+	0 = Nombre
+	1 = Descripcion
+	2 = Precio
+	3 = Imagen URL
+	4= Stock
+	5 = Habilitado para venta Fornt (default=False)
+	6 = Categoria
+	7 = SubCategoria
+	
 
 		
