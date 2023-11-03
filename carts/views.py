@@ -4,8 +4,10 @@ from .models import Cart, CartItem
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from accounts.models import UserProfile,AccountDirecciones
+from django.contrib import messages
+
 # Create your views here.
-from django.http import HttpResponse
+from django.conf import settings
 
 def _cart_id(request):
     cart = request.session.session_key
@@ -16,6 +18,8 @@ def _cart_id(request):
 def add_cart(request, product_id):
     current_user = request.user
     product = Product.objects.get(id=product_id) #get the product
+    quantity=0
+
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -42,16 +46,20 @@ def add_cart(request, product_id):
                 existing_variation = item.variations.all()
                 ex_var_list.append(list(existing_variation))
                 id.append(item.id)
-
+            
             if product_variation in ex_var_list:
                 # increase the cart item quantity
                 index = ex_var_list.index(product_variation)
                 item_id = id[index]
                 item = CartItem.objects.get(product=product, id=item_id)
-                if int(item.quantity)  == int(quantity):      
-                    item.quantity += 1
+
+                if quantity:
+                    if int(item.quantity)  == int(quantity):      
+                        item.quantity += 1
+                    else:
+                        item.quantity = quantity
                 else:
-                    item.quantity = quantity
+                    item.quantity += 1
                 item.save()
 
             else:
@@ -153,7 +161,6 @@ def remove_cart(request, product_id, cart_item_id):
         pass
     return redirect('cart')
 
-
 def remove_cart_item(request, product_id, cart_item_id):
     product = get_object_or_404(Product, id=product_id)
     if request.user.is_authenticated:
@@ -163,7 +170,6 @@ def remove_cart_item(request, product_id, cart_item_id):
         cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
     cart_item.delete()
     return redirect('cart')
-
 
 def cart(request, total=0, quantity=0, cart_items=None):
     try:
@@ -191,7 +197,6 @@ def cart(request, total=0, quantity=0, cart_items=None):
     }
     return render(request, 'store/cart.html', context)
 
-
 @login_required(login_url='login')
 def checkout(request, total=0, quantity=0, cart_items=None):
     try:
@@ -212,16 +217,20 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         grand_total = total + envio
     except ObjectDoesNotExist:
         pass #just ignore
-
-    context = {
-        'total': total,
-        'quantity': quantity,
-        'cart_items': cart_items,
-        'envio'       : envio,
-        'grand_total': grand_total,
-        'userprofile': userprofile,
-        'direccion' :direccion,
-    }
-    return render(request, 'store/checkout.html', context)
-
-
+    
+    print("Total:",grand_total)
+    if grand_total > settings.MONTO_MINIMO:
+    
+        context = {
+            'total': total,
+            'quantity': quantity,
+            'cart_items': cart_items,
+            'envio'       : envio,
+            'grand_total': grand_total,
+            'userprofile': userprofile,
+            'direccion' :direccion,
+        }
+        return render(request, 'store/checkout.html', context)
+    else:
+        messages.error(request, 'El mìnimo de compras mayoristas es de: $'+ str(settings.MONTO_MINIMO))
+        return redirect('cart')

@@ -23,7 +23,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     print("Store",category_slug,subcategory_slug)
     if category_slug != None:
         if subcategory_slug != None:
-            categories = get_object_or_404(Category, slug=category_slug)
+            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
             product_count = products.count()
@@ -33,7 +33,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             paged_products = paginator.get_page(page)
         
         else:
-            categories = get_object_or_404(Category, slug=category_slug)
+            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
             print("filter Categories: ",categories)
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
@@ -53,7 +53,6 @@ def store(request, category_slug=None,subcategory_slug=None):
         'product_count': product_count,
     }
     return render(request, 'store/store.html', context)
-
 
 def product_detail(request, category_slug, product_slug):
     try:
@@ -85,7 +84,6 @@ def product_detail(request, category_slug, product_slug):
     }
     return render(request, 'store/product_detail.html', context)
 
-
 def search(request):
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
@@ -97,8 +95,6 @@ def search(request):
         'product_count': product_count,
     }
     return render(request, 'store/store.html', context)
-
-
 
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
