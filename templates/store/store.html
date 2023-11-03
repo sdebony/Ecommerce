@@ -27,20 +27,17 @@
 <div class="card">
 	<article class="filter-group">
 		<header class="card-header">
-			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
+			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="false" class="">
 				<i class="icon-control fa fa-chevron-down"></i>
 				<h6 class="title">Categorias</h6>
 			</a>
 		</header>
-		<div class="filter-content collapse show" id="collapse_1" style="">
+		<div class="filter-content collapse" id="collapse_1" aria-expanded="false" >
 			<div class="card-body">
-
 				<ul class="list-menu">
-			<!--		<li><a href="{% url 'store' %}">All Products  </a></li>
-			-->		{% for category in links %}
+					{% for category in links %}
 						<li>
-						<!--	<a href="{{ category.get_url }}">{{ category.category_name }}  </a> -->
-							<a data-toggle="collapse" href="#{{ category.category_name }}"  aria-expanded="true" aria-controls="{{ category.category_name }}">
+							<a data-toggle="collapse" href="#{{ category.category_name }}"  aria-expanded="false" aria-controls="{{ category.category_name }}">
 								<strong>{{ category.category_name }} </strong>
 							  </a><ul>
 							  {% for subcategory in sub_links %}
@@ -52,8 +49,6 @@
 							   {% endfor%}
 								</ul>
 						</li>
-						
-
 					{% endfor %}
 				</ul>
 
@@ -74,33 +69,37 @@
 		</div>
 </header><!-- sect-heading -->
 
-	<div class="row justify-content-md-left">
+	<div class="row justify-content-md-center">
 	{% if products %}
 		{% for product in products %}
-		<div class="col-md-2">
+		<div class="col-md-3">
 			<form action="{% url 'add_cart' product.id %}" method="POST" class="small">
 				{% csrf_token %}
-				<input type="text" class="form-control input-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
+				<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 						
-			<figure class="card card-product-grid">
-				<div class="img-wrap" style="width: 8.5rem; height: 9rem;">
-					<a href="{{ product.get_url }}"><img  src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"></a>
-				</div>
-				<figcaption class="info-wrap">
+			<figure class="card card-product-grid" >
+				<div class="img-wrap"  style="width: 6rem; height: 6rem">
+					<a href="{{ product.get_url }}">
+						<img  src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm">
+					</a>
+				
+			</div>
+				<!--  justify-content: center -->
+				<figcaption class="info-wrap">  
 				<div class="fix-height"><small>
 						<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }}</a>
-						<span class="small">$ {{ product.price }}</span></small>
+						<span class="small"> $ {{ product.price }}</span></small>
 					<!-- price-wrap.// -->
 						<div class="input-group-prepend">
-							<input type="text" class="form-control input-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
-							<input type="text" class="form-control input-sm"  id="volver_store" name="volver_store" value="1" hidden>
+							<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+							<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
 								
 							<button type="submit" class="btn  btn-primary btn-sm"> 
 								<i class="fa fa-shopping-cart"></i>
 							</button>
 						</div>
 				</div> 
-				</figcaption>
+				</figcaption> 
 			</figure>
 			</form>
 		</div> <!-- col.// -->
