@@ -29,10 +29,14 @@
 		<header class="card-header">
 			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="false" class="">
 				<i class="icon-control fa fa-chevron-down"></i>
-				<h6 class="title">Categorias</h6>
+				<h6 class="title">Categorias - </h6>
 			</a>
 		</header>
-		<div class="filter-content collapse" id="collapse_1" aria-expanded="false" >
+		{%if request.path == '/store/' %}   <!--  Si es la primera vez muestro sino oculto-->
+			<div class="filter-content collapse show" id="collapse_1" aria-expanded="false" >
+		{% else %}
+			<div class="filter-content collapse " id="collapse_1" aria-expanded="false" >
+		{% endif %}
 			<div class="card-body">
 				<ul class="list-menu">
 					{% for category in links %}
@@ -64,7 +68,7 @@
 
 <header class="border-bottom mb-2">
 		<div class="form-inline">
-			<span class="mr-md-auto"><b>{{ product_count }}</b> items found </span>
+			<span class="mr-md-auto"><b>{{ product_count }}</b> Articulos encontrados </span>
 
 		</div>
 </header><!-- sect-heading -->
