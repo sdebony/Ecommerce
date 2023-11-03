@@ -20,7 +20,6 @@ def store(request, category_slug=None,subcategory_slug=None):
     categories = None
     products = None
     product_count=0
-    print("Store",category_slug,subcategory_slug)
     if category_slug != None:
         if subcategory_slug != None:
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
@@ -41,12 +40,23 @@ def store(request, category_slug=None,subcategory_slug=None):
             paged_products = paginator.get_page(page)
             product_count = products.count()
     else:
-        products = Product.objects.all().filter(is_available=True).order_by('product_name')
-        print("filter All: ")
+        #Por default vamos a traer esferas de 12 mm
+        #products = Product.objects.all().filter(is_available=True).order_by('product_name')
+        #print("filter All: ")
+        #paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
+        #page = request.GET.get('page')
+        #paged_products = paginator.get_page(page)
+        #product_count = products.count()
+        category_slug = settings.DEF_CATEGORY
+        subcategory_slug = settings.DEF_SUBCATEGORY
+        categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+        subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
+        products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+        product_count = products.count()
+
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)
-        product_count = products.count()
 
     context = {
         'products': paged_products,
