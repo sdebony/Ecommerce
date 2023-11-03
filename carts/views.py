@@ -20,7 +20,7 @@ def add_cart(request, product_id):
     product = Product.objects.get(id=product_id) #get the product
     quantity=0
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
-
+    ruta='store'
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -73,7 +73,7 @@ def add_cart(request, product_id):
             
             cart_item = CartItem.objects.create(
                 product = product,
-                quantity = int(quantity), #1 inicial
+                quantity = 1, #1 inicial
                 user = current_user,
             )
             if len(product_variation) > 0:
@@ -83,7 +83,10 @@ def add_cart(request, product_id):
         if volver_store=="0":
             return redirect('cart')
         else:
-            return redirect(ruta)
+            if ruta:
+                return redirect(ruta)
+            else:
+                return redirect('store')  #Detalle del pedido
             
     # If the user is not authenticated
     else:
