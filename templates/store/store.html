@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+
+<header>
+
+</header>
 {% block content %}
 <!-- ========================= SECTION PAGETOP 
 <section class="section-pagetop bg">
@@ -20,59 +24,108 @@
 <section class="section-content padding-y">
 <div class="container">
 
-<div class="row">
-	<aside class="col-md-2">
-	
-
-<div class="card">
-	<article class="filter-group">
-		<header class="card-header">
-			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="false" class="">
-				<i class="icon-control fa fa-chevron-down"></i>
-				<h6 class="title">Categorias - </h6>
-			</a>
-		</header>
-		{%if request.path == '/store/' %}   <!--  Si es la primera vez muestro sino oculto-->
-			<div class="filter-content collapse show" id="collapse_1" aria-expanded="false" >
-		{% else %}
-			<div class="filter-content collapse " id="collapse_1" aria-expanded="false" >
-		{% endif %}
-			<div class="card-body">
-				<ul class="list-menu">
-					{% for category in links %}
-						<li>
-							<a data-toggle="collapse" href="#{{ category.category_name }}"  aria-expanded="false" aria-controls="{{ category.category_name }}">
-								<strong>{{ category.category_name }} </strong>
-							  </a><ul>
-							  {% for subcategory in sub_links %}
-									{% if subcategory.category == category %}
-							 		<div class="collapse" id="{{ category.category_name }}">
-										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">{{subcategory.category}} - {{ subcategory.subcategory_name }}  </a></li> 
-									</div>
+	<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+		{% for category in links %}
+		<div class="panel panel-default">
+			<div class="panel-heading" role="tab" id="heading1">
+					<h6 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapse_{{category.id}}" aria-expanded="true" aria-controls="collapse_{{category.id}}">{{ category.category_name }} </a> 	 						
+					</h6>
+				
+				{% for subcategory in sub_links %}
+					{% if subcategory.category == category %}
+						<p></p>
+						{% if category.id == category_id %} 
+							<div style="" aria-expanded="true" id="collapse1_{{category.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">
+								
+						{% else %}
+								<div style="height: 0px;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+							
+						{% endif %}
+						
+							<h6 class="panel-title">
+								<li>
+										<a  href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">{{ subcategory.subcategory_name }} 
+										</a>
+								</li>
+							</h6>
+							
+									{% if subcategory.id == subcategory_id  %}
+										<div style="" aria-expanded="true" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">
+									{% else %}
+										<div style="height: 0px;" aria-expanded="false" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+										
 									{% endif %}
-							   {% endfor%}
-								</ul>
-						</li>
-					{% endfor %}
-				</ul>
+									<p></p>
 
-			</div> <!-- card-body.// -->
+									<div class="container">
+									
+									{% if products %}
+										{% for product in products %}
+											<!-- Start Productos -->
+											<form action="{% url 'add_cart' product.id %}" method="POST" class="small">
+											{% csrf_token %}
+									
+											<div class="row justify-content-start">
+													<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
+
+														<div class="col-4 col-md-4">
+															<a href="#">
+																<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 10rem; height: 10rem">
+															</a>
+														</div>	
+														<div class="col-8 col-md-4">
+															<div class="input-group-prepend">
+																<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }} </a>
+																</div>
+																<span class="small"><b> $ {{ product.price }}</b></span>
+															
+															<div class="input-group-prepend">	
+																<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+																<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
+																<button type="submit" class="btn  btn-primary btn-sm"> 
+																	<i class="fa fa-shopping-cart"></i>
+																</button>
+															</div>
+														</div>
+												
+											</div>
+											</form>
+										{% endfor %}
+										<div class="row">
+											<div class="col-auto"></div>
+										</div>
+									<!-- End  Productos -->
+									{% endif %}
+									</div>
+
+							</div>
+						</div>
+					{% endif %}
+				{% endfor %}	
+			</div>
 		</div>
-	</article> <!-- filter-group  .// -->
+		{% endfor %}
+	</div>
+		
 
-</div> <!-- card.// -->
+</div> <!-- container .//  -->
+</section>
+<!-- =========================
 
-	</aside> <!-- col.// -->
-	<!-- <main class="col-md-9">  -->
-	<main class="col-md-9">
 
-<header class="border-bottom mb-2">
-		<div class="form-inline">
-			<span class="mr-md-auto"><b>{{ product_count }}</b> Articulos encontrados </span>
 
+
+
+	{% if products %}
+		{% for product in products %}
+	<div class="content">
+		<div class="row justify-content-md-center">
+			<div class="col-md-3 d-flex justify-content-center">{{ product.product_name }} / {{product.category.id }} - {{product.subcategory.id }}</div>
 		</div>
-</header><!-- sect-heading -->
-
+	</div>
+		{% endfor %}
+	{% endif %}
 	<div class="row justify-content-md-center">
 	{% if products %}
 		{% for product in products %}
@@ -80,24 +133,22 @@
 			<form action="{% url 'add_cart' product.id %}" method="POST" class="small">
 				{% csrf_token %}
 				<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
-			<figure class="card card-product-grid d-flex justify-content-center"> 
-				<figcaption class="info-wrap">  
-					<div class="img-wrap"  style="width: 10rem; height: 7rem">
-						<a href="{{ product.get_url }}">
-							<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 7rem; height: 7rem">
-						</a>
+				<figure class="card card-product-grid d-flex justify-content-center"> 
+					<figcaption class="info-wrap">  
+						<div class="img-wrap"  style="width: 10rem; height: 7rem">
+							<a href="{{ product.get_url }}">
+								<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 7rem; height: 7rem">
+							</a>
 						
-					</div>
-				</figcaption>
-				<!--  justify-content: center -->
+						</div>
+					</figcaption>
 				<figcaption class="info-wrap">  
 				<div class="fix-height">
-						<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }}</a>
-						<span class="small"> $ {{ product.price }}</span>
+						<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }} // {{product.category }} - {{product.category__category_name }}</a>
+						<span class="small"> $ {{ product.price }} // {{product.subcategory }} - {{product.subcategory__subcategory_name }}</span>
 						<div class="input-group-prepend">
 							<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 							<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
-								
 							<button type="submit" class="btn  btn-primary btn-sm"> 
 								<i class="fa fa-shopping-cart"></i>
 							</button>
@@ -106,14 +157,14 @@
 				</figcaption> 
 			</figure>  
 			</form>
-		</div> <!-- col.// -->
+		</div>
 		{% endfor %}
 	{% else %}
 	<div>
 		<h2>No result found. Please try again.</h2>
 	</div>
 	{% endif %}
-</div> <!-- row end.// -->
+</div> 
 
 
 <nav class="mt-4" aria-label="Page navigation sample">
@@ -141,14 +192,6 @@
 	  </ul>
 	{% endif %}
 </nav>
-
-	</main> <!-- col.// -->
-
-</div>
-
-</div> <!-- container .//  -->
-</section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
+	========================= -->
 
 {% endblock %}
-

@@ -70,10 +70,14 @@ def add_cart(request, product_id):
                     item.variations.add(*product_variation)
                 item.save()
         else:
-            
+            if not quantity:
+                quantity = 1
+            else:
+                quantity = int(quantity)
+
             cart_item = CartItem.objects.create(
                 product = product,
-                quantity = 1, #1 inicial
+                quantity = quantity, #1 inicial
                 user = current_user,
             )
             if len(product_variation) > 0:
