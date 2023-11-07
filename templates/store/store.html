@@ -23,7 +23,7 @@
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-content padding-y">
 <div class="container">
-	{{ resolucion }}
+	<!-- {{ resolucion }} -->
 	<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 		{% for category in links %}
 		<div class="panel panel-default">
@@ -64,32 +64,32 @@
 										{% for product in products %}
 											<!-- Start Productos -->
 											<form action="{% url 'add_cart' product.id %}" method="POST" class="small" style="background-color:White;">
-											{% csrf_token %}
-									
-											<div class="row justify-content-start">
-													<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
+												{% csrf_token %}
+										
+												<div class="row justify-content-start">
+														<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 
-														<div class="col-4 col-md-4">
-															<a href="#">
-																<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 10rem; height: 10rem">
-															</a>
-														</div>	
-														<div class="col-8 col-md-4">
-															<div class="input-group-prepend">
-																<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }} </a>
+															<div class="col-4 col-md-4">
+																<a href="#">
+																	<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 10rem; height: 10rem">
+																</a>
+															</div>	
+															<div class="col-8 col-md-4">
+																<div class="input-group-prepend">
+																	<a href="{{ product.get_url }}" class="font-weight-light">{{ product.product_name }} </a>
+																	</div>
+																	<span class="small"><b> $ {{ product.price }}</b></span>
+																
+																<div class="input-group-prepend">	
+																	<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+																	<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
+																	<button type="submit" class="btn  btn-primary btn-sm"> 
+																		<i class="fa fa-shopping-cart"></i>
+																	</button>
 																</div>
-																<span class="small"><b> $ {{ product.price }}</b></span>
-															
-															<div class="input-group-prepend">	
-																<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
-																<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
-																<button type="submit" class="btn  btn-primary btn-sm"> 
-																	<i class="fa fa-shopping-cart"></i>
-																</button>
 															</div>
-														</div>
-												
-											</div>
+													
+												</div>
 											</form>
 										{% endfor %}
 										<div class="row">
@@ -99,7 +99,7 @@
 									{% endif %}
 									</div>
 
-							</div>
+								</div>
 						</div>
 					{% endif %}
 				{% endfor %}	

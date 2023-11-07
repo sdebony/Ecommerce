@@ -142,7 +142,11 @@ def add_cart(request, product_id):
                 index = ex_var_list.index(product_variation)
                 item_id = id[index]
                 item = CartItem.objects.get(product=product, id=item_id)
-             
+               
+
+                if quantity==None:
+                    quantity=1
+
                 if quantity:
                     if item.quantity == int(quantity):
                         item.quantity += 1
@@ -151,6 +155,7 @@ def add_cart(request, product_id):
                 else:
                     item.quantity += 1
                 item.save()
+               
 
             else:
                 item = CartItem.objects.create(product=product, quantity=1, cart=cart)
@@ -159,7 +164,9 @@ def add_cart(request, product_id):
                     item.variations.add(*product_variation)
                 item.save()
         else:
-            
+            if not quantity:
+                quantity = 1
+
             cart_item = CartItem.objects.create(
                 product = product,
                 quantity = int(quantity),
@@ -170,6 +177,7 @@ def add_cart(request, product_id):
                 cart_item.variations.add(*product_variation)
             cart_item.save()
 
+       
         if volver_store=="0":
             return redirect('cart')
         else:

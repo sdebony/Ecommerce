@@ -22,6 +22,8 @@
 
 					<form action="{% url 'add_cart' single_product.id %}" method="POST">
 						{% csrf_token %}
+						<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="../../../store/">
+
 						<article class="content-body">
 
 							<h2 class="title">{{ single_product.product_name }}</h2>
