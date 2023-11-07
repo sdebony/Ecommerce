@@ -12,9 +12,7 @@ from django.contrib import messages
 from orders.models import OrderProduct
 
 from django.conf import settings
-from tkinter import *
 
-resolucion = "celular"   #celular | pc
 
 
 def store(request, category_slug=None,subcategory_slug=None):
@@ -23,18 +21,8 @@ def store(request, category_slug=None,subcategory_slug=None):
     product_count=0
     category_id = 0
     subcategy_id = 0
-    
-    root = Tk()
-
-    #monitor_height = root.winfo_screenheight()
-    monitor_width = root.winfo_screenwidth()
-
-    if monitor_width < 1024:
-        resolucion = "celular"
-        #print("width x height = %d x %d (pixels)" % (monitor_width, monitor_height))
-    else:
-        resolucion = "pc"
-        #print("width x height = %d x %d (pixels)" % (monitor_width, monitor_height))
+    resolucion = "celular"
+          
     if category_slug != None:
         if subcategory_slug != None:
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
@@ -49,11 +37,13 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = subcategies.id
 
+          
+
         else:
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
            
-            print("filter Categories: ",categories)
+           
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
@@ -61,39 +51,34 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-        #Por default vamos a traer esferas de 12 mm
-        #products = Product.objects.all().filter(is_available=True).order_by('category__category_name','subcategory__subcategory_name')
-        #print("filter All: ")
-        #paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
-        #page = request.GET.get('page')
-        #paged_products = paginator.get_page(page)
+      
+        #category_slug = settings.DEF_CATEGORY
+        #subcategory_slug = settings.DEF_SUBCATEGORY
+        #categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+        #subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
+        #products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
         #product_count = products.count()
-        category_slug = settings.DEF_CATEGORY
-        subcategory_slug = settings.DEF_SUBCATEGORY
-        categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
-        subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
-        products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
-        product_count = products.count()
+        products = []
+        product_count=0
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)
+        category_id = 0
+        subcategy_id = 0
 
-        category_id = categories.id
-        subcategy_id = subcategies.id
 
-
-    print("product_count",product_count,"category_id",category_id,"subcategy_id",subcategy_id)   
     context = {
         'products': paged_products,
         'product_count': product_count,
         'category_id':category_id,
         'subcategory_id':subcategy_id,
+        'resolucion':resolucion
     }
 
     if resolucion == "celular":
         return render(request, 'store/store.html', context)
     else:
-        return render(request,'store/full_store.html', context)
+        return render(request,'store/store.html', context)
         #return render(request, 'store/store.html', context)
 
 def product_detail(request, category_slug, product_slug):

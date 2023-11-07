@@ -16,11 +16,14 @@ def _cart_id(request):
     return cart
 
 def add_cart(request, product_id):
+
     current_user = request.user
     product = Product.objects.get(id=product_id) #get the product
     quantity=0
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
+
+   
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -97,6 +100,8 @@ def add_cart(request, product_id):
         product_variation = []
         if request.method == 'POST':
             ruta = request.POST.get("ruta")
+            quantity = request.POST.get("quantity")
+            volver_store = request.POST.get("volver_store")
             
             for item in request.POST:
                 key = item
@@ -145,7 +150,6 @@ def add_cart(request, product_id):
                         item.quantity = int(quantity)
                 else:
                     item.quantity += 1
-                item.quantity += int(quantity)
                 item.save()
 
             else:
@@ -155,7 +159,7 @@ def add_cart(request, product_id):
                     item.variations.add(*product_variation)
                 item.save()
         else:
-           
+            
             cart_item = CartItem.objects.create(
                 product = product,
                 quantity = int(quantity),
@@ -165,6 +169,7 @@ def add_cart(request, product_id):
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
             cart_item.save()
+
         if volver_store=="0":
             return redirect('cart')
         else:
