@@ -16,12 +16,12 @@
 	</div>
 {% else %}
 <div class="row">
-	<aside class="col-lg-9">
+	<aside class="col-lg-3">
 <div class="card">
 <table class="table table-borderless table-shopping-cart">
 <thead class="text-muted">
 <tr class="small text-uppercase">
-  <th scope="col">Producto</th>
+  <th scope="col" width="100">Producto</th>
   <th scope="col" width="200">Cantidad</th>
   <th scope="col" width="120">Precio</th>
   <th scope="col" class="text-right" width="100"> </th>
@@ -48,24 +48,28 @@
 	</td>
 	<td>
 		<!-- col.// -->
-		<form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
-		{% csrf_token %}
-		<input type="text" class="form-control input-sm"  id="volver_store" name="volver_store" value="0" hidden>
 			<div class="col">
-				<div class="input-group mb-3">
+				<form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
+					{% csrf_token %}
+					
+				<div class="input-group mb-2">
+					<input type="text" class="form-control input-sm"  id="volver_store" name="volver_store" value="0" hidden>
+					
 					<div class="input-group-prepend">
 						<a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
-					</div>
-					<input type="text" class="form-control input-sm"  id="quantity" name="quantity" value="{{ cart_item.quantity }}" onchange="this.form.submit()">
-					<div class="input-group-append">
-							{% for item in cart_item.variations.all %}
-								<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
-							{% endfor %}
-							<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
+						<input type="text" class="form-control input-sm"  id="quantity" name="quantity" value="{{ cart_item.quantity }}" onchange="this.form.submit()">
+					
+					<!--	<div class="input-group-append">  -->
+ 								{% for item in cart_item.variations.all %}
+									<input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
+								{% endfor %}
+								<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
+					<!--	</div>  -->
 					</div>
 				</div> <!-- input-group.// -->
+			</form>
 			</div> <!-- col.// -->
-		</form>
+	
 	
 	</td>
 	<td>
