@@ -126,16 +126,29 @@ def product_detail(request, category_slug, product_slug):
     return render(request, 'store/product_detail.html', context)
 
 def search(request):
+
+    resolucion = get_resolucion()
+    if resolucion=="":
+        resolucion="1"#celular
+
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
             products = Product.objects.order_by('-created_date').filter(Q(description__icontains=keyword) | Q(product_name__icontains=keyword))
             product_count = products.count()
+    
     context = {
         'products': products,
         'product_count': product_count,
+         'category_id':0,
+        'subcategory_id':0,
+        'resolucion':resolucion
     }
-    return render(request, 'store/store.html', context)
+    if resolucion == "1": #Celular
+        return render(request, 'store/store.html', context)
+    else:   #PC
+        return render(request,'store/full_store.html', context)
+        #return render(request, 'store/store.html', context)
 
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
