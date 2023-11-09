@@ -11,6 +11,8 @@ from .forms import ReviewForm
 from django.contrib import messages
 from orders.models import OrderProduct
 
+from api.views import get_resolucion
+
 from django.conf import settings
 
 
@@ -21,7 +23,11 @@ def store(request, category_slug=None,subcategory_slug=None):
     product_count=0
     category_id = 0
     subcategy_id = 0
-    resolucion = "celular"
+    
+    resolucion = get_resolucion()
+    if resolucion=="":
+        resolucion="1"#celular
+
           
     if category_slug != None:
         if subcategory_slug != None:
@@ -51,20 +57,28 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-      
-        #category_slug = settings.DEF_CATEGORY
-        #subcategory_slug = settings.DEF_SUBCATEGORY
-        #categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
-        #subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
-        #products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
-        #product_count = products.count()
-        products = []
-        product_count=0
-        paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        category_id = 0
-        subcategy_id = 0
+
+        if resolucion == "2":  # Grande traigo articulos
+            category_slug = settings.DEF_CATEGORY
+            subcategory_slug = settings.DEF_SUBCATEGORY
+            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+            subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
+            products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+            product_count = products.count()
+            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
+            page = request.GET.get('page')
+            paged_products = paginator.get_page(page)
+            category_id = 0
+            subcategy_id = 0
+
+        else:  #No cargo articulos
+            products = []
+            product_count=0
+            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
+            page = request.GET.get('page')
+            paged_products = paginator.get_page(page)
+            category_id = 0
+            subcategy_id = 0
 
 
     context = {
@@ -75,10 +89,10 @@ def store(request, category_slug=None,subcategory_slug=None):
         'resolucion':resolucion
     }
 
-    if resolucion == "celular":
+    if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
-    else:
-        return render(request,'store/store.html', context)
+    else:   #PC
+        return render(request,'store/full_store.html', context)
         #return render(request, 'store/store.html', context)
 
 def product_detail(request, category_slug, product_slug):

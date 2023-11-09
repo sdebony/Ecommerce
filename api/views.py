@@ -15,6 +15,17 @@ from django.db.models import Q
 from django.conf import settings
 
 
+global resolucion
+
+
+def set_resolucion(valor):
+    global resolucion
+    resolucion = valor
+
+def get_resolucion():
+    return resolucion
+
+
 class Direccion(APIView):
           
     def get(self,request,dir_id):
@@ -71,6 +82,27 @@ class SubcategoryApi(APIView):
         subcategory = SubCategory.objects.all()
         data = SubcategorySerializer(subcategory,many=True).data
         return Response(data)
+
+
+class setear_pantalla_list(APIView):
+          
+    def get(self,request,valor):
+        print("setear_pantalla API List")
+        #subcategory = get_object_or_404(SubCategory,Q(category=category))
+        print("pantalla:",valor)
+        set_resolucion(valor)
+        data=[]
+        return Response(data)
+
+class setear_pantalla(APIView):
+          
+    def get(self,request):
+        print("setear_pantalla API ")
+        print("pantalla:Sin valor")
+        set_resolucion("celular") #default
+        data=[]
+        return Response(data)
+
 
 
      
