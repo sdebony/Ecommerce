@@ -1744,7 +1744,7 @@ def import_productos_xls(request):
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
-                                            is_popular = False,
+                                            #is_popular = False,
                                                 )
                                         tmp_producto.save()
                                         if tmp_producto:
