@@ -24,9 +24,11 @@ def store(request, category_slug=None,subcategory_slug=None):
     category_id = 0
     subcategy_id = 0
     
-    resolucion = get_resolucion()
-    if resolucion=="":
-        resolucion="1"#celular
+    #global resolucion
+
+    #resolucion = get_resolucion()
+    #if resolucion=="":
+    resolucion="1"#celular
 
           
     if category_slug != None:
@@ -93,8 +95,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request, 'store/store.html', context)
     else:   #PC
         return render(request,'store/full_store.html', context)
-        #return render(request, 'store/store.html', context)
-
+    
 def product_detail(request, category_slug, product_slug):
     try:
         single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)

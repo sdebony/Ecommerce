@@ -16,6 +16,7 @@ from django.conf import settings
 
 
 global resolucion
+resolucion="1"
 
 
 def set_resolucion(valor):
@@ -23,7 +24,13 @@ def set_resolucion(valor):
     resolucion = valor
 
 def get_resolucion():
-    return resolucion
+    try:
+        if resolucion:
+            return resolucion
+        else:
+            return("1")
+    except:
+            return("1")
 
 
 class Direccion(APIView):

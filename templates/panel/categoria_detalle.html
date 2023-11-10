@@ -73,11 +73,13 @@
             <!-- left column -->
             <div class="col-md-12" >
                 <!-- general form elements -->
-                <div class="card card-primary"><b>Sub Categorias:</b>
+                <div class="card card-primary"><b>Sub Categorias: </b>
                     <div class="dropdown no-arrow">
-                        <a href="{% url 'panel_subcategoria_save' categoria.id  %}" class="href btn btn-success"> Agregar
-                            
-                        </a>
+                        {% if categoria %}
+                        <a href="{% url 'panel_subcategoria_save' categoria.id  %}" class="href btn btn-success"> Agregar </a>
+                        {% else%}
+                        <a href="{% url 'panel_subcategoria_save' 0  %}" class="href btn btn-success"> Agregar </a>
+                        {% endif %}
                         
                     </div>
                     <div class="card-header">
