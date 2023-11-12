@@ -197,4 +197,4 @@ POPULAR_PRODUCT=8
 MONTO_MINIMO=10000
 DEF_CATEGORY='esferas'  #Eesferas (Slug)
 DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
-STORE_TEMPLATE="2" #Menu Mariano  / 2 Menu original / 3 Test New
+STORE_TEMPLATE="3" #Menu Mariano  / 2 Menu original / 3 Test New
