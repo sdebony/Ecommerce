@@ -71,7 +71,12 @@
 
 															<div class="col-4 col-md-4">
 																<a href="#">
+																	{% if product.images %}
 																	<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.images.url}}" class="img-sm"  style="width: 10rem; height: 10rem">
+																	{% else %}
+																	<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg" class="img-sm"  style="width: 10rem; height: 10rem">
+																	{% endif %}
+
 																</a>
 															</div>	
 															<div class="col-8 col-md-4">

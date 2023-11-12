@@ -26,9 +26,9 @@ class Category(models.Model):
 class SubCategory(models.Model):
     
     
-    subcategory_name = models.CharField(max_length=50, unique=True)
+    subcategory_name = models.CharField(max_length=50)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=False)
-    sub_category_slug = models.SlugField(max_length=100, unique=True)
+    sub_category_slug = models.SlugField(max_length=100)
     sub_category_description = models.TextField(max_length=255, blank=True)
   
     class Meta:

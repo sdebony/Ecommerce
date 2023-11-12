@@ -20,44 +20,35 @@
 <section class="section-content padding-y">
 <div class="container">
 
+
+
 <div class="row">
 	<aside class="col-md-3">
+		
 
 <div class="card">
 	<article class="filter-group">
-		<header class="card-header">
-			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
-				<i class="icon-control fa fa-chevron-down"></i>
-				<h6 class="title">Categorias</h6>
-			</a>
-		</header>
-		<div class="filter-content collapse show" id="collapse_1" style="">
+		
 			<div class="card-body">
-
-				<ul class="list-menu">
-			<!--		<li><a href="{% url 'store' %}">All Products  </a></li>
-			-->		{% for category in links %}
-						<li>
-						<!--	<a href="{{ category.get_url }}">{{ category.category_name }}  </a> -->
-							<a data-toggle="collapse" href="#{{ category.category_name }}"  aria-expanded="true" aria-controls="{{ category.category_name }}">
-								<strong>{{ category.category_name }} </strong>
-							  </a><ul>
-							  {% for subcategory in sub_links %}
-									{% if subcategory.category == category %}
-							 		<div class="collapse" id="{{ category.category_name }}">
-										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">{{subcategory.category}} - {{ subcategory.subcategory_name }}  </a></li> 
-									</div>
-									{% endif %}
-							   {% endfor%}
-								</ul>
-						</li>
-						
-
+				
+				
+				<label for="">Filtros</label>
+                <select name="category" id="category" class="form-control">
+                	<option selected disabled value="">Filtros</option>
+					{% for category in links %}
+						<option value="{{ category.id}}">* {{ category.category_name }}</option>
+						{% for subcategory in sub_links %}
+							{% if subcategory.category == category %}
+								<option value="{{subcategory.sub_category_slug }}">	 {{subcategory.category}} - {{ subcategory.subcategory_name }}  </option>		
+							{% endif %}
+						{% endfor%}
 					{% endfor %}
-				</ul>
+				  </select>
+				
+
 
 			</div> <!-- card-body.// -->
-		</div>
+	
 	</article> <!-- filter-group  .// -->
 
 </div> <!-- card.// -->
@@ -68,8 +59,14 @@
 
 <header class="border-bottom mb-4 pb-3">
 		<div class="form-inline">
-			<span class="mr-md-auto"><b>{{ product_count }}</b> items found </span>
-
+			<nav aria-label="breadcrumb">
+				<ol class="breadcrumb">
+				  <li class="breadcrumb-item"><a href="#">Home</a></li>
+				  <li class="breadcrumb-item"><a href="#">Library</a></li>
+				  <li class="breadcrumb-item active" aria-current="page">Data</li>
+				</ol>
+			  	<span class="mr-md-auto"><b>{{ product_count }}</b> articulos encontrados</span>
+			</nav>
 		</div>
 </header><!-- sect-heading -->
 
@@ -87,6 +84,8 @@
 					{% else %}
 						<img src="https://yourfiles.cloud/uploads/none.jpg">
 					{% endif %}
+				</a>
+
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
 				<div class="fix-height">
@@ -145,5 +144,65 @@
 </div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock %}
+
+
+{% block js_page %}
+
+<script>
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+
+
+
+              
+                  
+                
+                
+            },
+        });
+    }
+
+    
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
+      
+    });
+
+    
+   
+
+</script>
 
 {% endblock %}

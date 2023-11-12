@@ -2168,10 +2168,15 @@ def panel_subcategoria_save(request,id_categoria=None):
             if id_categoria:
                 categoria = Category.objects.get(id=id_categoria)
                 if categoria:
+                    slug_categoria = categoria.category_name
+                    slug_subcategoria = slug_categoria.lower() + " " + nombre.lower()
+
+                 
+
                     subcategoria = SubCategory(
                         category=categoria,
                         subcategory_name  = nombre,
-                        sub_category_slug = slugify(nombre),
+                        sub_category_slug = slugify(slug_subcategoria),
                         sub_category_description = description
                         )
                     subcategoria.save()
@@ -2263,7 +2268,8 @@ def panel_categoria_detalle(request,categoria_id=None):
                         open(f"media/photos/categories/{fn}", 'wb').write( fileitem.file.read())  #"/media/photos/products/
                         cat_imagen = f"photos/categories/{fileitem}"
                         #cat_imagen = f"{fileitem}"
-                        
+                else:
+                    cat_imagen = "photos/categories/none.jpg"        
             except:
                 if cat_id:
                     categoria = Category.objects.get(pk=cat_id)
@@ -2282,7 +2288,7 @@ def panel_categoria_detalle(request,categoria_id=None):
                     category = Category(
                         id=cat_id,
                         category_name=cat_nombre ,
-                        slug = slugify(cat_nombre),
+                        slug = slugify(cat_nombre.lower()),
                         description = cat_descripcion,
                         cat_image = cat_imagen,
                     )
@@ -2290,7 +2296,7 @@ def panel_categoria_detalle(request,categoria_id=None):
             else:
                 category = Category(
                     category_name=cat_nombre ,
-                    slug = slugify(cat_nombre),
+                    slug = slugify(cat_nombre.lower()),
                     description = cat_descripcion,
                     cat_image = cat_imagen,
                 )

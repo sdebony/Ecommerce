@@ -28,11 +28,12 @@ def store(request, category_slug=None,subcategory_slug=None):
 
     #resolucion = get_resolucion()
     #if resolucion=="":
-    resolucion="1"#celular
+    resolucion=settings.STORE_TEMPLATE
 
-          
+    print("*****store***",resolucion)          
     if category_slug != None:
         if subcategory_slug != None:
+            print("store 1") 
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
@@ -48,6 +49,7 @@ def store(request, category_slug=None,subcategory_slug=None):
           
 
         else:
+            print("store 2")
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
            
@@ -59,13 +61,15 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-
+        print("store 3")
         if resolucion == "2":  # Grande traigo articulos
-            category_slug = settings.DEF_CATEGORY
-            subcategory_slug = settings.DEF_SUBCATEGORY
-            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
-            subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
-            products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+            #category_slug = settings.DEF_CATEGORY
+            #subcategory_slug = settings.DEF_SUBCATEGORY
+            #print("store 4",category_slug,subcategory_slug)
+           
+            #categories = Category.objects.get(slug=category_slug)
+            #subcategories = SubCategory.objects.get(sub_category_slug=subcategory_slug)
+            products = Product.objects.filter(is_available=True).order_by('product_name')
             product_count = products.count()
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
@@ -74,6 +78,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             subcategy_id = 0
 
         else:  #No cargo articulos
+            print("store 5")
             products = []
             product_count=0
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
@@ -93,8 +98,12 @@ def store(request, category_slug=None,subcategory_slug=None):
 
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
-    else:   #PC
+    elif resolucion =="2 ":   #PC Normal
         return render(request,'store/full_store.html', context)
+    elif resolucion =="3":  #Test Nuew Store
+        return render(request,'store/new_store.html', context)
+    else:   #Default para mariano
+        return render(request, 'store/store.html', context)
     
 def product_detail(request, category_slug, product_slug):
     try:
@@ -145,11 +154,16 @@ def search(request):
         'subcategory_id':0,
         'resolucion':resolucion
     }
+
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
-    else:   #PC
+    elif resolucion =="2 ":   #PC Normal
         return render(request,'store/full_store.html', context)
-        #return render(request, 'store/store.html', context)
+    elif resolucion =="3":  #Test Nuew Store
+        return render(request,'store/new_store.html', context)
+    else:   #Default para mariano
+        print("Salio por default - STORE - ")
+        return render(request, 'store/store.html', context)
 
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
