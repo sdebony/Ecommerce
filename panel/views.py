@@ -1699,7 +1699,7 @@ def import_productos_xls(request):
                 for rowNumber in range(sheet1.nrows):
                     try:
                         row = sheet1.row_values(rowNumber)
-                        if sheet1.cell_value(rowNumber, 0) != "product_name":
+                        if sheet1.cell_value(rowNumber, 0).lower() != "producto":
                             product_id=0
                             product_name = sheet1.cell_value(rowNumber, 0)
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
@@ -1707,15 +1707,16 @@ def import_productos_xls(request):
                                 #Valido que exista la categoria
                                 cat_name = sheet1.cell_value(rowNumber, 6).lower()
                                 sub_cat_name = sheet1.cell_value(rowNumber, 7).lower()
-
                                 img_name = sheet1.cell_value(rowNumber, 3)
                                 if not img_name:
                                     img_name = 'none.jpg'
                                 cat = Category.objects.get(category_name__icontains=cat_name)
-                                sub_cat = SubCategory.objects.filter(category=cat,subcategory_name=sub_cat_name).first()
-                                slug_subcat = cat.slug +'-'+ sub_cat_name.strip()
+                                
+                                slug_subcat = cat.slug +'-'+ sub_cat_name
                                 slug_subcat = slugify(slug_subcat).lower()
-
+                                sub_cat = SubCategory.objects.filter(category=cat,subcategory_name=sub_cat_name).first()
+                                print("Articulo:",product_name,":",cat_name,":",sub_cat_name)
+                                
                                 if cat:
                                     if not sub_cat:
                                        
@@ -1756,7 +1757,9 @@ def import_productos_xls(request):
                                     else:
                                         error_str = error_str + "Categoría / SubCategoria inexistente " + cat_name + " ROW: " + str(rowNumber)
                                         cant_error=cant_error+1
-
+                                else:
+                                    print("Categoria no encontrada:", cat_name)
+                                    error_str = error_str + " (CATEGORIA NO ENCONTRADA:" + cat_name + ") "
                         #print("OK",cant_ok,"Error",cant_error)
                         
                     except OSError as err:
@@ -1770,7 +1773,7 @@ def import_productos_xls(request):
                         print("Could not convert data to an integer.")
                         pass
                     except Exception as err:
-                        error_str= error_str + product_name
+                        error_str= error_str + product_name + "(category:" + cat_name + ")"
                         error_str= error_str + f" - Unexpected {err=}, {type(err)=}"
                         cant_error=cant_error+1
                         pass
@@ -2033,7 +2036,8 @@ def guardar_tmp_productos(request):
         for a in articulos_tmp:
             try:
                 producto = Product.objects.filter(product_name=a.product_name)
-                
+                category = Category.objects.get(category_name=a.category)
+                print(category)
                 if not producto:
                     if not a.images:
                       imagen = "photos/products/none.jpg" #default      
@@ -2044,8 +2048,8 @@ def guardar_tmp_productos(request):
                         product_name = a.product_name,
                         slug=slugify(a.product_name).lower(),
                         description = a.description,
-                        category = Category.objects.get(category_name=a.category),
-                        subcategory = SubCategory.objects.get(subcategory_name=a.subcategory),
+                        category = category,
+                        subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory),
                         images = imagen,
                         stock = a.stock,
                         price = float(a.price),
@@ -2056,9 +2060,9 @@ def guardar_tmp_productos(request):
                     producto.save()
             except ObjectDoesNotExist:
                 print ("articulo ya existente ", a.product_name )
-
+                
             except Exception as err:
-                print(a.product_name, f"Unexpected {err=}, {type(err)=}")
+                print(a.product_name, f"guardar_tmp_productos {err=}, {type(err)=}")
 
 
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
@@ -2180,7 +2184,7 @@ def panel_subcategoria_save(request,id_categoria=None):
                         sub_category_description = description
                         )
                     subcategoria.save()
-                    messages.success(request, f'SubCategoria creada con exito!')
+                    #messages.success(request, f'SubCategoria creada con exito!')
 
                     subcategoria = SubCategory.objects.filter(category=categoria)
 
@@ -2199,7 +2203,6 @@ def panel_subcategoria_del(request,id_subcategoria=None):
         
     if validar_permisos(request,'SUBCATEGORIA'):
 
-        
         if id_subcategoria:
             subcategoria = SubCategory.objects.filter(id=id_subcategoria).first()
 
@@ -2207,7 +2210,6 @@ def panel_subcategoria_del(request,id_subcategoria=None):
                 id_categoria = subcategoria.category.id
                 print("id_categoria",id_categoria)
                 subcategoria.delete()
-
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         categoria = Category.objects.get(id=id_categoria)

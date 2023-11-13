@@ -33,13 +33,15 @@
 				
 				
 				<label for="">Filtros</label>
-                <select name="category" id="category" class="form-control">
+				
+
+                <select name="filtros" id="filtros" class="form-control">
                 	<option selected disabled value="">Filtros</option>
 					{% for category in links %}
-						<option value="{{ category.id}}">* {{ category.category_name }}</option>
+						<option selected disabled value="{{ category.slug}}">{{ category.category_name }}</option>
 						{% for subcategory in sub_links %}
 							{% if subcategory.category == category %}
-								<option value="{{subcategory.sub_category_slug }}">	 {{subcategory.category}} - {{ subcategory.subcategory_name }}  </option>		
+								<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"><B>{{ subcategory.subcategory_name }}</B></option>		
 							{% endif %}
 						{% endfor%}
 					{% endfor %}
@@ -145,60 +147,34 @@
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
-{% endblock %}
-
-
-{% block js_page %}
 
 <script>
 
-   function buscarsubcategoria()     {
+function buscarsubcategoria()     {
        
-       console.log($("#category").val());
-       var categoria=$('#category').val();
-       var path = "{% url 'api:subcategory_list' %}" + categoria;
+       console.log($("#filtros").val());
+       var filtro=$('#filtros').val();
+       var path = "{% url 'products_by_subcategory' 'esferas' 'esferas-9-mm' %}" 
 
         $.ajax({
             type:"GET",
             url: path,
             success: function(r){
-            
-                var select2=document.getElementById('subcategory');
-                select2.options.length=0;
-                for(f=0;r.length;f++)
-                {
-                    var op=document.createElement('option');
-                    var texto=document.createTextNode(r[f].subcategory_name);
-                    
-                    op.value = r[f].id
-                    op.appendChild(texto);
-                    select2.appendChild(op);
-                } 
-
-
-
-              
-                  
-                
                 
             },
         });
     }
 
     
-   $(function () {
+$(function () {
 
-        $("#fecha, #fecha").datetimepicker({
-            format: 'd/m/Y',
-            timepicker:false
-        });
-        $("#category").change(function() {
-           console.log($("#category").val());
+        $("#filtros").change(function() {
+           console.log($("#filtros").val());
            buscarsubcategoria();
-           
+		   
         });
-      
-    });
+		
+});
 
     
    

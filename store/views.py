@@ -33,7 +33,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     print("*****store***",resolucion)          
     if category_slug != None:
         if subcategory_slug != None:
-            print("store 1") 
+            print("store 1",category_slug,subcategory_slug) 
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')

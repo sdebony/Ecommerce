@@ -4,9 +4,9 @@ from django.db.models import Sum
 
 # Create your models here.
 class ImportTempProduct(models.Model):
-    product_name    = models.CharField(max_length=200,unique=True) #Columna 0
-    slug            = models.SlugField(max_length=200,unique=True) 
-    description     = models.TextField(max_length=500, blank=True) #Columna 1
+    product_name    = models.CharField(max_length=200) #Columna 0
+    slug            = models.SlugField(max_length=200) 
+    description     = models.TextField(max_length=650, blank=True) #Columna 1
     variation_category = models.CharField(max_length=25,blank=True) #Columna 2
     variation_value = models.CharField(max_length=25,blank=True) #Columna 3
     price           = models.IntegerField() #Columna 4
@@ -26,6 +26,7 @@ class ImportTempProduct(models.Model):
         return self.product_name
     
     class Meta:
+        unique_together = ('slug', 'usuario',)
         verbose_name = "ImportTempProduct"
         verbose_name_plural = "ImportTempProduct"
         ordering = ['-product_name',]

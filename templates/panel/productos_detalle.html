@@ -106,7 +106,9 @@
                         <div class="col form-group">
                         <label for="">Descripcion</label>
                         <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
-                        <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" hidden>
+                        {% if producto.images %}
+                            <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" hidden>
+                        {% endif %}
                     </div>
                     </div>
                     <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
@@ -123,7 +125,13 @@
                     <aside class="col-md-6">
                         <article class="gallery-wrap">
                             <div class="img-big-wrap mainImage">
-                                <center><img src="https://yourfiles.cloud/uploads/{{ producto.images.url }}"></center>
+                                <center>
+                                {% if producto.images %}
+                                    <img src="https://yourfiles.cloud/uploads/{{ producto.images.url }}">
+                                {% else %}
+                                    <img src="https://yourfiles.cloud/uploads/none.jpg">
+                                {% endif %}
+                                </center>
                             </div> <!-- img-big-wrap.// -->
                         </article> <!-- gallery-wrap .end// -->
                     </aside>
