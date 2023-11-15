@@ -23,6 +23,10 @@ def store(request, category_slug=None,subcategory_slug=None):
     product_count=0
     category_id = 0
     subcategy_id = 0
+    subcategies = []
+    categories = []
+    category_name=""
+    
     
     #global resolucion
 
@@ -37,6 +41,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+            #products = Product.objects.filter(is_available=True).order_by('product_name')
             product_count = products.count()
 
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
@@ -62,30 +67,41 @@ def store(request, category_slug=None,subcategory_slug=None):
             subcategy_id = 0
     else:
         print("store 3")
-        if resolucion == "2":  # Grande traigo articulos
+            #if resolucion != "1":  # Grande traigo articulos
             #category_slug = settings.DEF_CATEGORY
             #subcategory_slug = settings.DEF_SUBCATEGORY
             #print("store 4",category_slug,subcategory_slug)
            
             #categories = Category.objects.get(slug=category_slug)
             #subcategories = SubCategory.objects.get(sub_category_slug=subcategory_slug)
-            products = Product.objects.filter(is_available=True).order_by('product_name')
-            product_count = products.count()
-            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
-            page = request.GET.get('page')
-            paged_products = paginator.get_page(page)
-            category_id = 0
-            subcategy_id = 0
+        products = Product.objects.filter(is_available=True).order_by('product_name')
+        product_count = products.count()
+        paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
+        page = request.GET.get('page')
+        paged_products = paginator.get_page(page)
+        category_id = 0
+        subcategy_id = 0
 
-        else:  #No cargo articulos
-            print("store 5")
-            products = []
-            product_count=0
-            paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
-            page = request.GET.get('page')
-            paged_products = paginator.get_page(page)
-            category_id = 0
-            subcategy_id = 0
+            #else:  #No cargo articulos
+            #    print("store 5")
+            #    products = []
+            #    product_count=0
+            #    paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
+            #    page = request.GET.get('page')
+            #    paged_products = paginator.get_page(page)
+            #    category_id = 0
+            #    subcategy_id = 0
+
+    if categories:
+        category_name = categories.category_name
+        category_slug = categories.slug
+    else:
+        category_name = ""
+
+    if subcategies:
+        sub_category_name = subcategies.subcategory_name
+    else:
+        sub_category_name = ""
 
 
     context = {
@@ -93,16 +109,20 @@ def store(request, category_slug=None,subcategory_slug=None):
         'product_count': product_count,
         'category_id':category_id,
         'subcategory_id':subcategy_id,
+        'category_name':category_name,
+        'category_slug':category_slug,
+        'sub_category_name':sub_category_name,
         'resolucion':resolucion
     }
 
+    
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
-    elif resolucion =="2 ":   #PC Normal
+    elif resolucion =="2":   #PC Normal
         return render(request,'store/full_store.html', context)
     elif resolucion =="3":  #Test Nuew Store
         return render(request,'store/new_store.html', context)
-    else:   #Default para mariano
+    else:   #Default para mariano 
         return render(request, 'store/store.html', context)
     
 def product_detail(request, category_slug, product_slug):

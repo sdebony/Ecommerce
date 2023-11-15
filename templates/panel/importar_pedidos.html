@@ -86,10 +86,20 @@
                         <div class="card">
                           <div class="card-header" id="headingOne">
                             <h5 class="mb-0">
-                              <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
-                                Pedido:  {{ pedidos.codigo }}  <span style="color: green;" > $ {{ pedidos.order_total}}</span> - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                              {% if pedidos.status == 1 %} 
+                                                            
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
+                                    <span style="color: rgb(43, 196, 13);" >Pedido:  {{ pedidos.codigo }}   $ {{ pedidos.order_total}} - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                                    </span>
+                                </button>
                                 
-                              </button>
+                              {% else %}
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
+                                    <span style="color: red;" > 
+                                        Pedido:  {{ pedidos.codigo }} $ {{ pedidos.order_total}} - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                                    </span>
+                                    </button>
+                              {% endif %}
                               <span style="float: right;">
                                         <a href="{% url 'panel_guardar_tmp_pedidos' pedidos.codigo %}" class="btn btn-secondary">Importar</a>
                                     

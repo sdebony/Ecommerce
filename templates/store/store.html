@@ -30,9 +30,13 @@
 			<div class="panel-heading" role="tab" id="heading1">
 					<h6 class="panel-title"  style="font-size: 2em;">
 						{% if request.path == '/store/' %}
-						<a data-toggle="collapse" data-parent="#accordion" href="#collapse_{{category.id}}" aria-expanded="true" aria-controls="collapse_{{category.id}}" class>{{ category.category_name }}</a> 
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapse_{{category.id}}" aria-expanded="true" aria-controls="collapse_{{category.id}}" style="font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 20x" class>{{ category.category_name }}
+							<div class="float-right"><i class="fa fa-chevron-down" aria-hidden="true"></i></div>
+						</a> 
 						{% else %}
-						<a href="{% url 'store' %}">{{ category.category_name }}</a> 
+						<a href="{% url 'store' %}">{{ category.category_name }}
+							<div class="float-right"><i class="fa fa-chevron-down" aria-hidden="true"></i></div>
+						</a> 
 						{% endif %}	 						
 					</h6>
 				
@@ -40,9 +44,9 @@
 					{% if subcategory.category == category %}
 						<p></p>
 						{% if category.id == category_id %} 
-							<div style=" font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">	
+							<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">	
 						{% else %}
-							<div style="height: 0px; font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+							<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; height: 0px; font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
 						{% endif %}
 								<h6 class="panel-title"  style="font-size: 1.3em;">
 									<li>
@@ -51,9 +55,9 @@
 								</h6>
 							
 							{% if subcategory.id == subcategory_id  %}
-								<div style="" aria-expanded="true" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">
+								<div style="font-family: Verdana, Geneva, Tahoma, sans-serif;" aria-expanded="true" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">
 							{% else %}
-								<div style="height: 0px;" aria-expanded="false" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+								<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; height: 0px;" aria-expanded="false" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
 								
 							{% endif %}
 							<p></p>

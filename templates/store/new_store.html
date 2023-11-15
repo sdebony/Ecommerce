@@ -34,20 +34,18 @@
 				
 				<label for="">Filtros</label>
 				
-
-                <select name="filtros" id="filtros" class="form-control">
-                	<option selected disabled value="">Filtros</option>
-					{% for category in links %}
-						<option selected disabled value="{{ category.slug}}">{{ category.category_name }}</option>
-						{% for subcategory in sub_links %}
-							{% if subcategory.category == category %}
-								<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"><B>{{ subcategory.subcategory_name }}</B></option>		
-							{% endif %}
-						{% endfor%}
-					{% endfor %}
-				  </select>
+					<select name="filtros" id="filtros" class="form-control">
+						<option selected disabled value="">Filtros</option>
+						{% for category in links %}
+							<option selected disabled value="{{ category.slug}}">{{ category.category_name }}</option>
+							{% for subcategory in sub_links %}
+								{% if subcategory.category == category %}
+									<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"><B>{{ subcategory.subcategory_name }}</B></option>		
+								{% endif %}
+							{% endfor%}
+						{% endfor %}
+					</select>
 				
-
 
 			</div> <!-- card-body.// -->
 	
@@ -63,9 +61,13 @@
 		<div class="form-inline">
 			<nav aria-label="breadcrumb">
 				<ol class="breadcrumb">
-				  <li class="breadcrumb-item"><a href="#">Home</a></li>
-				  <li class="breadcrumb-item"><a href="#">Library</a></li>
-				  <li class="breadcrumb-item active" aria-current="page">Data</li>
+				  <li class="breadcrumb-item"><a href="{% url 'store' %}">Home</a></li>
+				  {% if category_name %} 
+				  <li class="breadcrumb-item"><a href="{% url 'products_by_category' category_slug %}">{{category_name}}</a></li>
+				  {% endif %}
+				  {% if sub_category_name %}	
+				  <li class="breadcrumb-item active" aria-current="page">{{sub_category_name}}</li>
+				  {% endif %}
 				</ol>
 			  	<span class="mr-md-auto"><b>{{ product_count }}</b> articulos encontrados</span>
 			</nav>
@@ -87,7 +89,6 @@
 						<img src="https://yourfiles.cloud/uploads/none.jpg">
 					{% endif %}
 				</a>
-
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
 				<div class="fix-height">
@@ -96,10 +97,7 @@
 						<span class="price">$ {{ product.price }}</span>
 					</div> <!-- price-wrap.// -->
 				</div>
-		<!--		<a href="{{ product.get_url }}" class="btn btn-block btn-primary">View Details </a>
-		-->		<button type="submit" class="btn  btn-primary"> <span class="text">Agregar al carrito</span> <i class="fa fa-shopping-cart"></i> </button>
-
-
+				<button type="submit" class="btn  btn-primary"> <span class="text">Agregar al carrito</span> <i class="fa fa-shopping-cart"></i> </button>
 			</figcaption>
 		</figure>
 		</form>
@@ -150,27 +148,17 @@
 
 <script>
 
-function buscarsubcategoria()     {
-       
-       console.log($("#filtros").val());
-       var filtro=$('#filtros').val();
-       var path = "{% url 'products_by_subcategory' 'esferas' 'esferas-9-mm' %}" 
-
-        $.ajax({
-            type:"GET",
-            url: path,
-            success: function(r){
-                
-            },
-        });
-    }
-
     
 $(function () {
 
         $("#filtros").change(function() {
            console.log($("#filtros").val());
-           buscarsubcategoria();
+		   var filtro=$('#filtros').val();
+           console.log(window.location.origin)
+		   console.log(window.location.pathname)
+		   console.log(filtro)
+
+		   window.location.href = 'http://localhost:8000/store/' + filtro
 		   
         });
 		

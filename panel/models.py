@@ -49,6 +49,7 @@ class ImportTempOrders(models.Model):
     dir_obs             = models.CharField(max_length=255,blank=True)
     dir_correo          = models.BooleanField(default=False) #Es correo externo
     usuario             = models.CharField(max_length=25) 
+    status              =models.BooleanField(default=False)
 
     def __str__(self):
         return self.codigo

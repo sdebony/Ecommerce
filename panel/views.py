@@ -2427,7 +2427,7 @@ def import_pedidos_xls(request):
                                 #LISTADO DE ARTICULOS
                                 mensaje = sheet1.cell_value(rowNumber, 4)
                                 #print(correo,first_name,email)
-                                #print(dir_telefono,dir_calle,dir_calle,dir_nro,dir_localidad,dir_obs)
+                                #print("Datos adicionales....",codigo)
                                 
                                 new_pedido = ImportTempOrders.objects.filter(codigo=codigo)
                                 if not new_pedido:
@@ -2447,7 +2447,8 @@ def import_pedidos_xls(request):
                                         dir_cp          = dir_cp,
                                         dir_obs         = dir_obs,
                                         dir_correo      = bcorreo,
-                                        usuario        = request.user
+                                        usuario        = request.user,
+                                        status          = False
                                         )                                    
                                     new_pedido.save()
                                 
@@ -2458,7 +2459,7 @@ def import_pedidos_xls(request):
                                             i_start_ped = mensaje.find('?pedido=')
                                             i_end_ped = mensaje.find('*',i_start_ped)
                                             codigo_ped = mensaje[i_start_ped + 8 :i_end_ped]
-                                            print("Codigo Detalle",codigo_ped,codigo)
+                                            #print("Codigo Detalle",codigo_ped,codigo)
                                     
                                         if codigo == codigo_ped:
                                             #Recorro artiuclos
@@ -2489,22 +2490,22 @@ def import_pedidos_xls(request):
                                                     i_ini_linea = linea.find('*')+1
                                                     i_fin_linea = linea.find('*',i_ini_linea)
                                                     quantity = linea[i_ini_linea:i_fin_linea]
-                                                    print("quantity:",quantity)
+                                                    #print("quantity:",quantity)
                                                     linea = linea[i_fin_linea+1:len(linea)]
                                                     # ** PRODUCTO **
                                                     i_ini_linea = linea.find('*')+1
                                                     i_fin_linea = linea.find('*',i_ini_linea)
                                                     product = linea[i_ini_linea:i_fin_linea]  #.strip().replace('\r','').replace('\n')
-                                                    print("Producto ", product)
+                                                    #print("Producto ", product)
                                                     linea = linea[i_fin_linea+1:len(linea)]
                                                     # ** SUBTOTAL **
                                                     i_ini_linea = linea.find('$')+1
-                                                    print("linea",linea[i_ini_linea:len(linea)])
+                                                    #print("linea",linea[i_ini_linea:len(linea)])
                                                     subtotal = float(linea[i_ini_linea:len(linea)])
-                                                    print("subtotal ", str(subtotal))
+                                                    #print("subtotal ", str(subtotal))
                                                     if subtotal>0:
                                                         total_items = total_items + subtotal
-                                                    print("Total Items",str(total_items))
+                                                    #print("Total Items",str(total_items))
                                                     
                                                     try:
                                                         codigo = codigo
@@ -2528,8 +2529,6 @@ def import_pedidos_xls(request):
                                                     
                                                 mensaje = mensaje[i_end_ped:len(mensaje)]
                                                 i=i+1
-
-
 
                             except Exception as err:
                                 error_str= error_str + codigo + "linea:" + str(rowNumber) + " campo: " + str_field
@@ -2588,6 +2587,7 @@ def validar_tmp_pedidos(request):
         
         for enc in pedidos_tmp:
             order_total = 0
+            status_enc = True
             print("Temp pedidos Create", enc.updated_at)
             pedidos_det_tmp = ImportTempOrdersDetail.objects.filter(usuario=request.user,codigo=enc.codigo)
             if pedidos_det_tmp:
@@ -2607,7 +2607,9 @@ def validar_tmp_pedidos(request):
                                 )
                             order_total = order_total + a.subtotal
                             detalle_pedido.save()
-                  
+                        else:
+                            status_enc = False
+
 
                     except Exception as err:
                         #print("Error no controlado: ", a.product)
@@ -2630,7 +2632,8 @@ def validar_tmp_pedidos(request):
                 dir_cp = enc.dir_cp,
                 dir_obs = enc.dir_obs,
                 dir_correo= enc.dir_correo,
-                order_total = order_total 
+                order_total = order_total,
+                status = status_enc 
             ) 
             print("encabezado updated_at:", encabezado.updated_at)
             encabezado.save()
