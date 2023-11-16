@@ -11,9 +11,10 @@ from .forms import ReviewForm
 from django.contrib import messages
 from orders.models import OrderProduct
 
-from api.views import get_resolucion
 
 from django.conf import settings
+from django.shortcuts import render
+from django.http import HttpResponse
 
 
 
@@ -33,6 +34,12 @@ def store(request, category_slug=None,subcategory_slug=None):
     #resolucion = get_resolucion()
     #if resolucion=="":
     resolucion=settings.STORE_TEMPLATE
+
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+    if 'Mobile' in user_agent:
+        print('Estás accediendo desde un celular.')
+        resolucion="1"
 
     print("*****store***",resolucion)          
     if category_slug != None:
@@ -67,13 +74,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             subcategy_id = 0
     else:
         print("store 3")
-            #if resolucion != "1":  # Grande traigo articulos
-            #category_slug = settings.DEF_CATEGORY
-            #subcategory_slug = settings.DEF_SUBCATEGORY
-            #print("store 4",category_slug,subcategory_slug)
-           
-            #categories = Category.objects.get(slug=category_slug)
-            #subcategories = SubCategory.objects.get(sub_category_slug=subcategory_slug)
+ 
         products = Product.objects.filter(is_available=True).order_by('product_name')
         product_count = products.count()
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
@@ -81,16 +82,6 @@ def store(request, category_slug=None,subcategory_slug=None):
         paged_products = paginator.get_page(page)
         category_id = 0
         subcategy_id = 0
-
-            #else:  #No cargo articulos
-            #    print("store 5")
-            #    products = []
-            #    product_count=0
-            #    paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
-            #    page = request.GET.get('page')
-            #    paged_products = paginator.get_page(page)
-            #    category_id = 0
-            #    subcategy_id = 0
 
     if categories:
         category_name = categories.category_name
@@ -157,9 +148,14 @@ def product_detail(request, category_slug, product_slug):
 
 def search(request):
 
-    resolucion = get_resolucion()
-    if resolucion=="":
-        resolucion="1"#celular
+    resolucion=settings.STORE_TEMPLATE
+    
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+    if 'Mobile' in user_agent:
+        print('Estás accediendo desde un celular.')
+        resolucion="1"
+    
 
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']

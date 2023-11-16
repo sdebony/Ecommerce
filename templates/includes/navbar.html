@@ -19,21 +19,7 @@
         <a href="{% url 'home' %}" class="brand-wrap">
           <img class="logo" src="{% static './images/logo.png' %}">
         </a> <!-- brand-wrap.// -->
-        <input type="text" class="form-control"  id="pantalla" name="pantalla" hidden>
-        <span  class="px-2"> 
-        
-          <script> 
-          if (screen.width < 1024) 
-          //document.write ("Pequeña") 
-          $("#pantalla").val("1");
-          else 
-          if (screen.width < 1280) 
-          $("#pantalla").val("1");
-          else 
-          $("#pantalla").val("2"); 
-          </script>
-        
-        </span> 
+       
       </div>
  
   <!--   MENU CATEGORIAS
@@ -107,56 +93,7 @@
 </header> <!-- section-header.// -->
 	<!-- ========================= FOOTER END // ========================= -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script>
-  
-  function setearpantalla(valor)     {
-         
-          console.log(valor)
-          var path = "{% url 'api:setear_pantalla' %}" + valor;
-  
-          $.ajax({
-              type:"GET",
-              url: path,
-              success: function(r){
-                
-              },
-          });
-      }
-  
-   
-  
-    //
-     $(function () {     
-          $("#pantalla").change(function() {
-             console.log($("#pantalla").val());
-             setearpantalla($("#pantalla").val());
-           
-          });
-  
-    })
-      
-      window.addEventListener('load', function() {
-        //console.log('La página ha terminado de cargarse!!');
-        setearpantalla($("#pantalla").val());
-        if ($("#pantalla").val()=="1")
-            {
-              console.log("Oculto form")
-              document.getElementById("search").style.display = "none";
-            }
-            else
-            {
-              console.log("muestro form")
-              document.getElementById("search").style.display = "block";
-            }
-
-
-    });
-
-
-  
-
-  </script>
-  
+ 
   </body>
   </html>
   
