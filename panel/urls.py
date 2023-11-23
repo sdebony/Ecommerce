@@ -51,19 +51,14 @@ urlpatterns = [
     path('pedidos/eliminar/<str:order_number>', views.panel_pedidos_eliminar, name='panel_pedidos_eliminar'), 
     path('pedidos/eliminar/conf/<str:order_number>', views.panel_pedidos_confirmacion_eliminar, name='panel_pedidos_confirmacion_eliminar'),
     path('pedidos/save/', views.panel_pedidos_save_enc, name='panel_pedidos_save_enc'), 
-     path('pedidos/mail/<str:order_number>', views.panel_pedidos_enviar_factura, name='panel_pedidos_enviar_factura'), 
+    path('pedidos/mail/<str:order_number>', views.panel_pedidos_enviar_factura, name='panel_pedidos_enviar_factura'), 
     
     path('pedidos/eliminar/entrega/<str:order_number>', views.panel_pedidos_eliminar_entrega, name='panel_pedidos_eliminar_entrega'), 
     path('pedidos/detalle/modif/<str:order_number>/<str:item>/<str:quantity>', views.panel_pedidos_modificar, name='panel_pedidos_modificar'), 
     path('pedidos/detalle/modif/line/<int:item>', views.panel_pedidos_obtener_linea, name='panel_pedidos_modificar_linea'), 
     path('pedidos/detalle/save/line', views.panel_pedidos_save_detalle, name='panel_pedidos_save_detalle'), 
     path('pedidos/detalle/del/line/<str:order_number>/<int:id_linea>', views.panel_pedidos_del_detalle, name='panel_pedidos_del_detalle'), 
-     
-     
-
-     
-
-     
+       
     #USUARIOS
     path('usuarios/', views.panel_usuario_list, name='panel_usuarios'),
     #    *****Listado de usuario

@@ -1513,6 +1513,7 @@ def export_xls(request,modelo=None):
     #1 - Movimientos 
     #2 - Pedidos
     #3 - Productos
+    #4 - Pedidos Temp 
 
         print("Export to Excel")
         response = HttpResponse(content_type='application/ms-excel')
@@ -1522,6 +1523,8 @@ def export_xls(request,modelo=None):
             response['Content-Disposition']='attachment; filename=Pedidos_'+ str(datetime.now()) + '.xls'
         elif modelo==3:
             response['Content-Disposition']='attachment; filename=Articulos_'+ str(datetime.now()) + '.xls'
+        elif modelo==4:
+            response['Content-Disposition']='attachment; filename=Pedidos_Temp_'+ str(datetime.now()) + '.xls'
         else:
             response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
         
@@ -1587,7 +1590,7 @@ def export_xls(request,modelo=None):
                     fecha_desde = datetime.strptime(fecha_desde, '%d/%m/%Y')
                     fecha_hasta = datetime.strptime(fecha_hasta, '%d/%m/%Y')
 
-                print(fecha_desde,fecha_hasta)
+                #print(fecha_desde,fecha_hasta)
                 for i in range(count_status):
                 
                     if i  == 0:
@@ -1625,7 +1628,6 @@ def export_xls(request,modelo=None):
             return render (request,"panel/login.html")
 
         if validar_permisos(request,'EXPORTAR PRODUCTOS'):
-
             if modelo==3: #PRODCUTOS
 
                 sheet = "productos"
@@ -1654,6 +1656,49 @@ def export_xls(request,modelo=None):
                 return response
         else:
             return render (request,"panel/login.html")
+
+        if validar_permisos(request,'EXPORTAR PEDIDOS'):
+            if modelo==4: #PEDIDOS  TEMP  (DE LA TABLA TEMPORAL)
+                print("Export pedidos Temp")
+                sheet = "Pedidos Temp"
+                ws = wb.add_sheet(sheet)
+                
+                row_num=0
+                font_style= xlwt.Style.XFStyle()
+                font_style.font.bold = True
+                columns = ['Mes','Fecha','Cliente','Producto','Cantidad','Venta','Precio','Origen Operacion','']
+                for col_num in range(len(columns)):
+                    ws.write(row_num,col_num,columns[col_num],font_style)
+                font_style = xlwt.Style.XFStyle()
+
+                items_pedidos = ImportTempOrders.objects.filter(usuario=request.user)
+                rows = ImportTempOrdersDetail.objects.filter(codigo__in=items_pedidos).values_list('codigo__created_at','codigo__created_at','codigo__first_name','product','quantity','subtotal','codigo__codigo')
+     
+                for row in rows:
+                    row_num += 1      
+                    for col_num in range(len(row)):
+                        #print(col_num,"-->",row[col_num])
+                        if col_num==0:
+                            str_mes = "3"
+                            ws.write(row_num,col_num,int(str_mes),font_style)
+
+                        elif col_num==5 or col_num==4:
+                            monto = float("{0:.2f}".format((float)(row[col_num])))
+                            ws.write(row_num,col_num,int(round(monto)))
+                        elif col_num==6:
+                            qty = int(row[col_num-2])
+                            subtotal =  int(row[col_num-1])
+                            precio = float("{0:.2f}".format((float)(subtotal/qty)))
+                            ws.write(row_num,col_num, int(precio),font_style)
+                            ws.write(row_num,col_num+1, str(row[col_num]),font_style)
+                        else:
+                            ws.write(row_num,col_num,str(row[col_num]),font_style)
+
+                wb.save(response)
+                return response
+        else:
+            return render (request,"panel/login.html")
+    
 
 def import_productos_xls(request):
 
@@ -2382,7 +2427,7 @@ def import_pedidos_xls(request):
                 try:
                     if sheet1.cell_value(rowNumber, 0) != "Codigo":  #Paso el encabezado
                         codigo = sheet1.cell_value(rowNumber, 0)
-                        print("Linea ",rowNumber," codigo: ",codigo)
+                        #print("Linea ",rowNumber," codigo: ",codigo)
                         
                         pedidos_tmp = ImportTempOrders.objects.filter(codigo=codigo, usuario = request.user).first()
                         if not pedidos_tmp:
@@ -2485,6 +2530,7 @@ def import_pedidos_xls(request):
                                                 linea = mensaje[i_start_ped:i_end_ped]
                                                 linea = linea.lstrip() #Quito espacio a izquirda
 
+                                                #print("-->", linea)
                                                 # ** CANTIDAD **
                                                 i_fin_linea = linea.find('*',1)
                                                 quantity = linea[1:i_fin_linea]
@@ -2506,15 +2552,20 @@ def import_pedidos_xls(request):
                                                 # ** PRECIOS **
                                                 i_ini_linea = i_fin_linea
                                                 i_ini_linea = linea.find('$',i_ini_linea)
-                                                #print(i_ini_linea,i_fin_linea, linea)
-                                                subtotal = linea[i_ini_linea+1:len(linea)]
-                                                #print("subtotal:",subtotal)
-                                                    
+                                                if linea.find('Cant. Artículos',i_ini_linea)>0:
+                                                    i_fin_linea =  linea.find('Cant. Artículos',i_ini_linea)-1
+                                                    subtotal = linea[i_ini_linea+1:i_fin_linea]
+                                                    i_end_ped=0
+                                                else:
+                                                    subtotal = linea[i_ini_linea+1:len(linea)]
+                                                subtotal = subtotal.replace(".","")
+
+                                                #print("Producto ", product, "Qty", quantity, "Precio",subtotal)    
                                                 try:
                                                         codigo = codigo
                                                     
                                                         new_linea_pedido = ImportTempOrdersDetail(
-                                                            codigo = codigo,
+                                                            codigo = new_pedido,
                                                             product = product,
                                                             quantity = quantity,
                                                             subtotal = subtotal,
@@ -2528,7 +2579,7 @@ def import_pedidos_xls(request):
                                                     error_str= error_str + f"Unexpected {err=}, {type(err)=}"
 
 
-                                                #print("-->", linea)
+                                               
                                                 mensaje = mensaje[i_end_ped:len(mensaje)]
                                             #print("**************************")
                                     else:
@@ -2602,12 +2653,12 @@ def validar_tmp_pedidos(request):
             order_total = 0
             status_enc = True
             #print("Temp pedidos Create", enc.updated_at)
-            pedidos_det_tmp = ImportTempOrdersDetail.objects.filter(usuario=request.user,codigo=enc.codigo)
+            pedidos_det_tmp = ImportTempOrdersDetail.objects.filter(usuario=request.user,codigo=enc.id)
             if pedidos_det_tmp:
                 for a in pedidos_det_tmp:
                     try:
                         slug=slugify(a.product).lower()
-                        print("sulg prod:",slug)
+                        #print("sulg prod:",slug)
                         producto = Product.objects.filter(slug=slug).first()
                         if producto:
                             product_name = producto.product_name
@@ -2620,11 +2671,13 @@ def validar_tmp_pedidos(request):
                                 product = product_name,
                                 usuario = a.usuario
                                 )
-                            order_total = order_total + a.subtotal
                             detalle_pedido.save()
                         else:
                             status_enc = False
 
+                        #AUNQUE NO EXISTA EL PRODUCTO VALIDO LOS TOTALES PARA EL EXPORT A EXCEL (QUEDA EN ROJO)
+                        order_total = order_total + a.subtotal
+                            
 
                     except Exception as err:
                         #print("Error no controlado: ", a.product)

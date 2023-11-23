@@ -62,7 +62,7 @@ class ImportTempOrders(models.Model):
         
 class ImportTempOrdersDetail(models.Model):
 
-    codigo 	   = models.CharField(max_length=20) #Codigo
+    codigo 	   = models.ForeignKey(ImportTempOrders, on_delete=models.CASCADE)  
     product    = models.CharField(max_length=200)
     quantity   = models.IntegerField()
     subtotal   = models.FloatField()
