@@ -40,7 +40,8 @@ def store(request, category_slug=None,subcategory_slug=None):
     if 'Mobile' in user_agent:
         print('Estás accediendo desde un celular.')
         resolucion="1"
-
+        #Test
+        resolucion=settings.STORE_TEMPLATE
     print("*****store***",resolucion)          
     if category_slug != None:
         if subcategory_slug != None:
@@ -106,6 +107,8 @@ def store(request, category_slug=None,subcategory_slug=None):
         'resolucion':resolucion
     }
 
+    print(category_name)
+    print(sub_category_name)
     
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
@@ -149,7 +152,7 @@ def product_detail(request, category_slug, product_slug):
 def search(request):
 
     resolucion=settings.STORE_TEMPLATE
-    
+
     user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     if 'Mobile' in user_agent:

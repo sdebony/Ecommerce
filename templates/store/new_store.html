@@ -39,9 +39,13 @@
 						{% for category in links %}
 							<option selected disabled value="{{ category.slug}}">{{ category.category_name }}</option>
 							{% for subcategory in sub_links %}
+								<ol>
 								{% if subcategory.category == category %}
-									<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"><B>{{ subcategory.subcategory_name }}</B></option>		
+									<li> 
+										<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"><B>{{ subcategory.subcategory_name }}</B></option>		
+									</li>
 								{% endif %}
+								</ol>
 							{% endfor%}
 						{% endfor %}
 					</select>
@@ -77,16 +81,16 @@
 <div class="row">
 	{% if products %}
 	{% for product in products %}
-	<div class="col-md-4">
+	<div class="col-md-2 w-50 p-1">
 		<form action="{% url 'add_cart' product.id %}" method="POST">
 			{% csrf_token %}
-		<figure class="card card-product-grid">
-			<div class="img-wrap">
+		<figure class="card card-product-grid" >
+			<div class="img-wrap" style="font-size: 1.3em;">
 				<a href="{{ product.get_url }}">
 					{% if product.images %}
-						<img src="https://yourfiles.cloud/uploads/{{product.images.url}}">
+						<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" width="30" height="40">
 					{% else %}
-						<img src="https://yourfiles.cloud/uploads/none.jpg">
+						<img src="https://yourfiles.cloud/uploads/none.jpg" width="30" height="40">
 					{% endif %}
 				</a>
 			</div> <!-- img-wrap.// -->
