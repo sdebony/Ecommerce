@@ -1666,33 +1666,46 @@ def export_xls(request,modelo=None):
                 row_num=0
                 font_style= xlwt.Style.XFStyle()
                 font_style.font.bold = True
-                columns = ['Mes','Fecha','Cliente','Producto','Cantidad','Venta','Precio','Origen Operacion','']
+                columns = ['Mes','Fecha','Apellido','Nombre','Producto','Cantidad','Venta','Precio','Origen Operacion']
                 for col_num in range(len(columns)):
                     ws.write(row_num,col_num,columns[col_num],font_style)
                 font_style = xlwt.Style.XFStyle()
 
                 items_pedidos = ImportTempOrders.objects.filter(usuario=request.user)
-                rows = ImportTempOrdersDetail.objects.filter(codigo__in=items_pedidos).values_list('codigo__created_at','codigo__created_at','codigo__first_name','product','quantity','subtotal','codigo__codigo')
+                rows = ImportTempOrdersDetail.objects.filter(codigo__in=items_pedidos).values_list('codigo__created_at','codigo__created_at','codigo__last_name','codigo__first_name','product','quantity','subtotal','subtotal','codigo__codigo')
      
                 for row in rows:
                     row_num += 1      
                     for col_num in range(len(row)):
-                        #print(col_num,"-->",row[col_num])
+                        
                         if col_num==0:
-                            str_mes = "3"
-                            ws.write(row_num,col_num,int(str_mes),font_style)
-
-                        elif col_num==5 or col_num==4:
+                            format_string = '%Y-%m-%d %H:%M:%S'
+                            str_mes = str(row[col_num])
+                            str_mes = datetime.strptime(str_mes, format_string)
+                            str_mes = str_mes.month
+                            ws.write(row_num,col_num,str_mes,font_style)
+                        elif col_num==5 or col_num==6 :
                             monto = float("{0:.2f}".format((float)(row[col_num])))
                             ws.write(row_num,col_num,int(round(monto)))
-                        elif col_num==6:
-                            qty = int(row[col_num-2])
-                            subtotal =  int(row[col_num-1])
-                            precio = float("{0:.2f}".format((float)(subtotal/qty)))
-                            ws.write(row_num,col_num, int(precio),font_style)
-                            ws.write(row_num,col_num+1, str(row[col_num]),font_style)
+                        
+                        elif col_num==7: #Calculo el precio
+                            subtotal = float("{0:.2f}".format((float)(row[col_num])))
+                            qty = float("{0:.2f}".format((float)(row[5])))
+                            precio = subtotal/qty
+                            ws.write(row_num,col_num,int(round(precio)))
                         else:
                             ws.write(row_num,col_num,str(row[col_num]),font_style)
+                        
+                        #elif col_num==6:
+                        #    print(col_num,"--6>",row[col_num])
+                        #    qty = int(row[col_num-2])
+                        #    subtotal =  int(row[col_num-1])
+                        #    precio = float("{0:.2f}".format((float)(subtotal/qty)))
+                        #    ws.write(row_num,col_num, int(precio),font_style)
+                        #    ws.write(row_num,col_num+1, str(row[col_num]),font_style)
+                        #else:
+                        #    print(col_num,"--else>",row[col_num])
+                        #    ws.write(row_num,col_num,str(row[col_num]),font_style)
 
                 wb.save(response)
                 return response
