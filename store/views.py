@@ -28,15 +28,10 @@ def store(request, category_slug=None,subcategory_slug=None):
     categories = []
     category_name=""
     
-    
-    #global resolucion
-
-    #resolucion = get_resolucion()
-    #if resolucion=="":
-   
-
     user_agent = request.META.get('HTTP_USER_AGENT', '')
-
+    
+    print("user_agent",user_agent)
+    
     if 'Mobile' in user_agent:
         print('Estás accediendo desde un celular.')
         resolucion=settings.STORE_TEMPLATE_MOBILE
@@ -44,7 +39,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         print('Estás accediendo desde PC.')
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
        
-    print("*****store***",resolucion)          
+          
     if category_slug != None:
         if subcategory_slug != None:
             #print("store 1",category_slug,subcategory_slug) 
@@ -156,6 +151,8 @@ def search(request):
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
 
+    print("user_agent - search ",user_agent)
+
     if 'Mobile' in user_agent:
         print('Estás accediendo desde un celular.')
         resolucion=settings.STORE_TEMPLATE_MOBILE
@@ -163,23 +160,29 @@ def search(request):
         print('Estás accediendo desde PC.')
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
 
+    print("*****store***",resolucion)    
+
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
             products = Product.objects.order_by('-created_date').filter(Q(description__icontains=keyword) | Q(product_name__icontains=keyword))
             product_count = products.count()
     
+    else:
+        products = Product.objects.filter(is_available=True).order_by('product_name')
+        product_count = products.count()
+            
     context = {
         'products': products,
         'product_count': product_count,
-         'category_id':0,
+        'category_id':0,
         'subcategory_id':0,
         'resolucion':resolucion
     }
 
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
-    elif resolucion =="2 ":   #PC Normal
+    elif resolucion =="2":   #PC Normal
         return render(request,'store/full_store.html', context)
     elif resolucion =="3":  #Test Nuew Store
         return render(request,'store/new_store.html', context)

@@ -42,7 +42,7 @@
 
   <a href="{% url 'store' %}" class="btn btn-outline-primary">Catalogo</a>
  
-  {% if request.path|slice:":7" != '/store/' %}
+  {% if request.path|slice:":7" != '/XXXXstore/' %}
 
   <div class="col-lg  col-md-6 col-sm-12 col" id="search">
     <form action="{% url 'search' %}" class="search" method='GET'>
