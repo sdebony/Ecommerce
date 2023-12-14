@@ -305,9 +305,9 @@ def resetPassword(request):
 def my_orders(request):
 
     if request.user.is_admin == True:
-        orders = Order.objects.filter(is_ordered=True).order_by('-created_at')
+        orders = Order.objects.filter(is_ordered=True,order_number__regex=r'^[0-9]*$').order_by('-created_at')
     else:
-        orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+        orders = Order.objects.filter(user=request.user, is_ordered=True,order_number__regex=r'^[0-9]*$').order_by('-created_at')
     
     context = {
         'orders': orders,
@@ -362,7 +362,9 @@ def change_password(request):
 
 @login_required(login_url='login')
 def order_detail(request, order_id):
-    order_detail = OrderProduct.objects.filter(order__order_number=order_id)
+
+    #order_detail = OrderProduct.objects.filter(order__order_number__regex=r'^[0-9]*$', order__order_number=order_id) #Filtro los numericos
+    order_detail = OrderProduct.objects.filter(order__order_number=order_id) 
     order = Order.objects.get(order_number=order_id)
     subtotal = 0
     for i in order_detail:

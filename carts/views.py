@@ -23,7 +23,6 @@ def add_cart(request, product_id):
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
 
-   
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -58,7 +57,9 @@ def add_cart(request, product_id):
                 item = CartItem.objects.get(product=product, id=item_id)
               
                 if quantity:
+                    #print("articulo existe...")
                     if item.quantity == int(quantity):
+                        #print("Si la cantidad ingresada es igual a la que tiene suma 1")
                         item.quantity += 1
                     else:
                         item.quantity = int(quantity)  #Modifico desde Cart cantidad
@@ -74,8 +75,10 @@ def add_cart(request, product_id):
                 item.save()
         else:
             if not quantity:
+                print("quantity=1 (null)")
                 quantity = 1
             else:
+                print("quantity=",quantity)
                 quantity = int(quantity)
 
             cart_item = CartItem.objects.create(
@@ -87,11 +90,13 @@ def add_cart(request, product_id):
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
             cart_item.save()
+            #messages.success(request, 'Producto agregado')
         if volver_store=="0":
             return redirect('cart')
         else:
             if ruta:
-                return redirect(ruta)
+                return redirect(ruta + "#" + str(product_id))
+                #return redirect(ruta)
             else:
                 return redirect('store')  #Detalle del pedido
             
@@ -175,13 +180,15 @@ def add_cart(request, product_id):
             if len(product_variation) > 0:
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
+            #messages.success(request, 'Producto agregado')
             cart_item.save()
 
        
         if volver_store=="0":
             return redirect('cart')
         else:
-            return redirect(ruta)
+            
+            return redirect(ruta + "#" + str(product_id))
 
 def remove_cart(request, product_id, cart_item_id):
 

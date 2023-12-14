@@ -33,7 +33,6 @@
 				
 				
 				<label for="">Filtros</label>
-				
 					<select name="filtros" id="filtros" class="form-control">
 						<option selected disabled value="">Filtros</option>
 						{% for category in links %}
@@ -74,6 +73,7 @@
 				  {% endif %}
 				</ol>
 			  	<span class="mr-md-auto"><b>{{ product_count }}</b> articulos encontrados</span>
+				 
 			</nav>
 		</div>
 </header><!-- sect-heading -->
@@ -81,11 +81,14 @@
 <div class="row">
 	{% if products %}
 	{% for product in products %}
+	
 	<div class="col-md-2 w-50 p-1">
 		<form action="{% url 'add_cart' product.id %}" method="POST">
 			{% csrf_token %}
+			<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 		<figure class="card card-product-grid" >
-			<div class="img-wrap" style="font-size: 1.3em;">
+			<section id="{{product.id}}">
+				<div class="img-wrap" style="font-size: 1.3em;">
 				<a href="{{ product.get_url }}">
 					{% if product.images %}
 						<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" width="30" height="40">
@@ -95,14 +98,27 @@
 				</a>
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
-				<div class="fix-height">
-					<a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
-					<div class="price-wrap mt-2">
-						<span class="price">$ {{ product.price }}</span>
-					</div> <!-- price-wrap.// -->
-				</div>
-				<button type="submit" class="btn  btn-primary"> <span class="text">Agregar al carrito</span> <i class="fa fa-shopping-cart"></i> </button>
+				
+					<div class="fix-height">
+						<a href="{{ product.get_url }}" class="title">{{ product.product_name |truncatechars:50}}</a>
+						<div class="price-wrap mt-2">
+							<span class="price">$ {{ product.price }}</span>
+						</div> <!-- price-wrap.// -->
+					</div>
+									
+						<div class="input-group-prepend">	
+							<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+							<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
+							<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
+								<i class="fa fa-shopping-cart"></i>
+							</button>
+						</div>
+					<!--
+					<button type="submit" class="btn  btn-primary" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
+						<span class="text">Agregar</span> <i class="fa fa-shopping-cart"></i> </button>
+					-->
 			</figcaption>
+			</section>
 		</figure>
 		</form>
 	</div> <!-- col.// -->
@@ -112,6 +128,28 @@
 		<h2>No result found. Please try again.</h2>
 	</div>
 	{% endif %}
+	
+
+	
+  <!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+	<div class="modal-dialog">
+	  <div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title" id="staticBackdropLabel"><i class="fa fa-shopping-cart"> - Carrito </i> </h5>
+		  
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+		<div class="modal-body">
+		  Producto Agregado
+		</div>
+	  </div>
+	</div>
+  </div>
+	<!-- FIN MODAL-->
+				
 </div> <!-- row end.// -->
 
 
@@ -147,8 +185,10 @@
 
 </div> <!-- container .//  -->
 </section>
+
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
+    
 
 <script>
 
@@ -156,15 +196,22 @@
 $(function () {
 
         $("#filtros").change(function() {
-           console.log($("#filtros").val());
+           //console.log($("#filtros").val());
 		   var filtro=$('#filtros').val();
-           console.log(window.location.origin)
-		   console.log(window.location.pathname)
+		   console.log("origin")
+           console.log(window.location.origin)  //subcategory
+		   console.log("pathname")
+		   console.log(window.location.pathname) //Localhost
+		   console.log("filtro")
 		   console.log(filtro)
-
-		   window.location.href = 'http://localhost:8000/store/' + filtro
+		   url = window.location.origin + '/store/' + filtro
+		   console.log("url")  
+		   console.log(url)
+		   window.location.href = url
+		   
 		   
         });
+  
 		
 });
 

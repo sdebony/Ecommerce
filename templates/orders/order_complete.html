@@ -13,16 +13,16 @@
 	</div>
 </div>
 
-<div class="container" style="margin: 0 auto;width: 50%;padding: 50px;background: #f1f1f1;margin-top: 50px;margin-bottom: 50px;">
-    <div class="row invoice row-printable">
+<div class="container" ><!-- style="margin: 0 auto;width: 99%;padding: 99px;background: #f1f1f1;margin-top: 5px;margin-bottom: 5px;"> -->
+    <div class="row">
         <div class="col-md-12">
             <!-- col-lg-12 start here -->
-            <div class="panel panel-default plain" id="dash_0">
+            <div class="card">
                 <!-- Start .panel -->
-                <div class="panel-body p30">
+                <div class="card-body">
                     <div class="row">
                         <!-- Start .row -->
-                        <div class="col-lg-6">
+                        <div class="col-lg-3">
                             <!-- col-lg-6 start here -->
                             <div class="invoice-logo"><img src="{% static '/images/logo.png' %}" alt="Invoice logo" style="max-height: 40px;"></div>
                         </div>
@@ -48,19 +48,22 @@
                                         <li><strong>Pedido</strong> #{{order_number}}</li>
                                         <li><strong>Transaction ID</strong> {{transID}}</li>
                                         <li><strong>Fecha Pedido:</strong> {{order.created_at}}</li>
-                                        <li><strong>Status:</strong> {{payment.status}}</li>
+                                        <li><strong>XXXXXStatus:</strong> {{payment.status}}</li>
                                     </ul>
                                 </div>
                             </div>
 
-                            <div class="invoice-items">
-                                <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th class="per70 text-center">Producto</th>
-                                                <th class="per5 text-center">Cantidad</th>
-                                                <th class="per25 text-center">Total</th>
+
+                            <div class="card">
+                                <h5 class="card-header">Productos</h5>
+                                <div class="card-body">
+                                    <table class="table table-borderless table-shopping-cart">
+                                        <thead class="text-muted">
+                                            <tr class="small text-uppercase">
+                                                <th scope="col">Producto</th>
+                                                <th scope="col" width="120">Cantidad</th>
+                                                <th scope="col" width="120">Precio</th>
+            
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -98,6 +101,10 @@
                                     </table>
                                 </div>
                             </div>
+
+
+
+
                             <div class="invoice-footer mt25">
                                 <p class="text-center">Gracias por comprar con nosotros!</p>
                             </div>

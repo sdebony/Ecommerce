@@ -30,14 +30,11 @@
           <input type="text" name="last_name" class="form-control" value="{{user.last_name}}" required>
         </div>
       </div>
-      <hr>
-      <pre style='display:inline'  class="float-right"> 
-        <a href="{% url 'edit_dir_entrega' 0 %}"> Agregar direccion </a>
-      </pre>
-    
-      <br>
-      <h4 class="card-title mb-4">Dirección de Entrega</h4>
+      
         
+      
+      <center><h4 class="card-title mb-4">Dirección de Entrega</h4></center>
+      <a href="{% url 'edit_dir_entrega' 0 %}"> Agregar direccion </a>
       <div class="form-row">
           <div class="col form-group">
             <label for="">Direcciones disponibles:</label>

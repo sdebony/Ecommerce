@@ -33,19 +33,21 @@ def store(request, category_slug=None,subcategory_slug=None):
 
     #resolucion = get_resolucion()
     #if resolucion=="":
-    resolucion=settings.STORE_TEMPLATE
+   
 
     user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     if 'Mobile' in user_agent:
         print('Estás accediendo desde un celular.')
-        resolucion="1"
-        #Test
-        resolucion=settings.STORE_TEMPLATE
+        resolucion=settings.STORE_TEMPLATE_MOBILE
+    else:
+        print('Estás accediendo desde PC.')
+        resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
+       
     print("*****store***",resolucion)          
     if category_slug != None:
         if subcategory_slug != None:
-            print("store 1",category_slug,subcategory_slug) 
+            #print("store 1",category_slug,subcategory_slug) 
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
             products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
@@ -62,7 +64,7 @@ def store(request, category_slug=None,subcategory_slug=None):
           
 
         else:
-            print("store 2")
+            #print("store 2")
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
            
@@ -74,7 +76,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-        print("store 3")
+        #print("store 3")
  
         products = Product.objects.filter(is_available=True).order_by('product_name')
         product_count = products.count()
@@ -114,7 +116,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request, 'store/store.html', context)
     elif resolucion =="2":   #PC Normal
         return render(request,'store/full_store.html', context)
-    elif resolucion =="3":  #Test Nuew Store
+    elif resolucion =="3":  #Celular Test Nuew Store
         return render(request,'store/new_store.html', context)
     else:   #Default para mariano 
         return render(request, 'store/store.html', context)
@@ -151,14 +153,15 @@ def product_detail(request, category_slug, product_slug):
 
 def search(request):
 
-    resolucion=settings.STORE_TEMPLATE
-
+    
     user_agent = request.META.get('HTTP_USER_AGENT', '')
 
     if 'Mobile' in user_agent:
         print('Estás accediendo desde un celular.')
-        resolucion="1"
-    
+        resolucion=settings.STORE_TEMPLATE_MOBILE
+    else:
+        print('Estás accediendo desde PC.')
+        resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
 
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
