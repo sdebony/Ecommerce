@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import Account
+
 from store.models import Product, Variation
 
 
@@ -52,6 +53,9 @@ class Order(models.Model):
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    total_peso = models.FloatField(default=0)
+    cuenta    = models.BigIntegerField(default=0)
 
 
     def full_name(self):

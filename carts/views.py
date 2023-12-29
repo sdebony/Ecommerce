@@ -75,10 +75,8 @@ def add_cart(request, product_id):
                 item.save()
         else:
             if not quantity:
-                print("quantity=1 (null)")
-                quantity = 1
+               quantity = 1
             else:
-                print("quantity=",quantity)
                 quantity = int(quantity)
 
             cart_item = CartItem.objects.create(

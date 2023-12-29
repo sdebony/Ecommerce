@@ -23,6 +23,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
 from email import encoders
 
 
@@ -170,12 +171,18 @@ def dashboard_ventas(request):
             month_earnings = round(sum([Order.order_total for Order in payments_months]))
             hist_pedidos.append(month_earnings)
 
+
+        
         yr = int(datetime.today().strftime('%Y'))
         dt = 1
         mt = int(datetime.today().strftime('%m'))
         lim_fecha_desde = datetime(yr,mt,dt)
- 
-        mt = int(mt) + 1
+        if mt==12:
+            mt=1
+            yr+=1
+        else:
+            mt = int(mt) + 1
+        
         lim_fecha_hasta = datetime(yr,mt,dt)
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
       
@@ -437,6 +444,11 @@ def panel_pedidos_detalle(request,order_number=None):
 
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+        idcuenta = ordenes.cuenta
+        if idcuenta>0:
+            cuenta = Cuentas.objects.get(id=idcuenta)
+        else:
+            cuenta= []
         subtotal = ordenes.order_total - ordenes.envio
         if ordenes.status=="New":
             pago_pendiente=True
@@ -460,7 +472,8 @@ def panel_pedidos_detalle(request,order_number=None):
             'subtotal': subtotal,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
-            'entregado':entregado
+            'entregado':entregado,
+            'cuenta':cuenta
         }
         
         return render(request,'panel/pedidos_detalle.html',context) 
@@ -544,6 +557,236 @@ def panel_pedidos_enviar_factura(request,order_number=None):
         }
         
         return render(request,'panel/enviar_factura_email.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
+def panel_pedidos_enviar_tracking(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS FACTURA'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        pedido = Order.objects.get(order_number=order_number)
+        archivo=""     
+        if request.method =="POST":
+            print("Cargando imagen...")
+            try:
+                if request.FILES["imgFile"]:
+                    fileitem = request.FILES["imgFile"]
+                    # check if the file has been uploaded
+                    archivo=fileitem
+                    if fileitem.name:
+                        # strip the leading path from the file name
+                        fn = os.path.basename(fileitem.name)
+                        # open read and write the file into the server
+                        open(f"media/facturas/{fn}", 'wb').write( fileitem.file.read())  
+                        #pdf_root = f"media/facturas/{fileitem}"
+                        pdf_root = f"{fileitem}"
+                                
+            except:
+                 pass
+
+            archivo = pdf_root
+            print("Cargando imagen...",pdf_root)
+            if archivo:
+                
+                if pedido:
+                    if  pedido.email:
+
+                        nro_tracking = request.POST.get("tracking")
+                        print("Enviado a:", pedido.email)
+                        mensaje = MIMEMultipart()
+                        mensaje['From']=  settings.EMAIL_HOST_USER 
+                        mensaje['To']=pedido.email 
+                        mensaje['Subject']='Seguimiento del pedido ' + str(order_number)
+
+                        mensaje.attach(MIMEText("Gracias por su compra.  Aqui le enviamos el seguimiento de su pedido junto con la foto del pedido. https://www.correoargentino.com.ar/formularios/e-commerce?id="+ str(nro_tracking),'plain'))
+                        
+                        archivo_adjunto = open('media/facturas/' + archivo,'rb')
+
+                        adjunto_MIME = MIMEBase('aplication','octet-stream')
+                        adjunto_MIME.set_payload((archivo_adjunto).read())
+                        encoders.encode_base64(adjunto_MIME)
+
+                        adjunto_MIME.add_header('Content-Disposition',"attachment; filename= %s" %archivo)
+                        mensaje.attach(adjunto_MIME)
+
+                        try:
+
+                            session_smtp = smtplib.SMTP(settings.EMAIL_HOST ,settings.EMAIL_PORT)
+                            session_smtp.starttls()
+                            session_smtp.login(settings.EMAIL_HOST_USER ,settings.EMAIL_HOST_PASSWORD)
+                            texto = mensaje.as_string()
+                            session_smtp.sendmail(settings.EMAIL_HOST_USER,pedido.email,texto)
+                            session_smtp.quit()
+                           
+                            messages.success(request,"Tracking enviado con exito.")
+                            return redirect('panel_pedidos','Cobrado')
+                             
+                        except Exception as err:
+                            error_str=  f"Unexpected {err=}, {type(err)=}"
+                            messages.error(request,"Error Exception:" + error_str,'red')
+                
+                try:
+                    os.remove(archivo)
+                except:
+                    pass                        
+        
+        context = {
+            'pedido':pedido,
+            'permisousuario':permisousuario,
+        }
+        
+        return render(request,'panel/enviar_tracking_email.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
+
+def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
+
+
+    print("panel_pedidos_enviar_datos_cuenta")
+    if validar_permisos(request,'PEDIDOS'):
+        
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        pedido = Order.objects.get(order_number=order_number)
+        if request.method =="POST":
+            cuenta =  request.POST.get("cuenta")
+            documento = request.POST.get("documento")
+            nrocuenta = request.POST.get("nrocuenta")
+            cbu = request.POST.get("cbu")
+            cuil = request.POST.get("cuil")
+            alias = request.POST.get("alias")
+            envio = request.POST.get("envio")
+            total = request.POST.get("total")
+            subtotal = request.POST.get("subtotal")
+            
+            envio = envio.replace(",",".")
+            total = total.replace(",",".")
+            subtotal = subtotal.replace(",",".")
+
+            if pedido:
+                #Actualizo el cotos del envio y la cuenta asociada para el pago
+                
+
+                Order_New = Order(
+                    id = pedido.id,
+                    order_number=pedido.order_number,
+                    first_name=pedido.first_name,
+                    last_name=pedido.last_name,
+                    email=pedido.email,
+                    created_at=pedido.created_at,
+                    fecha=pedido.fecha,
+                    updated_at=pedido.updated_at,
+                    dir_telefono=pedido.dir_telefono,
+                    dir_calle=pedido.dir_calle,
+                    dir_nro =pedido.dir_nro,
+                    dir_localidad=pedido.dir_localidad,
+                    dir_provincia=pedido.dir_provincia,
+                    dir_cp = pedido.dir_cp,
+                    dir_obs = pedido.dir_obs,
+                    dir_correo= pedido.dir_correo,
+                    order_total = pedido.order_total,
+                    envio = envio,
+                    status = pedido.status,
+                    is_ordered=True,
+                    ip = request.META.get('REMOTE_ADDR'),
+                    total_peso=pedido.total_peso,
+                    cuenta=cuenta
+                    ) 
+                Order_New.save()
+                
+                if  pedido.email:
+                    print("Enviado a:", pedido.email)
+                    mensaje = MIMEMultipart()
+                    mensaje['From']=  settings.EMAIL_HOST_USER 
+                    mensaje['To']=pedido.email 
+                    mensaje['Subject']='Lifche - Datos de pago  ' + str(order_number)
+
+                    #mensaje.attach(MIMEText("Gracias por su compra.  Aqui le enviamos los datos para transferir",'plain'))
+                    
+                    msg_content = '''
+                    <html><body><p><table>
+                    <tr>
+                        <td>Hola,<strong> '''+ str(pedido.last_name)+  ''', '''  + str(pedido.first_name)+  ''' </strong></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Adjuntamos datos de transferencia. </td>
+                    </tr>
+                    <tr>
+                        <td> Subtotal: $ '''  + str(subtotal) + ''' </td>
+                    </tr>
+                        <td> Envío  $ '''  + str(envio) + ''' </td>
+                    </tr>
+                    <tr>
+                        <td>Total a abonar : <strong>$ ''' + str(total) + ''' </strong></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>            
+                    </tr>
+                    <tr>
+                        <td>Documento: ''' + str(documento) + ''' </td>
+                    </tr>
+                    <tr>
+                        <td>Cuenta:  ''' + str(nrocuenta) + '''</td>
+                     </tr>
+                    <tr>
+                        <td>CBU: ''' + str(cbu) + '''</td>
+                    </tr>
+                    <tr>
+                        <td>CUIL: ''' + str(cuil) + '''</td>
+                     </tr>
+                    <tr>
+                        <td>Alias: ''' + str(alias) + '''</td>
+                     </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>            
+                    </tr>
+                    <tr>
+                        <td>Muchas gracias por su compra.</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Lifche.</td>
+                    </tr>
+
+                    </table></p></body></html>'''
+                    mensaje.attach(MIMEText((msg_content), 'html'))
+
+                    #with open('img/lifche.jpg', 'rb') as image_file:
+                    #    image = MIMEImage(image_file.read())
+                    #image.add_header('Content-ID', '<picture@example.com>')
+                    #image.add_header('Content-Disposition', 'inline', filename='image.jpg')
+                    #mensaje.attach(image)
+
+
+
+                    try:
+
+                        session_smtp = smtplib.SMTP(settings.EMAIL_HOST ,settings.EMAIL_PORT)
+                        session_smtp.starttls()
+                        session_smtp.login(settings.EMAIL_HOST_USER ,settings.EMAIL_HOST_PASSWORD)
+                        texto = mensaje.as_string()
+                        session_smtp.sendmail(settings.EMAIL_HOST_USER,pedido.email,texto)
+                        session_smtp.quit()
+                        
+                        messages.success(request,"Datos enviados con exito.")
+                        return redirect('panel_pedidos','New')
+                            
+                    except Exception as err:
+                        error_str=  f"Unexpected {err=}, {type(err)=}"
+                        messages.error(request,"Error Exception:" + error_str,'red')
+
+        context = {
+            'pedido':pedido,
+            'permisousuario':permisousuario,
+        }
+        
+        return render(request,'panel/enviar_datos_pago.html',context) 
     else:
         return render (request,"panel/login.html")
 
@@ -727,7 +970,8 @@ def panel_pedidos_save_enc(request):
                     envio = 0,
                     status = "New",
                     is_ordered=True,
-                    ip = request.META.get('REMOTE_ADDR')
+                    ip = request.META.get('REMOTE_ADDR'),
+                    total_peso=0
                         ) 
                 Order_New.save()
                 messages.success(request,"Pedido guardado con exito.")
@@ -835,8 +1079,10 @@ def panel_product_crud(request):
             cat_id = request.POST.get("category")
             subcat_id = request.POST.get("subcategory")
             is_popular = request.POST.getlist("is_popular[]")
+            peso = request.POST.get("peso")
             
-           
+            peso = peso.replace(",", ".")
+            stock = stock.replace(",", ".") 
             price = price.replace(",", ".") 
 
             category = Category.objects.get(id=cat_id)
@@ -877,7 +1123,8 @@ def panel_product_crud(request):
                         subcategory = subcategory,
                         created_date =created_date, 
                         modified_date=datetime.today(),
-                        is_popular=popular
+                        is_popular=popular,
+                        peso=peso
                     )
                     producto.save()
                 else:
@@ -899,6 +1146,7 @@ def panel_product_crud(request):
                         subcategory = subcategory,
                         created_date= datetime.today(),
                         modified_date=datetime.today(),
+                        peso=peso,
                         )
                 if producto:
                     producto.save()
@@ -1255,6 +1503,28 @@ def panel_registrar_pago(request,order_number=None):
     else:
         return render (request,"panel/login.html")
 
+def panel_enviar_datos_pago(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        if order_number:
+            orden = Order.objects.get(order_number=order_number)
+            cuentas = Cuentas.objects.all()
+            total = orden.order_total + orden.envio
+            context = {
+                'orden':orden,
+                'cuentas':cuentas,
+                'permisousuario':permisousuario,
+                'total':total,
+            
+            }
+        print(orden)
+        return render(request,'panel/enviar_datos_pago.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
 def panel_confirmar_pago(request,order_number=None):
 
     if validar_permisos(request,'PEDIDOS'):
@@ -1426,8 +1696,12 @@ def panel_cierre_registrar(request):
 
         sel_mes =  NumTomonth(mt)
         sel_anio = yr
-        
-        mt = int(mt) + 1
+        if mt==12:
+            mt=1
+            yr+=1
+        else:    
+            mt = int(mt) + 1
+
         fecha_hasta = datetime(yr,mt,dt)
         fecha_hasta = fecha_hasta + timedelta(days=-1)
         
@@ -1712,7 +1986,6 @@ def export_xls(request,modelo=None):
         else:
             return render (request,"panel/login.html")
     
-
 def import_productos_xls(request):
 
     if validar_permisos(request,'IMPORTAR PRODUCTOS'):
@@ -3487,6 +3760,7 @@ def panel_recalcular_totales(order_number=None):
     subtotal = 0
     pedido = Order.objects.get(order_number=order_number)
     if pedido:
+        pesoarticulos=0
         id_pedido = pedido.id
         print("order_number",order_number)
         order_product = OrderProduct.objects.filter(order=id_pedido)
@@ -3494,7 +3768,10 @@ def panel_recalcular_totales(order_number=None):
         if order_product:
             for i in order_product:
                 subtotal += i.product_price * i.quantity
-              
+                #Recalculo el pese de los productos
+                product = Product.objects.get(id=i.product_id)
+                pesoarticulos += product.peso * i.quantity 
+                
 
             pedido = Order(
                 pk = id_pedido,
@@ -3522,7 +3799,8 @@ def panel_recalcular_totales(order_number=None):
                 status = "New",
                 ip  = pedido.ip,
                 is_ordered  = pedido.is_ordered,
-                updated_at  = datetime.today()
+                updated_at  = datetime.today(),
+                total_peso = pesoarticulos
 
             )
             pedido.save()

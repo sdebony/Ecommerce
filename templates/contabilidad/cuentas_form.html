@@ -63,18 +63,46 @@
                      <label class="form-check-label" for="is_available">Habilitada</label>
                 </div>
               </div>
+              
               <!-- / .card-body -->
 
               <div class="card-footer">
                 <button type="submit" class="btn btn-primary">Guardar</button>
                 <a href="{% url 'conta_list_cuentas' %}" class="btn btn-secondary">Cancelar</a>
               </div>
-            </form>
+           
           </div>
-          <!-- /.card -->
+         
         </div>
+        <div class="col-md-6">
+          <div class="card card-primary">
+            <div class="card-body">
+              <div class="form-group">
+                <label for="">Documento</label>
+                <input type="text" class="form-control" name="documento" id="documento" placeholder="Documento del titular" value="{{ cuentas.documento }}">
+              </div>
+              <div class="form-group">
+                <label for="">Nro Cuenta</label>
+                <input type="text" class="form-control" name="nro_cuenta" id="nro_cuenta" placeholder="Número decuenta" value="{{ cuentas.nro_cuenta }}">
+              </div>
+              <div class="form-group">
+                <label for="">CBU</label>
+                <input type="text" class="form-control" name="cbu" id="cbu" placeholder="CBU" value="{{ cuentas.cbu }}">
+              </div>
+              <div class="form-group">
+                <label for="">CUIL</label>
+                <input type="text" class="form-control" name="cuil" id="cuil" placeholder="Cuil Titular" value="{{ cuentas.cuil }}">
+              </div>
+              <div class="form-group">
+                <label for="">Alias</label>
+                <input type="text" class="form-control" name="alias" id="alias" placeholder="Alias" value="{{ cuentas.alias }}">
+              </div>
+              
+          </div>
+        
+        </div>
+      </form>
       </div>
-    </div>
 </section>
 
 

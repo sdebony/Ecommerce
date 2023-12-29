@@ -4,7 +4,7 @@
 
 
 <section class="section-conten padding-y bg">
-<form action="{% url 'panel_pedidos_enviar_factura' pedido.order_number %}" method="POST" enctype="multipart/form-data">
+<form action="{% url 'panel_pedidos_enviar_tracking' pedido.order_number %}" method="POST" enctype="multipart/form-data">
 {% csrf_token %}
     
     <div class="container">
@@ -39,6 +39,10 @@
                                     {{pedido.email}}
                                     
                                 </div>
+                                <div class="col form-group">
+                                    <label for="">Tracking</label>
+                                    <input type="text" name="tracking" id="tracking" class="form-control" required>
+                                    </div>
                             </div>
                             <div class="form-row">
                                 <input id="imgFile" type="file" name="imgFile" class="form-control" value="" required>
@@ -46,7 +50,7 @@
                             </div>
                             <br>
                             <div class="form-row">
-                                <button type="submit" class="btn btn-success"><i class="far fa-file"></i> Enviar Factura </button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-truck"></i> Enviar Tracking </button>
                                 <pre style='display:inline'  class="float-right"> </pre>
                                 <a href="{% url 'panel_clientes' %}" class="btn btn-secondary">Volver</a>
                                 

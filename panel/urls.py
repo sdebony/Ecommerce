@@ -41,6 +41,7 @@ urlpatterns = [
     path('pedidos/detalle/<str:order_number>', views.panel_pedidos_detalle, name='panel_pedidos_detalle'),
     path('pedidos/detalle/edit/<str:order_number>', views.panel_pedidos_detalle_edit, name='panel_pedidos_detalle_edit'),
     path('pedidos/pagos/<str:order_number>', views.panel_registrar_pago,name='registrar_pago'),
+    path('pedidos/pagos/envio/<str:order_number>', views.panel_enviar_datos_pago,name='enviar_datos_pago'),
     path('pedidos/pagos/confir/<str:order_number>', views.panel_confirmar_pago,name='confirmar_pago'),
     path('pedidos/import/pedidos/', views.import_pedidos_xls, name='panel_pedidos_import'),
     path('pedidos/import/pedidos/one/<str:codigo>', views.guardar_tmp_pedidos, name='panel_guardar_tmp_pedidos'),
@@ -52,6 +53,9 @@ urlpatterns = [
     path('pedidos/eliminar/conf/<str:order_number>', views.panel_pedidos_confirmacion_eliminar, name='panel_pedidos_confirmacion_eliminar'),
     path('pedidos/save/', views.panel_pedidos_save_enc, name='panel_pedidos_save_enc'), 
     path('pedidos/mail/<str:order_number>', views.panel_pedidos_enviar_factura, name='panel_pedidos_enviar_factura'), 
+    path('pedidos/mail/tracking/<str:order_number>', views.panel_pedidos_enviar_tracking, name='panel_pedidos_enviar_tracking'), 
+    path('pedidos/mail/datos/<str:order_number>', views.panel_pedidos_enviar_datos_cuenta, name='panel_pedidos_enviar_datos_cuenta'), 
+    
     
     path('pedidos/eliminar/entrega/<str:order_number>', views.panel_pedidos_eliminar_entrega, name='panel_pedidos_eliminar_entrega'), 
     path('pedidos/detalle/modif/<str:order_number>/<str:item>/<str:quantity>', views.panel_pedidos_modificar, name='panel_pedidos_modificar'), 

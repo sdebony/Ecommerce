@@ -107,7 +107,12 @@
                   <p class="lead">
                     <div class="callout callout-info">
                       <h5><i class="fas fa-info"></i> Observaciones:</h5>
-                      {{ ordenes.dir_obs }}
+                      Peso total artículos: <B>{{ordenes.total_peso}}</B>
+                      {% if ordenes.cuenta != 0 %}
+                      <p>Cuenta de cobro: <b>{{cuenta.nombre}}</b></p>
+                      {% endif %}     
+                      <hr><P>
+                      {{ ordenes.dir_obs }}</P>
                       {{ ordenes.order_note }}
                     </div>
                   </p>
@@ -157,6 +162,12 @@
                           {% if items.modo_ver %}
                             <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
                             <pre style='display:inline'  class="float-right"> </pre>
+                            {% if ordenes.cuenta == 0 %}
+                            <a href="{% url 'enviar_datos_pago' ordenes.order_number %}"  class="btn btn-primary float-right"><i class="far fa-credit-card"></i> Enviar Datos de pago</a>
+                              <pre style='display:inline'  class="float-right"> </pre>
+                            {% endif %}
+                              
+                          
                           {% endif %}
                         {% endif %}
                     {% endfor %}
@@ -171,7 +182,7 @@
                           {% if items.codigo.codigo == 'PEDIDOS FACTURA' %}
                             {% if items.modo_editar %}
                             <pre style='display:inline'  class="float-right"> </pre>
-                              <a href="{% url 'panel_pedidos_enviar_factura' ordenes.order_number %}"  class="btn btn-success float-right"><i class="fas fa-file"></i> Enviar Factura</a>
+                              <a href="{% url 'panel_pedidos_enviar_tracking' ordenes.order_number %}"  class="btn btn-success float-right"><i class="fas fa-file"></i> Enviar Tracking</a>
                             {% endif %}
                           {% endif %}
                         {% endfor %}

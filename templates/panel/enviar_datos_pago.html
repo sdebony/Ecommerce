@@ -1,0 +1,166 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+<form action="{% url 'panel_pedidos_enviar_datos_cuenta' orden.order_number %}" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title"><center>Enviar datos de pago.</center><br><center> Pedido:<b>{{orden.order_number }} </b>Peso({{orden.total_peso }}g) - <b>{{orden.last_name}} , {{orden.first_name}} </b></center></h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  
+                  <div class="form-row">
+                      <div class="col form-group">
+                        <label>Cuenta</label>
+                        <select class="form-control" id="cuenta" name="cuenta" required>
+                         <option value="0" selected disabled>Seleccione una cuenta</option>
+                        {% for item in cuentas %}
+                          <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                        {% endfor %}
+                        </select>
+                      </div>
+                  </div>
+
+                 <div class="form-row">
+                        <div class="col form-group">
+                        <label for="">Documento</label>
+                        <input type="text" name="documento" id="documento" class="form-control" value="" required  >
+                        </div>
+                        <div class="col form-group">
+                        <label for="">Cuenta</label>
+                        <input type="text" name="nrocuenta" id="nrocuenta" class="form-control" value="" required >
+                        </div>
+                        <div class="col form-group">
+                            <label for="">CBU</label>
+                            <input type="text" name="cbu" id="cbu" class="form-control" value="" required>
+                        </div>
+                    
+                 </div>
+                 <div class="form-row">
+                    <div class="col form-group">
+                    <label for="">CUIL</label>
+                    <input type="text" name="cuil" id="cuil" class="form-control" required>
+                    </div>
+                    <div class="col form-group">
+                    <label for="">Alias</label>
+                    <input type="text" name="alias" id="alias" class="form-control" required>
+                    </div>
+                    
+             </div>
+                  <div class="form-row">
+                      <div class="col form-group">
+                      <label for="">Sub Total</label>
+                      <input type="text" name="subtotal" id="subtotal" class="form-control" value="{{ orden.order_total }}" required>
+                      </div>
+                      <div class="col form-group">
+                      <label for="">Importe envio</label>
+                      <input type="text" name="envio" id="envio" class="form-control" value="{{orden.envio }}" required>
+                      </div>
+                      <div class="col form-group">
+                        <label for="">Total</label>
+                        <input type="text" name="total" id="total" class="form-control" value="{{ total }}"  >
+                        </div>
+                      
+                  </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Enviar</button>
+                    <a href="{% url 'panel_pedidos' 'New' %}" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block js_page %}
+
+
+<script>
+
+   function buscarCuenta()     {
+       
+        var cajas=$('#cuenta').val();
+        var path = "{% url 'api:cuentas_list' %}" + cajas;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+                //console.log(r);
+                //console.log(r.moneda);
+                //mensaje(r.moneda,'red');
+                //mensaje(r.cbu,'red');
+                
+                
+                $("#cbu").val(r.cbu);
+                $("#documento").val(r.documento);
+                $("#nrocuenta").val(r.nro_cuenta);
+                $("#cbu").val(r.cbu);
+                $("#alias").val(r.alias);
+                $("#cuil").val(r.cuil);
+                
+                
+                
+            },
+        });
+    }
+
+    function calcular()
+    {
+        var monto_origen,conversion,monto_destino;
+
+        subtotal = $("#subtotal").val();
+        envio = $("#envio").val();
+        total =  parseFloat(subtotal) + parseFloat(envio);
+       
+        $("#total").val(total);
+
+    }
+
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#cuenta").change(function() {
+           console.log($("#cuenta").val());
+           buscarCuenta();
+           
+        });
+
+
+        $('#envio').change(function(){
+            calcular();
+        });
+
+       
+        
+        
+    });
+
+    
+   
+
+</script>
+
+{% endblock %}

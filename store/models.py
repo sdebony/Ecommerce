@@ -19,7 +19,7 @@ class Product(models.Model):
     created_date    = models.DateTimeField(auto_now_add=True)
     modified_date   = models.DateTimeField(auto_now=True)
     is_popular      = models.BooleanField(default=False)
-    
+    peso            = models.FloatField(default=0)
 
     def get_url(self):
         return reverse('product_detail', args=[self.category.slug, self.slug])

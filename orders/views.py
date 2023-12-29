@@ -164,6 +164,7 @@ def order_complete(request):
         for i in ordered_products:
             subtotal += i.product_price * i.quantity
 
+
         payment = Payment.objects.get(payment_id=transID)
 
         context = {
@@ -187,7 +188,7 @@ def order_cash(request):
         print(order_number)
         print("**********************")
         
-
+        pesoarticulos=0
         order = Order.objects.get(user=request.user, is_ordered=False, order_number=order_number)
         
         # Move the cart items to Order Product table
@@ -213,9 +214,11 @@ def order_cash(request):
 
             # Reduce the quantity of the sold products
             product = Product.objects.get(id=item.product_id)
+            pesoarticulos += product.peso * item.quantity 
             product.stock -= item.quantity
             product.save()
-
+        
+        #print("total peso Articulos:",pesoarticulos)
         # Clear cart
         CartItem.objects.filter(user=request.user).delete()
 
@@ -228,6 +231,7 @@ def order_cash(request):
 
             if order:
                 order.is_ordered = True  #Confirmo la orden de compa
+                order.total_peso = pesoarticulos
                 order.save()
 
             print("order status", order.is_ordered)

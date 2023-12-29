@@ -29,6 +29,11 @@ class Cuentas(models.Model):
     moneda      =  models.ForeignKey(Monedas, on_delete=models.CASCADE, null=False)
     limite      = models.IntegerField(default=0) #Importe maximo mensual
     is_available    = models.BooleanField(default=True)
+    documento    = models.CharField('Documento', max_length=25,default='')
+    nro_cuenta    = models.CharField('Nro Cuenta', max_length=25,default='')
+    cbu    = models.CharField('CBU', max_length=25,default='')
+    cuil    = models.CharField('Cuil', max_length=25,default='')
+    alias    = models.CharField('Alias', max_length=50,default='')
     
     def __str__(self):
         return '{}'.format(self.nombre) #+ ' - ' +'{}'.format(self.moneda) + ' - ' +'{}'.format(self.id)
