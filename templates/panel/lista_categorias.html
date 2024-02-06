@@ -35,6 +35,7 @@
           <th data-sortable="true" data-field="slug">Slug</th>
           <th data-sortable="true" data-field="description">Descripcion</th>
           <th data-sortable="true" data-field="cat_image">Imagen</th>
+          <th data-sortable="true" data-field="orden">Orden</th>
          
 
           <th class="all">Acciones</th>  
@@ -47,9 +48,11 @@
           <td>{{ item.slug }}</td>
           <td>{{ item.description }}</td>
           <td>{{ item.cat_image.url }}</td>
+          <td>{{ item.orden }}</td>
           <td>  
              <a href="{% url 'panel_categoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
           </td>
+          
         </tr>
         {% endfor %}
       </tbody>

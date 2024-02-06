@@ -640,7 +640,6 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
     else:
         return render (request,"panel/login.html")
 
-
 def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
 
 
@@ -1709,7 +1708,7 @@ def panel_cierre_registrar(request):
             cuenta = 1
 
        
-        meses = ['Enero','Febro','Marzo','April','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+        meses = ['Enero','Febrero','Marzo','April','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
         anios = [yr-1, yr,yr+1]
       
         print(yr, fecha_desde,fecha_hasta)
@@ -2586,6 +2585,7 @@ def panel_categoria_detalle(request,categoria_id=None):
             cat_nombre = request.POST.get("category_name")
             cat_descripcion = request.POST.get("description")
             cat_imagen = request.POST.get("images")
+            cat_orden = request.POST.get("orden")
             
 
             # *** IMAGEN *****
@@ -2624,6 +2624,7 @@ def panel_categoria_detalle(request,categoria_id=None):
                         slug = slugify(cat_nombre.lower()),
                         description = cat_descripcion,
                         cat_image = cat_imagen,
+                        orden = cat_orden,
                     )
                     category.save()
             else:
@@ -2632,6 +2633,7 @@ def panel_categoria_detalle(request,categoria_id=None):
                     slug = slugify(cat_nombre.lower()),
                     description = cat_descripcion,
                     cat_image = cat_imagen,
+                    orden = cat_orden,
                 )
                 category.save()
             categoria = Category.objects.filter().all()         

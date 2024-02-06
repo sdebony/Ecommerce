@@ -12,7 +12,7 @@
 	<h2 class="text-center">Tu carrito esta vacío</h2>
 	<br>
 	<div class="text-center">
-		<a href="{% url 'store' %}" class="btn btn-primary">Seguir comprando</a>
+		<a href="{% url 'store' %}" class="btn btn-primary">Continuar Pedido</a>
 	</div>
 {% else %}
 <div class="row">
@@ -75,7 +75,7 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
-	<a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" onclick="return confirm('Are you sure you want to delete this item?')" class="btn btn-danger"> Remove</a>
+	<a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" onclick="return confirm('Esta seguro que quiere eliminar el producto?')" class="btn btn-danger"> Eliminar</a>
 	</td>
 </tr>
 {% endfor %}
@@ -103,8 +103,8 @@
 			</dl>
 			<hr>
 			
-			<a href="{% url 'checkout' %}" class="btn btn-primary btn-block"> Comprar </a>
-			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continuar comprando</a>
+			<a href="{% url 'checkout' %}" class="btn btn-primary btn-block"> Confirmar Pedido </a>
+			<a href="{% url 'store' %}" class="btn btn-light btn-block">Continuar Pedido</a>
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
 

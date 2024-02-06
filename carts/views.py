@@ -22,7 +22,6 @@ def add_cart(request, product_id):
     quantity=0
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
-
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -181,7 +180,7 @@ def add_cart(request, product_id):
             #messages.success(request, 'Producto agregado')
             cart_item.save()
 
-       
+        
         if volver_store=="0":
             return redirect('cart')
         else:

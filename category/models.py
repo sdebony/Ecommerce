@@ -8,11 +8,12 @@ class Category(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField(max_length=255, blank=True)
     cat_image = models.ImageField(upload_to='photos/categories', blank=True)
+    orden = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = 'category'
         verbose_name_plural = 'categories'
-        ordering = ['category_name',]
+        ordering = ['orden',]
 
     def get_url(self):
             return reverse('products_by_category', args=[self.slug])
@@ -30,7 +31,8 @@ class SubCategory(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=False)
     sub_category_slug = models.SlugField(max_length=100)
     sub_category_description = models.TextField(max_length=255, blank=True)
-  
+    orden = models.IntegerField(default=0)
+    
     class Meta:
         verbose_name = 'Sub Category'
         verbose_name_plural = 'Sub Categories'

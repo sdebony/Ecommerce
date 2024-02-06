@@ -17,6 +17,8 @@
                         <label for="">Nombre</label>
                             <input type="number" name="categoria_id"  class="form-control" value="{{categoria.id}}" hidden>
                             <input type="text" name="category_name" class="form-control" value="{{categoria.category_name}}" required>
+                            <label for="">Orden</label>
+                            <input type="text" name="orden" class="form-control" value="{{categoria.orden}}">
                         </div>
                         <div class="col form-group">
                             <label for="">slug</label>
@@ -25,6 +27,7 @@
                         <input id="imgFile" type="file" name="imgFile" class="form-control" value="{{ categoria.cat_image.url}}">
                         <input id="images" type="text" name="images" class="form-control" value="{{ categoria.cat_image }}" hidden>               
                         
+
                     </div>
                     
                     <div class="form-row">
@@ -101,6 +104,7 @@
                                     <th data-sortable="true" data-field="subcategory_name">Sub Categoría</th>
                                     <th data-sortable="true" data-field="sub_category_slug">Slug</th>   
                                     <th data-sortable="true" data-field="sub_category_description">Descripcion</th>
+                                    
                                     <th class="all">Acciones</th>  
                                 </thead>
                                 <tbody>
@@ -110,6 +114,7 @@
                                     <td>{{ item.subcategory_name }}</td>
                                     <td>{{ item.sub_category_slug }}</td> 
                                     <td>{{ item.sub_category_description }}</td>
+                                    
                                   
                                     <td >         
                                        <a href="{% url 'panel_subcategoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>

@@ -24,9 +24,10 @@ def store(request, category_slug=None,subcategory_slug=None):
     product_count=0
     category_id = 0
     subcategy_id = 0
-    subcategies = []
+    subcategories=[]
     categories = []
     category_name=""
+    sub_category_name = ""
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
@@ -39,13 +40,14 @@ def store(request, category_slug=None,subcategory_slug=None):
         print('Estás accediendo desde PC.')
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
        
-          
+    print(category_slug,subcategory_slug,"Parametros")  
     if category_slug != None:
         if subcategory_slug != None:
-            #print("store 1",category_slug,subcategory_slug) 
+            print("store 1",category_slug,subcategory_slug) 
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
-            subcategies = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug)
-            products = Product.objects.filter(category=categories,subcategory=subcategies, is_available=True).order_by('product_name')
+            subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
+            subcategories = SubCategory.objects.filter(category=categories)
+            products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')
             #products = Product.objects.filter(is_available=True).order_by('product_name')
             product_count = products.count()
 
@@ -54,13 +56,20 @@ def store(request, category_slug=None,subcategory_slug=None):
             paged_products = paginator.get_page(page)
         
             category_id = categories.id
-            subcategy_id = subcategies.id
+            subcategy_id = subcategory.id
+
+            if subcategory:
+                sub_category_name = subcategory.subcategory_name
+            else:
+                sub_category_name = ""
 
           
 
         else:
-            #print("store 2")
+            print("store 2")
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+            #subcategories = get_object_or_404(SubCategory, category=categories)
+            subcategories = SubCategory.objects.filter(category=categories)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
            
            
@@ -71,7 +80,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-        #print("store 3")
+        print("store 3")
  
         products = Product.objects.filter(is_available=True).order_by('product_name')
         product_count = products.count()
@@ -80,6 +89,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         paged_products = paginator.get_page(page)
         category_id = 0
         subcategy_id = 0
+        
 
     if categories:
         category_name = categories.category_name
@@ -87,10 +97,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     else:
         category_name = ""
 
-    if subcategies:
-        sub_category_name = subcategies.subcategory_name
-    else:
-        sub_category_name = ""
+    
 
 
     context = {
@@ -101,18 +108,18 @@ def store(request, category_slug=None,subcategory_slug=None):
         'category_name':category_name,
         'category_slug':category_slug,
         'sub_category_name':sub_category_name,
+        'subcategories':subcategories,
         'resolucion':resolucion
     }
 
-    print(category_name)
-    print(sub_category_name)
+   
     
     if resolucion == "1": #Celular
         return render(request, 'store/store.html', context)
     elif resolucion =="2":   #PC Normal
         return render(request,'store/full_store.html', context)
     elif resolucion =="3":  #Celular Test Nuew Store
-        return render(request,'store/new_store.html', context)
+        return render(request,'store/new_store2.html', context)
     else:   #Default para mariano 
         return render(request, 'store/store.html', context)
     

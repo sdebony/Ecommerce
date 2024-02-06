@@ -6,7 +6,7 @@
 {% block content %}
 
 
-
+	
 <section class="section-intro padding-y-sm">
 	<div class="container">
 		<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
@@ -69,11 +69,14 @@
 <!-- ========================= SECTION  ========================= -->
 <section class="section-name padding-y-sm">
 <div class="container">
-
 <header class="section-heading">
-	<a href="{% url 'store' %}" class="btn btn-outline-primary float-right">See all</a>
-	<h3 class="section-title">Popular products</h3>
+	{% if products %}
+
+	<a href="{% url 'store' %}" class="btn btn-outline-primary float-right">Ver todos</a>
+	<h3 class="section-title">Productos Destacados</h3>
+	{% endif %}
 </header><!-- sect-heading -->
+
 
 
 <div class="row">
@@ -104,12 +107,41 @@
 </section>
 <!-- ========================= SECTION  END// ========================= -->
 
+<button id="btn_abrir_modal" hidden></button>
 
+<dialog id="modal"><h2>Bienvenido - Condiciones de Compra</h2>
+	
+	<p> Si es tu primera compra, acordate que el monto minumo inicial tiene que ser de $ 35.000 y para futuras compras el monto minimo es de 10.0000.</p>
+	<p>Los precios son finales con factura C, en el caso que necesites factura A se le sumarà el IVA.</p>
+	<p> Los precios son por unidad.</p>
+	<p> Gracias.</p>
 
-
-
-
+	<button id="btn_cerrar_modal">Cerrar</button>
+</dialog>
 </body>
-</html>
+
+<script>
+	const btnAbrirModal = document.querySelector("#btn_abrir_modal"); 
+	const btnCerrarModal = document.querySelector("#btn_cerrar_modal");
+	const Modal = document.querySelector("#modal");
+
+	btnAbrirModal.addEventListener("click",()=>{
+		Modal.showModal();
+	})
+	btnCerrarModal.addEventListener("click",()=>{
+		Modal.close();
+	})
+
+	window.addEventListener('load', function() {
+		Modal.showModal();
+	});
+	
+</script>
 
 {% endblock %}
+
+
+</html>
+
+
+
