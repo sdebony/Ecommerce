@@ -32,21 +32,35 @@
 			<div class="card-body">
 				
 				
-				<label for="">Filtros</label>
-					<select name="filtros" id="filtros" class="form-control">
-						<option selected disabled value="">Filtros</option>
+				<label for="">Categorias </label>
+					<select name="filtro-cat" id="filtro-cat" class="form-control">
+						{% if not category_name %}
+							<option selected disabled value="">Filtros</option>
+						{% else %}
+							<option  select value="category/{{ category.slug}}/">{{ category_name }}</option>
+						
+						{% endif %}
 						{% for category in links %}
-							<option  value="category/{{ category.slug}}/">-{{ category.category_name }}-</option>
-							{% for subcategory in sub_links %}
-								{% if subcategory.category == category %}
-								<ol>
-									<li> 
-										<option value="subcategory/{{category.slug}}/{{subcategory.sub_category_slug}}/"> °{{ subcategory.subcategory_name }}</option>		
-									</li>
-								</ol>
-								{% endif %}	
-							{% endfor%}
+								<option  value="category/{{ category.slug}}/">{{ category.category_name }}</option>
+							
 						{% endfor %}
+					</select>
+			</div> <!-- card-body.// -->
+            <div class="card-body">
+				
+				
+				<label for="">Sub Categorias - {{sub_category_name}}</label>
+					<select name="filtro-subcat" id="filtro-subcat" class="form-control">
+						{% if not sub_category_name %}
+						<option selected disabled value=""> -- Seleccione -- </option>
+						{% else %}
+							<option selected value="{{subcategory.sub_category_slug}}/">{{ sub_category_name }}</option>		
+                        {% endif %}
+                        {% for subcategory in subcategories %}
+                                <option value="{{subcategory.sub_category_slug}}/">{{ subcategory.subcategory_name }}</option>		
+                            	
+                        {% endfor%}
+                    
 					</select>
 			</div> <!-- card-body.// -->
 	</article> <!-- filter-group  .// -->
@@ -74,6 +88,8 @@
 		</div>
 </header><!-- sect-heading -->
 
+<input type="text" value="{{category_slug }}" id="cat_slug" nameid="cat_slug" hidden>
+
 <div class="row">
 	{% if products %}
 	{% for product in products %}
@@ -82,24 +98,22 @@
 		<form action="{% url 'add_cart' product.id %}" method="POST">
 			{% csrf_token %}
 			<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
-		<figure class="card card-product-grid" >
+			<figure class="itemside align-items-center">
 			<section id="{{product.id}}">
-				<div class="img-wrap" style="font-size: 1.3em;">
-				<a href="{{ product.get_url }}">
+				<div class="img-wrap" style="font-size: 1.1em;">
+				<a href="{{ product.get_url }}"><center>
 					{% if product.images %}
-						<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" width="30" height="40">
+						<img src="https://yourfiles.cloud/uploads/{{product.images.url}}" width="80" height="90" class="text-muted small">
 					{% else %}
-						<img src="https://yourfiles.cloud/uploads/none.jpg" width="30" height="40">
+						<img src="https://yourfiles.cloud/uploads/none.jpg" width="80" height="90">
 					{% endif %}
+				</center>
 				</a>
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
 				
 					<div class="fix-height">
-						<a href="{{ product.get_url }}" class="title">{{ product.product_name |truncatechars:50}}</a>
-						<div class="price-wrap mt-2">
-							<span class="price">$ {{ product.price }}</span>
-						</div> <!-- price-wrap.// -->
+						<a href="{{ product.get_url }}" class="text-muted small">{{ product.product_name |truncatechars:50}} - $ {{ product.price }}</a>
 					</div>
 									
 						<div class="input-group-prepend">	
@@ -191,16 +205,30 @@
     
 $(function () {
 
-        $("#filtros").change(function() {
+        $("#filtro-cat").change(function() {
            //console.log($("#filtros").val());
-		   var filtro=$('#filtros').val();
-		   console.log("origin")
-           console.log(window.location.origin)  //subcategory
-		   console.log("pathname")
-		   console.log(window.location.pathname) //Localhost
-		   console.log("filtro")
-		   console.log(filtro)
+		   var filtro=$('#filtro-cat').val();
+		   //console.log("origin")
+           //console.log(window.location.origin)  //subcategory
+		   //console.log("pathname")
+		   //console.log(window.location.pathname) //Localhost
+		   //console.log("filtro")
+		   //console.log(filtro)
 		   url = window.location.origin + '/store/' + filtro
+		   //console.log("url")  
+		   //console.log(url)
+		   window.location.href = url
+		   
+		   
+        });
+
+		$("#filtro-subcat").change(function() {
+           //console.log($("#filtros").val());
+		   var subcat=$('#filtro-subcat').val();
+		   var cat=$('#cat_slug').val();
+		   
+		   
+		   url = window.location.origin + '/store/category/' + cat + '/' + subcat
 		   console.log("url")  
 		   console.log(url)
 		   window.location.href = url

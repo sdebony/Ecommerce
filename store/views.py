@@ -120,8 +120,8 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request,'store/full_store.html', context)
     elif resolucion =="3":  #Celular Test Nuew Store
         return render(request,'store/new_store2.html', context)
-    else:   #Default para mariano 
-        return render(request, 'store/store.html', context)
+    else:   #Default para test mariano 
+        return render(request, 'store/new_store.html', context)
     
 def product_detail(request, category_slug, product_slug):
     try:
