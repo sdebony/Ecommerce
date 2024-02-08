@@ -22,11 +22,15 @@ def add_cart(request, product_id):
     quantity=0
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
+
+    
     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
         if request.method == 'POST':
             quantity = request.POST.get("quantity")
+            if quantity:
+                quantity = quantity.replace(".","")
             volver_store = request.POST.get("volver_store")
             ruta = request.POST.get("ruta")
             for item in request.POST:
@@ -103,6 +107,8 @@ def add_cart(request, product_id):
         if request.method == 'POST':
             ruta = request.POST.get("ruta")
             quantity = request.POST.get("quantity")
+            if quantity:
+                quantity = quantity.replace(".","")
             volver_store = request.POST.get("volver_store")
             
             for item in request.POST:

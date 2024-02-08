@@ -92,10 +92,11 @@
 							{% endif %}
 						
 							{% if single_product.stock <= 0 %}
-							<h5 class="text-danger">Out of Stock</h5>
+							<h5 class="text-danger">Sin Stock</h5>
 							{% else %}
 							<button type="submit" class="btn  btn-primary"> <span class="text">Add to Cart</span> <i class="fa fa-shopping-cart"></i> </button>
 							{% endif %}
+							<a href="{% url 'store' %}" class="btn btn-light btn-block">Continuar Pedido</a>
 						</article> <!-- product-info-aside .// -->
 					</form>
 				</main> <!-- col.// -->

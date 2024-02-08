@@ -11,8 +11,11 @@
 
 <div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top:100px;">
 Thank you for registering with us. We have sent you a verification email to your email address [{{ request.GET.email }}]
+Gracias por registrarse, le estaremos enviando un mail para validar  su cuenta de usuario. Por favor revise su correo electrónico.
+
+
 <br><br>
-Already verified? <a href="{% url 'login' %}">Login</a>
+Correo Verificado? <a href="{% url 'login' %}">Login</a>
 </div>
 
 {% else %}
@@ -20,7 +23,7 @@ Already verified? <a href="{% url 'login' %}">Login</a>
 	<div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
 
       <div class="card-body">
-      <h4 class="card-title mb-4">Sign in</h4>
+      <h4 class="card-title mb-4">Ingresar</h4>
      <div> {% include 'includes/alerts.html' %}</div>
       <form action="{% url 'login' %}" method="POST">
         {% csrf_token %}
@@ -32,17 +35,17 @@ Already verified? <a href="{% url 'login' %}">Login</a>
           </div> <!-- form-group// -->
 
           <div class="form-group">
-          	<a href="{% url 'forgotPassword' %}" class="float-right">Forgot password?</a>
+          	<a href="{% url 'forgotPassword' %}" class="float-right">Olvidate tu clave?</a>
 
           </div> <!-- form-group form-check .// -->
           <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-block"> Login  </button>
+              <button type="submit" class="btn btn-primary btn-block"> Ingresar  </button>
           </div> <!-- form-group// -->
       </form>
       </div> <!-- card-body.// -->
     </div> <!-- card .// -->
 
-     <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
+     <p class="text-center mt-4">No tienes cuenta? <a href="{% url 'register' %}">Registrarse</a></p>
      <br><br>
 <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
 {% endif %}
