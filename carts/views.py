@@ -23,14 +23,14 @@ def add_cart(request, product_id):
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
 
-    
-    # If the user is authenticated
+
+     # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
         if request.method == 'POST':
             quantity = request.POST.get("quantity")
             if quantity:
-                quantity = quantity.replace(".","")
+                quantity = quantity.replace(",",".")
             volver_store = request.POST.get("volver_store")
             ruta = request.POST.get("ruta")
             for item in request.POST:
@@ -58,7 +58,7 @@ def add_cart(request, product_id):
                 index = ex_var_list.index(product_variation)
                 item_id = id[index]
                 item = CartItem.objects.get(product=product, id=item_id)
-              
+                #print("1. cantidad:",quantity)
                 if quantity:
                     #print("articulo existe...")
                     if item.quantity == int(quantity):
@@ -81,7 +81,7 @@ def add_cart(request, product_id):
                quantity = 1
             else:
                 quantity = int(quantity)
-
+            #print("2. cantidad:",quantity)
             cart_item = CartItem.objects.create(
                 product = product,
                 quantity = quantity, #1 inicial
@@ -107,8 +107,9 @@ def add_cart(request, product_id):
         if request.method == 'POST':
             ruta = request.POST.get("ruta")
             quantity = request.POST.get("quantity")
+            #print("3. cantidad:",quantity)
             if quantity:
-                quantity = quantity.replace(".","")
+                quantity = quantity.replace(",",".")
             volver_store = request.POST.get("volver_store")
             
             for item in request.POST:
@@ -143,7 +144,7 @@ def add_cart(request, product_id):
                 ex_var_list.append(list(existing_variation))
                 id.append(item.id)
 
-            print(ex_var_list)
+            #print(ex_var_list)
 
             if product_variation in  ex_var_list:
                 # increase the cart item quantity
@@ -151,7 +152,7 @@ def add_cart(request, product_id):
                 item_id = id[index]
                 item = CartItem.objects.get(product=product, id=item_id)
                
-
+                #print("4. cantidad:",quantity)
                 if quantity==None:
                     quantity=1
 
@@ -172,6 +173,7 @@ def add_cart(request, product_id):
                     item.variations.add(*product_variation)
                 item.save()
         else:
+            #print("5. cantidad:",quantity)
             if not quantity:
                 quantity = 1
 
