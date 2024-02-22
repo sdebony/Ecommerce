@@ -1,0 +1,56 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+ 
+  <div class="container-fluid">
+
+    <!-- Page Heading -->
+     <h1 class="h3 mb-4 text-gray-800">Dashboard Resultados  </h1>
+     <h6>Periodo: {{ fecha_desde|date:'d/m/Y'}} - {{ fecha_hasta|date:'d/m/Y'}}</h6>
+       <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
+     <div class="row">
+      
+
+      {% for item in saldos %}
+      <!-- Earnings (Monthly) Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        {% if item.cuenta__moneda == 1 %}
+        <div class="card border-left-primary shadow h-100 py-2">
+          {% else %}
+          <div class="card border-left-success shadow h-100 py-2">
+          {% endif %}
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              {% if item.cuenta__moneda == 1 %}
+                
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ item.total }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
+               </div>
+                  {% else %}
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">U$S {{ item.total }}</div>
+                </div>
+                <div class="col-auto">
+                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>    
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %} 
+
+ 
+      
+      
+
+{% endblock %}

@@ -45,17 +45,18 @@
                   <div class="form-row">
                       <div class="col form-group">
                       <label for="">Sub Total</label>
-                      <input type="text" name="subtotal" id="subtotal" class="form-control" value="{{ orden.order_total }}" disabled required>
+                      <input type="number" name="subtotal" id="subtotal" class="form-control" value="{{ orden.order_total }}" disabled required>
                       </div>
                       <div class="col form-group">
                       <label for="">Importe envio</label>
-                      <input type="Number" name="envio" id="envio" class="form-control" value="{{ orden.envio }}">
+                      <input type="number" name="envio" id="envio" class="form-control" value="{{ orden.envio }}">
                       </div>
                       <div class="col form-group">
                         <label for="">Total</label>
-                        <input type="text" name="total" id="total" class="form-control" value="{{ total }}" disabled >
+                        <input type="number" name="total" id="total" class="form-control" value="{{ total }}" disabled >
                         </div>
                       
+    
                   </div>
                   <!-- / .card-body -->
                   <div class="card-footer">

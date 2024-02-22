@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.panel_home, name='panel'),
     path('dashboard/ventas', views.dashboard_ventas, name='dashboard_ventas'),
     path('dashboard/cuentas', views.dashboard_cuentas, name='dashboard_cuentas'),
+    path('dashboard/resultados', views.dashboard_resultados, name='dashboard_resultados'),
     #PRODUCTOS
     path('productos/list', views.panel_product_list_category, name="producto_list_category"),
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),

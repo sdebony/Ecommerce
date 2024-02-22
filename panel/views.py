@@ -259,9 +259,52 @@ def dashboard_cuentas(request):
            
             }
         print("Acceso Panel")
+        #return render (request,"panel/dashboard_cuentas.html",context)
         return render (request,"panel/dashboard_cuentas.html",context)
     else:
         return render (request,"panel/login.html")
+
+def dashboard_resultados(request):
+
+    if validar_permisos(request,'DASHBOARD RESULTADOS'):
+        fecha_1 = request.POST.get("fecha_desde")
+        fecha_2 = request.POST.get("fecha_hasta")
+
+        # POR DEFAULT TOMAMOS EL MES CORRIENTE
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        lim_fecha_desde = datetime(yr,mt,dt)
+ 
+        mt = int(mt) + 1
+        lim_fecha_hasta = datetime(yr,mt,dt)
+        lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
+
+        if not fecha_1 and not fecha_2 :
+            fecha_desde = lim_fecha_desde
+            fecha_hasta = lim_fecha_hasta
+
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre','cuenta__moneda').annotate(total=
+            Round(
+                Sum('monto'),
+                output_field=DecimalField(max_digits=12, decimal_places=2)))
+        print(saldos)
+        context = {
+            'permisousuario':permisousuario,
+            'saldos':saldos,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta
+        }
+        return render (request,"panel/dashboard.html",context)
+    else:
+        return render (request,"panel/login.html")  
 
 def panel_product_list_category(request):
     

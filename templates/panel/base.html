@@ -106,6 +106,13 @@
                   {% endif %}
                 {% endif %}
             {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD RESULTADOS' %}
+                  <a class="collapse-item" href="{% url 'dashboard_resultados' %}" >Panel Resultados</a>
+              {% endif %}
+            {% endif %}
+        {% endfor %}
           </div>
         </div>
       </li>
