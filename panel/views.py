@@ -3478,6 +3478,14 @@ def panel_movimientos_transf(request,idtrans=None):
             observaciones=request.POST.get("observaciones")
             fecha_a_datetime = datetime.strptime(fecha, '%d/%m/%Y')
 
+
+            monto_origen=monto_origen.replace(",",".")
+            monto_origen=monto_origen.replace("-","")
+            monto_destino=monto_destino.replace(",",".")
+            monto_destino=monto_destino.replace("-","")
+            conversion=conversion.replace(",",".")
+            
+            
             print(fecha,cliente,cuenta_origen,cuenta_destino,monto_origen,monto_destino,conversion,observaciones)
             
             if idtrans:

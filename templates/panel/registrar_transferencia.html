@@ -90,16 +90,16 @@
                     <div class="col form-group">
                         <div class="col form-group">  
                         <label for="">Monto Origen</label>
-                        <input type="number" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen }}"  required>
+                        <input type="float" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen }}"  required>
                         </div>
                       </div>   
                         <div class="col form-group">
                         <label for="">Cotización</label>
-                        <input type="number" name="conversion" id="conversion" class="form-control" value="{{trans.conversion }}">
+                        <input type="float" name="conversion" id="conversion" class="form-control" value="{{trans.conversion }}">
                         </div>
                         <div class="col form-group">
                           <label for="">Monto Destino</label>
-                          <input type="number" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino }}"  >
+                          <input type="float" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino }}"  >
                           </div>
                       
                   </div>
@@ -171,11 +171,15 @@
     {
         var monto_origen,conversion,monto_destino;
 
+        console.log("CALCULAR");
         monto_origen = $("#monto_origen").val();
         monto_destino = $("#monto_destino").val();
         conversion = $("#conversion").val();
         
 
+        console.log(monto_origen,monto_destino,conversion)
+
+         
         if(conversion==""){
             $('#conversion').val(0);
         }
@@ -184,17 +188,17 @@
             $('#monto_destino').val(0);
         }
 
-      
-
+        
         if (monto_origen>0&&conversion==0&&monto_destino>0){
-            conversion=monto_origen/conversion
+            conversion= Number((monto_origen/conversion).toFixed(2));
             $('#conversion').val(conversion);
         
             return false;
+       
         }
-
+        
         if (monto_origen>monto_destino&&conversion>0){
-            monto_destino = monto_origen / conversion
+            monto_destino = Number((monto_origen/conversion).toFixed(2));
             $('#monto_destino').val(monto_destino);
         
             return false;
