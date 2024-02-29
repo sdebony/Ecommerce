@@ -10,6 +10,8 @@ from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+from api.views import enviar_whatsapp
+
 #import pywhatkit  #Kit de envio de whatsapp
 
 
@@ -273,21 +275,10 @@ def order_cash(request):
             #************************
             #Send Whatsapp
             #*************************
-            # using Exception Handling to avoid unexpected errors
-            #try:
-                # sending message in Whatsapp in India so using Indian dial code (+91)
-                
-            #    hora = int(time.strftime("%H"))
-            #    minutos = int(time.strftime("%M"))
-            #    minutos= minutos
-            #    print(hora,minutos)
-            #    pywhatkit.sendwhatmsg("+5491165184759","Gracias por su compra nro: " + str(order.order_number), hora, minutos,0,True)
-            #    print("Message Sent!") #Prints success message in console
-
-            # error message
-            #except: 
-            #    print("Error in sending the message")
-           
+            
+            enviar_whatsapp (request,order.order_number,'54111565184759')
+            print("enviar whatsapp")
+            
             context = {
                 'order': order,
                 'ordered_products': ordered_products,
