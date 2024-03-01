@@ -430,6 +430,7 @@ def panel_pedidos_list(request,status=None):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         #ordenes = Order.objects.filter(status=status).order_by('-created_at')
         ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('-created_at')
+
         cantidad = ordenes.count()
         cantidad_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).count()
         total_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).aggregate(Sum('order_total'))
@@ -633,9 +634,19 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
             if archivo:
                 
                 if pedido:
+
+                    nro_tracking = request.POST.get("tracking")
+                    print("Save Tracking table")
+                        #Guardar tracking
+                    pedido.fecha_tracking = datetime.now()
+                    pedido.nro_tracking = nro_tracking
+                    pedido.save()
+
+                    
+
                     if  pedido.email:
 
-                        nro_tracking = request.POST.get("tracking")
+                        
                         print("Enviado a:", pedido.email)
                         mensaje = MIMEMultipart()
                         mensaje['From']=  settings.EMAIL_HOST_USER 
@@ -674,6 +685,7 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
                 except:
                     pass                        
         
+
         context = {
             'pedido':pedido,
             'permisousuario':permisousuario,
@@ -3390,6 +3402,8 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                         ordenes.id = id_orden
                         ordenes.payment = pago
                         ordenes.status="New"
+                        ordenes.nro_tracking=""
+                        ordenes.fecha_tracking=None
                         ordenes.save()
                         pago.id = id_pago
                         pago.delete()
@@ -3422,6 +3436,8 @@ def panel_pedidos_eliminar_entrega(request,order_number=None):
                     id_ordenes = ordenes.id
                     ordenes.id = ordenes.id
                     ordenes.status = "Cobrado"
+                    ordenes.nro_tracking=""
+                    ordenes.fecha_tracking=None
                     ordenes.save()                    
                     entrega = OrderShipping.objects.get(order=id_ordenes)
                     if entrega:

@@ -61,13 +61,13 @@ def add_cart(request, product_id):
                 #print("1. cantidad:",quantity)
                 if quantity:
                     #print("articulo existe...")
-                    if item.quantity == int(quantity):
+                    if item.quantity == float(quantity):
                         #print("Si la cantidad ingresada es igual a la que tiene suma 1")
-                        item.quantity += 1
+                        item.quantity = quantity
                     else:
-                        item.quantity = int(quantity)  #Modifico desde Cart cantidad
+                        item.quantity = float(quantity)  #Modifico desde Cart cantidad
                 else:
-                    item.quantity += 1
+                    item.quantity = 1
                 item.save()
 
             else:
@@ -80,7 +80,7 @@ def add_cart(request, product_id):
             if not quantity:
                quantity = 1
             else:
-                quantity = int(quantity)
+                quantity = float(quantity)
             #print("2. cantidad:",quantity)
             cart_item = CartItem.objects.create(
                 product = product,
@@ -157,12 +157,12 @@ def add_cart(request, product_id):
                     quantity=1
 
                 if quantity:
-                    if item.quantity == int(quantity):
-                        item.quantity += 1
+                    if item.quantity == float(quantity):
+                        item.quantity = quantity
                     else:
-                        item.quantity = int(quantity)
+                        item.quantity = float(quantity)
                 else:
-                    item.quantity += 1
+                    item.quantity = 1
                 item.save()
                
 
@@ -179,7 +179,7 @@ def add_cart(request, product_id):
 
             cart_item = CartItem.objects.create(
                 product = product,
-                quantity = int(quantity),
+                quantity = float(quantity),
                 cart = cart,
             )
             if len(product_variation) > 0:

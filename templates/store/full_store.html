@@ -96,7 +96,7 @@
 						<span class="price">$ {{ product.price }}</span>
 					</div> <!-- price-wrap.// -->
 				</div>
-
+				{% if product.stock > 0 %}
 				<div class="input-group-prepend">	
 					<input type="number" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 					<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
@@ -104,7 +104,12 @@
 						<i class="fa fa-shopping-cart"></i>
 					</button>
 				</div>
-		<!--	
+				{% else %}
+				<div class="input-group-prepend">	
+					<h5 class="text-danger">Sin Stock</h5>
+				</div>
+				{% endif %}
+				<!--	
 				<button type="submit" class="btn  btn-primary"  data-toggle="modal" data-target="#staticBackdrop" readonly="readonly">
 				 <span class="text">Agregar </span> <i class="fa fa-shopping-cart"></i> </button>
 			

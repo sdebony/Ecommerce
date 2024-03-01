@@ -16,53 +16,27 @@
 
 		</header>
 		<div class="card-body">
-			<div class="text-right">
+<!--		<div class="text-right">
 				<img src="/static/img/uncheck.jpg"  alt="Profile Picture" width="100" style="border-radius:50px;">
 			</div>
-			<div class="row">
+-->			<div class="row">
 			<div class="col-md-12">
 				<form action="{% url 'edit_profile' %}" method="POST" enctype="multipart/form-data">
 					{% csrf_token %}
 					<div class="form-row">
 						<div class="form-group col-md-6">
-							<label>First Name</label>
+							<label>Nombre</label>
 							{{user_form.first_name}}
 						</div>
 						<div class="form-group col-md-6">
-							<label>Last Name</label>
+							<label>Apellido</label>
 							{{user_form.last_name}}
 						</div>
 					</div>
 					<div class="form-row">
 						<div class="form-group col-md-6">
-							<label>Phone Number</label>
+							<label placeholder="">Telefono (+54 11 6 999 9999)</label>
 							{{user_form.phone_number}}
-						</div>
-						<div class="form-group col-md-6">
-							<label>Profile Picture</label>
-							{{profile_form.profile_picture}} 
-						</div>
-					</div>
-					<div class="form-group">
-						<label>Address Line 1</label>
-						{{profile_form.address_line_1}}
-					</div>
-					<div class="form-group">
-						<label>Address Line 2</label>
-						{{profile_form.address_line_2}}
-					</div>
-					<div class="form-row">
-						<div class="form-group col-md-4">
-							<label>City</label>
-							{{profile_form.city}}
-						</div>
-						<div class="form-group col-md-4">
-							<label>State</label>
-							{{profile_form.state}}
-						</div>
-						<div class="form-group col-md-4">
-							<label>Country</label>
-							{{profile_form.country}}
 						</div>
 					</div>
 					<input type="submit" value="Save" class="btn btn-primary">

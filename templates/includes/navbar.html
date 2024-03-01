@@ -40,7 +40,7 @@
 
 
 
-  <a href="{% url 'store' %}" class="btn btn-outline-primary">Catalogo</a>
+  <a href="{% url 'store' %}" class="btn btn-primary">Productos</a>
  
   {% if request.path|slice:":7" != '/XXXXstore/' %}
 
@@ -71,7 +71,7 @@
           <div class="widget-header">
             <small class="title text-muted">Bienvenido {{user.first_name}}!</small>
             <div>
-              <a href="{% url 'dashboard' %}" target="_blank">Dashboard</a> <span class="dark-transp"> | </span>
+              <a href="{% url 'dashboard' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
               <a href="{% url 'logout' %}"> Logout</a>
             </div>
           </div>

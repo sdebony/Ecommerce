@@ -81,8 +81,14 @@ def store(request, category_slug=None,subcategory_slug=None):
             subcategy_id = 0
     else:
         print("store 3")
- 
-        products = Product.objects.filter(is_available=True).order_by('product_name')
+        category_slug=settings.DEF_CATEGORY
+        subcategory_slug=settings.DEF_SUBCATEGORY
+
+        categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+        subcategories = get_object_or_404(SubCategory, category=categories,sub_category_slug=subcategory_slug)
+        #subcategories = SubCategory.objects.filter(category=categories)
+        products = Product.objects.filter(category=categories,subcategory=subcategories, is_available=True).order_by('product_name')
+        
         product_count = products.count()
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')

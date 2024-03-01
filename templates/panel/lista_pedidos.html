@@ -124,6 +124,7 @@
           <th data-sortable="true" data-field="order_total">order_total</th>
           <th data-sortable="true" data-field="status">status</th>
           <th data-sortable="true" data-field="fecha">Fecha </th>
+          <th data-sortable="true" data-field="nro_tracking">Tracking </th>
          
 
       </thead>
@@ -137,10 +138,18 @@
              <i class="href btn btn-primary btn-circle"><i class="fas fa-dollar-sign"></i></i>
             {% endif %}
             {% if item.status == 'Cobrado' %}
-             <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i></i>
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-truck"></i></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i></i>
+              {% endif %}
             {% endif %}
             {% if item.status == 'Entregado' %}
-            <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i></i>
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-edit"></i></i>
+              {% endif %}
             {% endif %}
           
           </div>
@@ -153,6 +162,7 @@
           <td>$ {{ item.order_total }} </td>
           <td>{{ item.status }}</td>
           <td>{{ item.fecha | date:"d/m/Y"  }}</td>
+          <td>{{ item.nro_tracking  }}</td>
           
           
         </tr>

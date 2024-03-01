@@ -57,6 +57,9 @@ class Order(models.Model):
     total_peso = models.FloatField(default=0)
     cuenta    = models.BigIntegerField(default=0)
 
+    fecha_tracking = models.DateTimeField(blank=True,null=True)
+    nro_tracking = models.CharField(max_length=50, blank=True)
+    
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
@@ -94,4 +97,5 @@ class OrderShipping(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     fecha = models.DateTimeField(auto_now_add=True)
     user  = models.ForeignKey(Account, on_delete=models.CASCADE)
+    
     
