@@ -16,8 +16,8 @@
   <div class="container">
     <div class="row align-items-center">
       <div class="col-lg-2 col-md-3 col-6">
-        <a href="{% url 'home' %}" >
-          <img class="img-fluid" src="{% static './images/logo.png' %}"  alt="Logo">
+        <a href="{% url 'home' %}" class="brand-wrap">
+          <img class="logo" src="{% static './images/logo.png' %}">
         </a> <!-- brand-wrap.// -->
        
       </div>
@@ -40,12 +40,12 @@
 
 
 
-  <!-- <a href="{% url 'store' %}" class="btn btn-primary">Productos</a>  -->
+  <a href="{% url 'store' %}" class="btn btn-primary">Productos</a>
  
   {% if request.path|slice:":7" != '/XXXXstore/' %}
 
   <div class="col-lg  col-md-6 col-sm-12 col" id="search">
-<!--    <form action="{% url 'search' %}" class="search" method='GET'>
+    <form action="{% url 'search' %}" class="search" method='GET'>
       <div class="input-group w-100">
           <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
 
@@ -55,9 +55,8 @@
             </button>
           </div>
         </div>
-    </form> 
--->  </div>
-
+    </form> <!-- search-wrap .end// -->
+  </div> <!-- col.// -->
   <div class="col-lg-3 col-sm-6 col-8 order-2 order-lg-3">
         <div class="d-flex justify-content-end mb-3 mb-lg-0">
           {% if user.id is None %}
@@ -85,29 +84,7 @@
       </div>
 {% endif %}
 </div> <!-- row.// -->
-
-<!--  XXXXXXXXXXXXXXXXXXXXXXXXXX    -->
-<div class="row justify-content-end">
-  <a href="{% url 'store' %}" class="btn btn-primary">Productos</a>
-    <form action="{% url 'search' %}" class="search" method='GET'>
-      <div class="input-group w-100">
-          <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
-
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="submit">
-              <i class="fa fa-search"></i>
-            </button>
-          </div>
-        </div>
-    </form> <!-- search-wrap .end// -->
-</div>
-
-<!--  XXXXXXXXXXXXXXXXXXXXXXXXXXX   -->
-
-
-
-
-</div> <!-- container.// -->
+  </div> <!-- container.// -->
 </section> <!-- header-main .// -->
 
 
@@ -119,3 +96,4 @@
  
   </body>
   </html>
+  
