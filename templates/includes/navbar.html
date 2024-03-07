@@ -83,12 +83,20 @@
           </a>
         </div> <!-- widgets-wrap.// -->
       </div>
+
+      <div class="widget-header">
+        <small class="title text-muted"><a href="{% url 'store' %}" class="btn btn-primary">Productos</a></small>
+        <div>
+          
+        </div>
+      </div>
 {% endif %}
 </div> <!-- row.// -->
 
 <!--  XXXXXXXXXXXXXXXXXXXXXXXXXX    -->
 <div class="row justify-content-end">
-  <a href="{% url 'store' %}" class="btn btn-primary">Productos</a>
+  
+  <div class="widget-header">
     <form action="{% url 'search' %}" class="search" method='GET'>
       <div class="input-group w-100">
           <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
@@ -100,6 +108,7 @@
           </div>
         </div>
     </form> <!-- search-wrap .end// -->
+    </div> <!-- widget-header.//
 </div>
 
 <!--  XXXXXXXXXXXXXXXXXXXXXXXXXXX   -->
