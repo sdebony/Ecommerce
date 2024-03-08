@@ -26,54 +26,54 @@ import json
 
 def enviar_whatsapp(request,nro_orden,telefono):
     url = settings.WHATSAPP_URL_ENVIO    # Reemplaza esto con la URL de la API a la que deseas enviar los datos
-
+    print("enviar_whatsapp desactivado")
 #print("entra aqui")
-    if nro_orden:
-        if nro_orden:
-            # JSON que deseas enviar a la API
-            json_data = {
-                "messaging_product": "whatsapp", 
-                "to": telefono, #"54111565184759", 
-                "type": "template", 
-                "template": { 
-                    "name": "gracias_por_su_compra",
-                    "language": { 
-                        "code": "es_AR" 
-                    },
-                    "components": [
-                        {
-                            "type": "body",
-                            "parameters": [
-                                {
-                                    "type": "text",
-                                    "text": nro_orden
-                                }
-                            ]
-                        }
-                    ]
-                }
-            }
+#    if nro_orden:
+#        if nro_orden:
+#            # JSON que deseas enviar a la API
+#            json_data = {
+#                "messaging_product": "whatsapp", 
+#                "to": telefono, #"54111565184759", 
+#                "type": "template", 
+#                "template": { 
+#                    "name": "gracias_por_su_compra",
+#                    "language": { 
+#                        "code": "es_AR" 
+#                    },
+#                    "components": [
+#                        {
+#                            "type": "body",
+#                            "parameters": [
+#                                {
+#                                    "type": "text",
+#                                    "text": nro_orden
+#                                }
+#                            ]
+#                        }
+#                    ]
+#                }
+#            }
 
-            headers = {
-                'Authorization': settings.WHATSAPP_TOKEN ,  # Reemplaza 'tu_token_de_autorización' con tu token real
-                'Content-Type': 'application/json'
-            }
+#            headers = {
+#                'Authorization': settings.WHATSAPP_TOKEN ,  # Reemplaza 'tu_token_de_autorización' con tu token real
+#                'Content-Type': 'application/json'
+#            }
 
-            try:
+#            try:
                 # Realiza la solicitud POST a la API con los datos JSON y los encabezados
-                response = requests.post(url, json=json_data, headers=headers)
+#                response = requests.post(url, json=json_data, headers=headers)
                 
                 # Verifica el código de estado de la respuesta
-                if response.status_code == 200:
-                    return JsonResponse({'mensaje': 'Datos enviados correctamente'}, status=200)
-                else:
-                    return JsonResponse({'error': 'Hubo un problema al enviar los datos'}, status=response.status_code)
-            except Exception as e:
-                return JsonResponse({'error': str(e)}, status=500)
-        else:
-            print("WHATSAPP: ERROR: No se encontro nro de telefono")
-    else:
-        print("WHATSAPP: ERROR: No se encontro nro de orden")
+#                if response.status_code == 200:
+#                    return JsonResponse({'mensaje': 'Datos enviados correctamente'}, status=200)
+#                else:
+#                    return JsonResponse({'error': 'Hubo un problema al enviar los datos'}, status=response.status_code)
+#            except Exception as e:
+#                return JsonResponse({'error': str(e)}, status=500)
+#        else:
+#            print("WHATSAPP: ERROR: No se encontro nro de telefono")
+#    else:
+#        print("WHATSAPP: ERROR: No se encontro nro de orden")
 
 
 

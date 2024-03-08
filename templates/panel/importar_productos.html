@@ -22,7 +22,7 @@
                                 {% csrf_token %}
                                     <input type="file" name="rootfile">
                                     <button type="submit" class="btn btn-primary">Procesar Archivo ...</button>
-                                    <a href="#" class="btn btn-secondary">Cancelar</a>
+                               
                                     
                                 </form>
                           </div>
@@ -56,6 +56,7 @@
                                         <li> <b>(h) Sub Categoria</b> - Ejemplo:  14 mm</li>
                                         <li> <b>(i) Peso (Gramos)</b> - Ejemplo:  1</li>
                                     </ul>
+                                    <a href="{% url 'panel_producto_import_del_all' %}"  class="btn btn-secondary">Eliminar Todos los productos</a>
                                 </div>
                             </div>
                         </div>

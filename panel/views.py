@@ -1078,6 +1078,26 @@ def panel_productos_del(request,product_id):
     else:
         return render (request,"panel/login.html")
 
+def panel_producto_import_del_all(request):
+
+    if validar_permisos(request,'PRODUCTO'):
+
+      
+            producto = Product.objects.filter()
+            for product in producto:
+                if product:
+                    vari = Variation.objects.filter(product=product)
+                    if vari:
+                        vari.delete()
+                    print("Eliminando", product)
+                    product.delete()
+
+            
+            return redirect('panel_catalogo') 
+    else:
+        return render (request,"panel/login.html")
+
+
 def panel_productos_variantes_del(request):
     
     if validar_permisos(request,'PRODUCTO'):

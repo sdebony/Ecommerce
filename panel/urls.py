@@ -20,6 +20,7 @@ urlpatterns = [
     path('producto/import/stock/', views.import_stock, name='panel_import_stock'), 
     path('producto/import/precios/', views.import_precios, name='panel_import_precios'), 
     path('producto/import/productos/', views.import_productos_xls, name='panel_producto_import'),
+    path('producto/import/delproductos/', views.panel_producto_import_del_all, name='panel_producto_import_del_all'),
      
     path('producto/import/', views.panel_importar_productos, name='panel_importar_productos'),
     path('producto/save/', views.guardar_tmp_productos, name='panel_guardar_tmp_productos'),
