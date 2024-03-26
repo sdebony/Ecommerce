@@ -9,9 +9,9 @@
   </div> <!-- container //  -->
 {% endif %}
 <div> &nbsp; </div>
-<header class="section-header ml-left">
-  <div class="col-lg-8 col-md-3 col-6 ">
-    <a href="{% url 'home' %}" >
+<header class="section-header">
+  <div class="col-lg-7 col-md-3 text-align-center">
+    <a href="{% url 'home' %}"  >
       <img class="img-fluid" src="{% static './images/logo.png' %}"  alt="Logo">
     </a> 
    
@@ -44,13 +44,12 @@
             <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
             <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
           </a>
-          <br>
+          
           <div class="widget-header ml-left" >
-           <a href="{% url 'store' %}"> <h5 class="card-title">Productos</h5></a>
-          <div>
+            <a href="{% url 'store' %}"> <h5 class="btn btn-primary">Productos</h5></a>
+           <div>
           </div>
-      
-
+          
           <form action="{% url 'search' %}" class="search" method='GET'>
             <div class="input-group w-100">
                 <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
