@@ -441,6 +441,9 @@ def panel_pedidos_list(request,status=None):
         cantidad_entregado = Order.objects.filter(status='Entregado',fecha__range=[fecha_desde,fecha_hasta]).count()
         total_entregado = Order.objects.filter(status='Entregado',fecha__range=[fecha_desde,fecha_hasta]).aggregate(Sum('order_total'))
 
+        cuenta = Cuentas.objects.filter()
+
+
         amount_new=total_new["order_total__sum"]
         amount_cobrado=total_cobrado["order_total__sum"]
         amount_entregado=total_entregado["order_total__sum"]
@@ -471,7 +474,9 @@ def panel_pedidos_list(request,status=None):
             "amount_entregado":amount_entregado,
             "cantidad_entregado":cantidad_entregado,
             "fecha_desde":fecha_desde,
-            "fecha_hasta":fecha_hasta
+            "fecha_hasta":fecha_hasta,
+            "cuenta":cuenta
+             
             
 
 
@@ -487,7 +492,11 @@ def panel_pedidos_detalle(request,order_number=None):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
         ordenes = Order.objects.get(order_number=order_number)
-        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id).annotate(subtotal=
+            Round(
+                Sum('product_price')*Sum('quantity'),2
+                ))
+                
         idcuenta = ordenes.cuenta
         if idcuenta>0:
             cuenta = Cuentas.objects.get(id=idcuenta)
@@ -718,6 +727,8 @@ def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
             total = total.replace(",",".")
             subtotal = subtotal.replace(",",".")
 
+
+         
             if pedido:
                 #Actualizo el cotos del envio y la cuenta asociada para el pago
                 
@@ -739,7 +750,7 @@ def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
                     dir_cp = pedido.dir_cp,
                     dir_obs = pedido.dir_obs,
                     dir_correo= pedido.dir_correo,
-                    order_total = pedido.order_total,
+                    order_total = total,
                     envio = envio,
                     status = pedido.status,
                     is_ordered=True,
@@ -1096,7 +1107,6 @@ def panel_producto_import_del_all(request):
             return redirect('panel_catalogo') 
     else:
         return render (request,"panel/login.html")
-
 
 def panel_productos_variantes_del(request):
     
@@ -1564,7 +1574,7 @@ def panel_registrar_pago(request,order_number=None):
         if order_number:
             orden = Order.objects.get(order_number=order_number)
             cuentas = Cuentas.objects.all()
-            total = orden.order_total + orden.envio
+            total = orden.order_total - orden.envio
         context = {
             'orden':orden,
             'cuentas':cuentas,
@@ -2553,21 +2563,55 @@ def panel_categoria_del(request,id_categoria=None):
     else:
             return render (request,"panel/login.html")
 
-def panel_subcategoria_save(request,id_categoria=None):
+def panel_subcategoria_detalle(request,id_subcategoria=None):
 
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-           
+    print("Pasaron por acaaaaaaaaaaaaa")
+    if validar_permisos(request,'SUBCATEGORIA'):
+        if request.method =="GET":
+            if id_subcategoria:
+                subcategoria = SubCategory.objects.get(id=id_subcategoria)
+                categoria = Category.objects.get(id=subcategoria.category.id)
+            else:
+                subcategoria =[]
+                categoria=[]
+
+            print(categoria)
+            context = {
+                'subcategoria':subcategoria,
+                'categoria':categoria,
+                'permisousuario':permisousuario,
+                   }
+         
+            return render(request,'panel/subcategoria.html' ,context)
+
+    
+    else:
+        return render (request,"panel/login.html")
+
+def panel_subcategoria_save(request,id_categoria=None,id_subcategoria=None):
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    
+    print("panel_subcategoria_save")
+    print("categoria:",id_categoria)
+    print("subcategoria:",id_subcategoria)
+
     if validar_permisos(request,'SUBCATEGORIA'):
         if request.method =="GET":
             if id_categoria:
                 categoria = Category.objects.get(id=id_categoria)
             else:
                 categoria=[]
+                
+            if id_subcategoria:
+                subcategoria = SubCategory.objects.get(id=id_subcategoria)
+            else:
                 subcategoria =[]
 
             context = {
+                'subcategoria':subcategoria,
                 'categoria':categoria,
-               
                 'permisousuario':permisousuario,
                    }
         
@@ -2577,27 +2621,49 @@ def panel_subcategoria_save(request,id_categoria=None):
             
             nombre = request.POST['nombre']
             description = request.POST['description']
-            id_categoria = request.POST['id_categoria']
+            idsubcategoria = request.POST['id_subcategoria']
+            idcategoria = request.POST['id_categoria']
+            orden = request.POST['orden']
 
-            if id_categoria:
-                categoria = Category.objects.get(id=id_categoria)
-                if categoria:
-                    slug_categoria = categoria.category_name
-                    slug_subcategoria = slug_categoria.lower() + " " + nombre.lower()
+            if idsubcategoria:
+                subcategoria = SubCategory.objects.get(id=idsubcategoria)
+                categoria = Category.objects.get(id=subcategoria.category.id)
+                if subcategoria:
+                    slug_subcategoria = categoria.category_name
+                    slug_subcategoria = slug_subcategoria.lower() + " " + nombre.lower() #El espacio lo saca en slugify
 
                  
+
+                    subcategoria = SubCategory(
+                        id=idsubcategoria,
+                        category=categoria,
+                        subcategory_name  = nombre,
+                        sub_category_slug = slugify(slug_subcategoria),
+                        sub_category_description = description,
+                        orden=orden
+                        )
+                    subcategoria.save()
+                    messages.success(request, f'SubCategoria actualizada con exito!')
+
+                    subcategoria = SubCategory.objects.filter(category=categoria)
+            else:
+                    categoria = Category.objects.get(id=idcategoria)
+                    slug_subcategoria = categoria.category_name
+                    slug_subcategoria = slug_subcategoria.lower() + " " + nombre.lower() #El espacio lo saca en slugify
+
 
                     subcategoria = SubCategory(
                         category=categoria,
                         subcategory_name  = nombre,
                         sub_category_slug = slugify(slug_subcategoria),
-                        sub_category_description = description
+                        sub_category_description = description,
+                        orden=orden
                         )
                     subcategoria.save()
-                    #messages.success(request, f'SubCategoria creada con exito!')
+                    messages.success(request, f'SubCategoria creada con exito!')
 
                     subcategoria = SubCategory.objects.filter(category=categoria)
-
+            
             context = {
                 'categoria':categoria,
                 'subcategoria':subcategoria,
@@ -2640,6 +2706,9 @@ def panel_subcategoria_del(request,id_subcategoria=None):
 def panel_categoria_detalle(request,categoria_id=None):
     
     if validar_permisos(request,'CATEGORIA'):
+
+        print("panel_categoria_detalle")
+        print("********************************")
 
         if request.method =="GET":
 

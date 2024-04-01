@@ -3,7 +3,12 @@
 {% load static %}
 {% block page_content %}
 
-<form action="{% url 'panel_subcategoria_save' categoria.id %}" method="POST">
+
+{% if not subcategoria %}
+<form action="{% url 'panel_subcategoria_save' categoria.id 0 %}" method="POST">
+{% else %}
+<form action="{% url 'panel_subcategoria_save' categoria.id subcategoria.id %}" method="POST">
+{% endif %}
   {% csrf_token %}
   <div class="card-body login-card-body">
 
@@ -16,25 +21,31 @@
                 <!-- general form elements -->
                 <div class="card card-primary">
                   <div class="card-header">
-                    <h3 class="card-title">Categoria <b> {{ categoria }} </b></h3>
+                    <h3 class="card-title">SubCategoria <b>{{categoria.category_name }} / {{ subcategoria.subcategory_name }} </b></h3>
                   </div>
                   <!-- /.card-header -->
                   <!-- form start -->
                     <div class="form-row">
                         <div class="col form-group">
-                            <input type="text" name="id_categoria" id="id_categoria" class="form-control" value="{{ categoria.id}}" required hidden>
+                            <input type="text" name="id_subcategoria" id="id_subcategoria" class="form-control" value="{{ subcategoria.id}}" hidden>
+                            <input type="text" name="id_categoria" id="id_categoria" class="form-control" value="{{  categoria.id }}" hidden>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
                             <label for="">Nombre Sub Categoria:</label>
-                            <input type="text" name="nombre" id="nombre" class="form-control" value="" required>
-                        </div>
+                            <input type="text" name="nombre" id="nombre" class="form-control" value="{{subcategoria.subcategory_name}}" required>
+                            <label for="">Slug:</label>
+                            <input type="text" name="sub_category_slug" id="sub_category_slug" class="form-control" value="{{subcategoria.sub_category_slug}}" disabled>
+                            <label for="">Orden:</label>
+                            <input type="text" name="orden" id="orden" class="form-control" value="{{subcategoria.orden}}" required>
+                        
+                          </div>
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
                             <label for="">Descripción:</label>
-                            <textarea type="textarea" name="description" rows="8" class="form-control"></textarea>
+                            <textarea type="text" name="description" id="description" class="form-control" value="">{{ subcategoria.sub_category_description }}</textarea>
                         </div>
                     </div>
                   <!-- / .card-body -->

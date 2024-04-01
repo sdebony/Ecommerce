@@ -39,13 +39,13 @@
 			-->		{% for category in links %}
 						<li>
 						<!--	<a href="{{ category.get_url }}">{{ category.category_name }}  </a> -->
-							<a data-toggle="collapse" href="#{{ category.category_name }}"  aria-expanded="true" aria-controls="{{ category.category_name }}">
+							<a data-toggle="collapse" href="#{{ category.slug }}"  aria-expanded="true" aria-controls="{{ category.slug }}">
 								<strong>{{ category.category_name }} </strong>
 							  </a><ul>
 							  {% for subcategory in sub_links %}
 									{% if subcategory.category == category %}
-							 		<div class="collapse" id="{{ category.category_name }}">
-										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">{{subcategory.category}} - {{ subcategory.subcategory_name }}  </a></li> 
+							 		<div class="collapse" id="{{ category.slug }}">
+										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}"> {{ subcategory.subcategory_name }}  </a></li> 
 									</div>
 									{% endif %}
 							   {% endfor%}

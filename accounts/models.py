@@ -116,6 +116,7 @@ class AccountDirecciones(models.Model):
      dir_nro = models.CharField(max_length=25)
      dir_localidad = models.CharField(max_length=50)
      dir_provincia = models.CharField(max_length=50)
+     dir_area_tel = models.CharField(max_length=5)
      dir_telefono = models.CharField(max_length=25)
      dir_obs    = models.CharField(max_length=250)
      dir_correo = models.BooleanField(default=False) #Es correo Argentino

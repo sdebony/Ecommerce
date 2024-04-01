@@ -34,7 +34,8 @@ urlpatterns = [
     path('categoria/new', views.panel_categoria_detalle, name='panel_categoria_new'),
     path('categoria/del/<int:id_categoria>', views.panel_categoria_del, name='panel_categoria_del'),
     path('categoria/save/', views.panel_categoria_detalle, name='panel_categoria_save'),
-    path('categoria/sub/<int:id_categoria>', views.panel_subcategoria_save, name='panel_subcategoria_save'),
+    path('categoria/sub/<int:id_categoria>/<int:id_subcategoria>', views.panel_subcategoria_save, name='panel_subcategoria_save'),
+    path('categoria/sub/det/<int:id_subcategoria>', views.panel_subcategoria_detalle, name='panel_subcategoria_detalle'),
     path('categoria/sub/del/<int:id_subcategoria>', views.panel_subcategoria_del, name='panel_subcategoria_del'),
 
     #PEDIDOS

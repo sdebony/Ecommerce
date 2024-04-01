@@ -79,9 +79,9 @@
                 <div class="card card-primary"><b>Sub Categorias: </b>
                     <div class="dropdown no-arrow">
                         {% if categoria %}
-                        <a href="{% url 'panel_subcategoria_save' categoria.id  %}" class="href btn btn-success"> Agregar </a>
+                        <a href="{% url 'panel_subcategoria_save' categoria.id 0  %}" class="href btn btn-success"> Agregar </a>
                         {% else%}
-                        <a href="{% url 'panel_subcategoria_save' 0  %}" class="href btn btn-success"> Agregar </a>
+                        <a href="{% url 'panel_subcategoria_save' 0 0 %}" class="href btn btn-success"> Agregar </a>
                         {% endif %}
                         
                     </div>
@@ -104,25 +104,24 @@
                                     <th data-sortable="true" data-field="subcategory_name">Sub Categoría</th>
                                     <th data-sortable="true" data-field="sub_category_slug">Slug</th>   
                                     <th data-sortable="true" data-field="sub_category_description">Descripcion</th>
-                                    
+                                    <th data-sortable="true" data-field="orden">Orden</th>
                                     <th class="all">Acciones</th>  
                                 </thead>
                                 <tbody>
-                                    {% for item in subcategoria %}
-                                    <tr>
-                                    <td>{{ item.id }}</td>
-                                    <td>{{ item.subcategory_name }}</td>
-                                    <td>{{ item.sub_category_slug }}</td> 
-                                    <td>{{ item.sub_category_description }}</td>
-                                    
-                                  
-                                    <td >         
-                                       <a href="{% url 'panel_subcategoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
-                                    </div>
-                                    
-                                    </td>
-                                    </tr>
-                                    {% endfor %}
+                                    {% if subcategoria %}
+                                        {% for item in subcategoria %}
+                                        <tr>
+                                        <td>{{ item.id }}</td>
+                                        <td><b><a href="{% url 'panel_subcategoria_detalle' item.id %}">{{ item.subcategory_name }}</a></b></td> 
+                                        <td>{{ item.sub_category_slug }}</td>
+                                        <td>{{ item.sub_category_description }}</td> 
+                                        <td>{{ item.orden }}</td>
+                                        <td >         
+                                        <a href="{% url 'panel_subcategoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                                        </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
                                 </tbody>
 
                             </table>

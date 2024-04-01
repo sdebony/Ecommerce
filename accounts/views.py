@@ -414,6 +414,7 @@ def edit_dir_entrega(request,dir_id=None):
         dir_provincia= request.POST["dir_provincia"]
         dir_telefono= request.POST["dir_telefono"]
         dir_obs= request.POST["dir_obs"]
+        dir_area_tel= request.POST["dir_area_tel"]
         dir_correo= request.POST["dir_correo"]
 
         
@@ -427,6 +428,7 @@ def edit_dir_entrega(request,dir_id=None):
                     dir_nro=dir_nro,
                     dir_localidad=dir_localidad,
                     dir_provincia=dir_provincia,
+                    dir_area_tel=dir_area_tel,
                     dir_telefono=dir_telefono,
                     dir_obs=dir_obs,
                     dir_correo=dir_correo,
@@ -449,6 +451,7 @@ def edit_dir_entrega(request,dir_id=None):
                         dir_nro=dir_nro,
                         dir_localidad=dir_localidad,
                         dir_provincia=dir_provincia,
+                        dir_area_tel=dir_area_tel,
                         dir_telefono=dir_telefono,
                         dir_obs=dir_obs,
                         dir_correo=dir_correo,
