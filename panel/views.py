@@ -2120,20 +2120,40 @@ def import_productos_xls(request):
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
                             if not tmp_producto:
                                 #Valido que exista la categoria
-                                cat_name = sheet1.cell_value(rowNumber, 6).lower()
-                                sub_cat_name = sheet1.cell_value(rowNumber, 7).lower()
+                                cat_name = sheet1.cell_value(rowNumber, 6)
+                                sub_cat_name = sheet1.cell_value(rowNumber, 7)
                                 img_name = sheet1.cell_value(rowNumber, 3)
                                 if not img_name:
                                     img_name = 'none.jpg'
-                                cat = Category.objects.get(category_name__icontains=cat_name)
+
+                                print("Articulo:",product_name,"| categoria:",cat_name,"| subCategoria",sub_cat_name)
+                                slug_cat = slugify(cat_name).lower()
+                                print("slug_cat",slug_cat)
+                                cat = Category.objects.filter(slug=slug_cat)
+                                if not cat:
+                                    print("Crear Categoria:",cat_name)
+                                    category = Category(
+                                        category_name=cat_name ,
+                                        slug = slugify(cat_name.lower()),
+                                        description = cat_name,
+                                        cat_image = 'none.jpg',
+                                        orden = 99
+                                    )
+                                    category.save()
+                                    print("Categoria Save")
                                 
+                                #SI NO EXISTEN LA CATEGORIA Y LA SUB CATEGORIA LAS CREO ANTES.
+                                #AHORA BUSCO LAS CATEGORIAS Y LAS ASOCIO AL PRODUCTO
+                                cat = Category.objects.get(slug=slug_cat)
+
                                 slug_subcat = cat.slug +'-'+ sub_cat_name
                                 slug_subcat = slugify(slug_subcat).lower()
-                                sub_cat = SubCategory.objects.filter(category=cat,subcategory_name=sub_cat_name).first()
-                                print("Articulo:",product_name,":",cat_name,":",sub_cat_name)
-                                
+
+                                sub_cat = SubCategory.objects.filter(category=cat,sub_category_slug=slug_subcat).first()
                                 if cat:
+                                    print("Tengo cat",cat.id)
                                     if not sub_cat:
+                                        print("No teng subcat",slug_cat)
                                        
                                         sub_cat = SubCategory(
                                             category=cat,
@@ -2142,10 +2162,10 @@ def import_productos_xls(request):
                                             sub_category_description=""
                                             )
                                         sub_cat.save()
-                                        print("sub Categoria .Save")
+                                        print("sub Categoria .Save:",slug_subcat)
                                         sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
                                     if sub_cat:
-                                        print("Pes:",sheet1.cell_value(rowNumber, 8))
+                                        print("Peso:",sheet1.cell_value(rowNumber, 8))
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(product_name).lower(),
@@ -2161,7 +2181,7 @@ def import_productos_xls(request):
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
-                                            peso = int(sheet1.cell_value(rowNumber, 8)),
+                                            peso = int(sheet1.cell_value(rowNumber, 8))
                                             #is_popular = False,
                                                 )
                                         tmp_producto.save()
