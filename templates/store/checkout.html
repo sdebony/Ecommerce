@@ -66,7 +66,7 @@
       <div class="form-row">
         <div class="col form-group">
           <label for="">Calle</label>
-          <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="" required>
+          <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="">
         </div>
         <div class="col form-group">
           <label for="">Nro</label>
@@ -76,7 +76,7 @@
       <div class="form-row">
         <div class="col form-group">
           <label for="">Localidad</label>
-          <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="" required>
+          <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="">
         </div>
         <div class="col form-group">
           <label for="">Provincia</label>
@@ -185,6 +185,9 @@
             type:"GET",
             url: path,
             success: function(r){
+                document.getElementById('dir_calle').readOnly = true;
+                document.getElementById('dir_nro').readOnly = true;
+                document.getElementById('dir_localidad').readOnly = true;
                 $("#dir_calle").val(r.dir_calle);
                 $("#dir_nro").val(r.dir_nro);
                 $("#dir_cp").val(r.dir_cp);
@@ -198,8 +201,16 @@
                 }
                 if (r.dir_correo==true){
                   document.getElementById("img_correo").src="{% static 'img/check.jpg' %}";
+                  document.getElementById('dir_calle').readOnly = true;
+                  document.getElementById('dir_nro').readOnly = true;
+                  document.getElementById('dir_localidad').readOnly = true;
                   $("#dir_correo").val("1");
-                }
+                  $("#dir_calle").val("Sucursal Correo Argentino");
+                  $("#dir_nro").val("0");
+                  $("#dir_cp").val("1000");
+                  $("#dir_localidad").val("Localidad");
+                  
+                } 
                 
             },
         });
