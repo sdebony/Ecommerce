@@ -123,14 +123,16 @@ def validar_permisos(request,codigo=None):
 
 def panel_home(request):
 
+    
     if validar_permisos(request,'PANEL'):
         
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
+        
         context = {
             'permisousuario':permisousuario
             }
         print("Acceso Panel")
+
         return render (request,"panel/base.html",context)
     else:
         return render (request,"panel/login.html")
@@ -346,6 +348,30 @@ def panel_product_list_category(request):
             'cantidad':cantidad,
             'categoria':categoria,
           
+        }
+       
+        return render(request,'panel/lista_productos.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
+def panel_reporte_articulos(request):
+    
+   
+    if validar_permisos(request,'REPORTES'):
+       
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        categorias = Category.objects.all()
+        subcategoria = []
+       
+
+        catalogo = Product.objects.filter().all().order_by('product_name')
+        cantidad = catalogo.count()
+        context = {
+            'catalogo':catalogo,
+            'categorias':categorias,
+            'subcategoria':subcategoria,
+            'permisousuario':permisousuario,
+            'cantidad':cantidad
         }
        
         return render(request,'panel/lista_productos.html',context) 
@@ -1153,7 +1179,7 @@ def panel_product_crud(request):
             
             
             
-            product_id = request.POST.get("product_id")
+            access_token = request.POST.get("access_token")
             product_name = request.POST.get("product_name")
             description = request.POST.get("description")
             habilitado = request.POST.getlist("is_available[]")
@@ -1793,7 +1819,7 @@ def panel_cierre_registrar(request):
             cuenta = 1
 
        
-        meses = ['Enero','Febrero','Marzo','April','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+        meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
         anios = [yr-1, yr,yr+1]
       
         print(yr, fecha_desde,fecha_hasta)
@@ -4048,6 +4074,20 @@ def panel_pedidos_obtener_linea(request,item=None):
             'entregado':entregado        
              }
         return render(request,'panel/pedido_detalle_edit.html',context) 
+            
+    else:
+            return render (request,"panel/login.html")
+
+def panel_reporte_articulos(request):
+
+    if validar_permisos(request,'REPORTE ARTICULOS'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        context = {
+            'permisousuario':permisousuario
+             }
+        return render(request,'panel/reporte_articulos.html',context) 
             
     else:
             return render (request,"panel/login.html")

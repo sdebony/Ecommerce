@@ -44,6 +44,8 @@ urlpatterns = [
     path('api/', include(('api.urls', 'api'), namespace='api')),
     #CONTABILIDAD - REGISTRACION DE MOVIMIENTOS CONTABLES
     path('cont/', include('contabilidad.urls')),
+    #MELI
+    path('meli/', include('meli.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

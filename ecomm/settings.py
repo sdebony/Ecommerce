@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'orders',
     'api',
     'panel',
+    'meli',
     'contabilidad',
     'admin_honeypot',
     'rest_framework',
@@ -202,3 +203,8 @@ DEF_CATEGORY='esferas'  #Eesferas (Slug)
 DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
+
+#MELI
+CLIENTE_ID="5374552499309003"
+REDIRECT_URI="https://lifche.qualities.com.ar/panel/"
+CLIENT_SECRET="1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"

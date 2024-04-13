@@ -252,7 +252,63 @@
       </li>
     <!-- FIN MENU MOVIMIENTOS-->
 
-    <!-- FIN MENU MOVIMIENTOS-->
+     <!--  INICIO REPORTES-->
+     <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReportes" aria-expanded="true" aria-controls="collapseReportes">
+        <i class="fas fa-folder-open"></i>
+        <span>Reportes</span>
+      </a>
+      <div id="collapseReportes" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+
+          <h6 class="collapse-header">ARTICULOS</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'REPORTE ARTICULOS' %}
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos' %}">Reporte Articulos</a>
+              {% endif%}
+            {% endif %}
+          {% endfor %}
+
+          <h6 class="collapse-header">OTROS</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'REPORTES' %}
+                <a class="collapse-item" href="{% url 'panel_usuarios' %}">Otros Reporte</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </li>
+    <!--   FIN REPORTES -->
+
+      <!--  INICIO FIN MERCADO LIBRE-->
+      <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseML" aria-expanded="true" aria-controls="collapseML">
+          <i class="fas fa-cogs"></i>
+          <span>Mercado Libre</span>
+        </a>
+        <div id="collapseML" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+  
+           
+  
+            <h6 class="collapse-header">Mercado Libre</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'CONFIG ML' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_productos_vendor_detail' %}">Productos Vendedor</a>
+                {% endif%}
+              {% endif %}
+            {% endfor %}
+  
+  
+          </div>
+        </div>
+      </li>
+      <!--   FIN MERCADO LIBRE -->
+
 
     <!--  INICIO CONFIGURACION-->
     <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
@@ -272,6 +328,7 @@
             {% endif %}
           {% endfor %}
 
+      
           <h6 class="collapse-header">Usuarios</h6>
           {% for items in permisousuario %}
             {% if items.modo_ver %}
@@ -390,6 +447,7 @@
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
               <h1 class="h3 mb-0 text-gray-800">Bienvenido: <b> {{ user.full_name }}</b> </h1>
+            
           </div>
   
           <!-- Content Row -->
@@ -415,7 +473,7 @@
 
 
    
-      </div>
+    </div>
       <!-- /.container-fluid -->
         <!-- End Page Content  -->
 
@@ -565,6 +623,7 @@ $(function () {
   });
 
 </script>
+
 {% endblock %}
   </body>
 

@@ -87,6 +87,10 @@ urlpatterns = [
     path('mov/registros/<int:idmov>',views.registrar_movimiento, name="mov_registros"),
     path('mov/mov/del/<int:idmov>', views.panel_movimiento_eliminar, name='panel_movimiento_eliminar'),
     path('mov/cierre/calcular', views.panel_cierre_registrar, name='panel_cierre_registrar'),
+
+    #REPORTES
+    path('reportes/articulo', views.panel_reporte_articulos, name='panel_reporte_articulos'),
+
     
     
 

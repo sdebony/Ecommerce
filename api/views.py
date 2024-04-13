@@ -135,6 +135,5 @@ class SubcategoryApi(APIView):
         data = SubcategorySerializer(subcategory,many=True).data
         return Response(data)
 
-
      
      
