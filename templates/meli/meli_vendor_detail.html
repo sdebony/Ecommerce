@@ -10,16 +10,18 @@
 
         <!-- Page Heading -->
         <h1 class="h3 mb-6 text-gray-800">Productos del Vendedor </h1>
-        <p><a href="{% url 'meli_get_first_token' %}" class="btn btn-primary " role="button" style="float: right;"><i class="fa fa-plus"></i>&nbsp;Conectar ML</a></p>
+             
+        
         <form action="{% url 'meli_productos_vendor_detail' %}" enctype="multipart/form-data" name="token" id="token" method="POST">
             {% csrf_token %}
             <div class="col form-group">
                 <label for="">Nick Name:</label>
-                <input type="text" name="nick_name" id="nick_name" class="form-control" value="" >
+                <input type="text" name="nick_name" id="nick_name" class="form-control" value="LIFCHE%20ARGENTINA" >
             </div>
            
             <button type="submit" class="btn btn-warning"><span class=""></span> Buscar </button>
-            
+            <a href="{% url 'meli_get_first_token' %}" class="btn btn-primary " role="button" style="float: right;">
+                &nbsp;Conectar ML</a>
         </form>
     </div>
     
@@ -28,25 +30,45 @@
 
        
         
+        
         <table class="table table-striped table-bordered " id="dataTable">  
             <thead class="bg-primary text-white">
                 <tr>
+                    <th scope="col">Código</th>
                     <th scope="col">Articulo</th>
-                    <th scope="col">Precio</th>
-                    <th scope="col">Link</th>
+                    <th scope="col">Precio Original</th>
+                    <th scope="col">Precio Actual</th>
+                    <th scope="col">category_id</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Cuotas</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">%</th>
                 </tr>
             </thead>
             <tbody>
-                    
+                        
                         {% for arts in articulos.results %}
                         <tr>
+                            <th><a href={{arts.permalink}} target="_blank">{{ arts.id }}</a> </th>
                             <th>{{arts.title}} </th>
+                            <th>{{arts.original_price}}</th>    
                             <th>{{arts.price}}</th>
-                            <th>{{arts.permalink}}</th>
+                            <th>{{arts.category_id}}</th>
+                            {% for attr in arts.attributes %}
+                                {% if attr.id == 'BRAND'%}
+                                <th>{{attr.value_name }} </th>
+                                {% endif %}    
+                            {% endfor %}    
+                                <th>1{{arts.installments.quantity }} </th>
+                                <th>2{{arts.installments.amount }} </th>
+                                <th>3{{arts.installments.rate }} </th>
+                                
+                            
+                            
                         </tr>
-
                         {% endfor %}
                 
+                        
             </thead>
         </table>
         {% endif %}
