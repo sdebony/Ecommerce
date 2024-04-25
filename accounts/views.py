@@ -154,6 +154,7 @@ def activate(request, uidb64, token):
 @login_required(login_url = 'login')
 def dashboard(request):
 
+        print("Dashboard Account Inicial")
         if request.user.is_authenticated and request.user.is_staff:
             id_permiso = Permition.objects.get(codigo='PANEL')
             if id_permiso:

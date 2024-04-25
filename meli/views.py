@@ -62,17 +62,21 @@ def meli_list(request):
 
 def meli_get_first_token(request):
 
+    print("meli_get_first_token")
+
     try:
         if request.user.is_authenticated:
+            print("Usuario Autenticado")
             #accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
             accesousuario =  AccountPermition.objects.get(user=request.user,codigo__codigo ='CONFIG ML')
 
             if accesousuario:
-                if accesousuario.modo_ver==False:
-                   print("Sin acceso a Mercado Libre")
-                   return redirect('panel') 
+                if accesousuario.modo_ver==True:
+                   print("Con Acceso a ML ")
+                   return redirect('panel')
+                      
             else:
-                print("Sin Acceso Panel")
+                print("Sin Acceso ML")
                 orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
                 orders_count = orders.count()
 
@@ -84,9 +88,21 @@ def meli_get_first_token(request):
                 }
                 return redirect("dashboard")     
         else:
+            print("Usuario No Autenticado")
             return render(request,'panel/login.html',)  
     except ObjectDoesNotExist:
-            return render(request,'panel/login.html',)
+        
+        print("Sin Acceso ML")
+        orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+        orders_count = orders.count()
+
+        userprofile = UserProfile.objects.get(user_id=request.user.id)
+
+        context = {
+            'orders_count': orders_count,
+            'userprofile': userprofile,
+        }
+        return redirect("dashboard")  
 
     
     if accesousuario.codigo.codigo =='CONFIG ML':
