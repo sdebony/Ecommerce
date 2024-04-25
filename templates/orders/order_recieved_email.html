@@ -1,5 +1,8 @@
 {% autoescape off %}
 {% load static %}
+
+{% block content %}
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -11,6 +14,153 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
+<style>
+
+    
+table {
+  border-collapse: collapse;
+}
+
+    
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #dee2e6;
+}
+.table-bordered thead th,
+.table-bordered thead td {
+  border-bottom-width: 2px;
+}
+
+.table-borderless th,
+.table-borderless td,
+.table-borderless thead th,
+.table-borderless tbody + tbody {
+  border: 0;
+}
+
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+    tr:nth-child(even) {
+  background-color: #D6EEEE;
+    }
+
+.table-shopping-cart tr td:first-child {
+    width: 250px;
+  }
+  .table-shopping-cart .itemside .info {
+    padding: 0;
+  }
+  .table-shopping-cart .itemside .aside {
+    display: none;
+  }
+  
+  
+.card-header {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0;
+  background-color: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.card-header:first-child {
+  border-radius: calc(0.37rem - 1px) calc(0.37rem - 1px) 0 0;
+}
+.card-header + .list-group .list-group-item:first-child {
+  border-top: 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.37rem;
+}
+.card > hr {
+  margin-right: 0;
+  margin-left: 0;
+}
+.card > .list-group:first-child .list-group-item:first-child {
+  border-top-left-radius: 0.37rem;
+  border-top-right-radius: 0.37rem;
+}
+.card > .list-group:last-child .list-group-item:last-child {
+  border-bottom-right-radius: 0.37rem;
+  border-bottom-left-radius: 0.37rem;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+.list-unstyled {
+  padding-left: 0;
+  list-style: none;
+}
+.text-muted {
+  color: #969696 !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+.col-xl,
+.col-xl-auto, .col-xl-12, .col-xl-11, .col-xl-10, .col-xl-9, .col-xl-8, .col-xl-7, .col-xl-6, .col-xl-5, .col-xl-4, .col-xl-3, .col-xl-2, .col-xl-1, .col-lg,
+.col-lg-auto, .col-lg-12, .col-lg-11, .col-lg-10, .col-lg-9, .col-lg-8, .col-lg-7, .col-lg-6, .col-lg-5, .col-lg-4, .col-lg-3, .col-lg-2, .col-lg-1, .col-md,
+.col-md-auto, .col-md-12, .col-md-11, .col-md-10, .col-md-9, .col-md-8, .col-md-7, .col-md-6, .col-md-5, .col-md-4, .col-md-3, .col-md-2, .col-md-1, .col-sm,
+.col-sm-auto, .col-sm-12, .col-sm-11, .col-sm-10, .col-sm-9, .col-sm-8, .col-sm-7, .col-sm-6, .col-sm-5, .col-sm-4, .col-sm-3, .col-sm-2, .col-sm-1, .col,
+.col-auto, .col-12, .col-11, .col-10, .col-9, .col-8, .col-7, .col-6, .col-5, .col-4, .col-3, .col-2, .col-1 {
+  position: relative;
+  width: 100%;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.col {
+  flex-basis: 0;
+  flex-grow: 1;
+  max-width: 100%;
+}
+
+.col-auto {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -10px;
+  margin-left: -10px;
+}
+
+
+
+    </style>
+
   <title>Lifche</title>
 </head>
 
@@ -18,25 +168,25 @@
 Hola {{user.first_name}},
 
 
-<div class="container" style="margin: 0 auto;width: 90%;padding: 90px;background: #f1f1f1;margin-top: 50px;margin-bottom: 50px;">
-    <div class="row invoice row-printable">
+<div class="container" ><!-- style="margin: 0 auto;width: 99%;padding: 99px;background: #f1f1f1;margin-top: 5px;margin-bottom: 5px;"> -->
+    <div class="row">
         <div class="col-md-12">
             <!-- col-lg-12 start here -->
-            <div class="panel panel-default plain" id="dash_0">
+            <div class="card">
                 <!-- Start .panel -->
-                <div class="panel-body p30">
+                <div class="card-body">
                     <div class="row">
                         <!-- Start .row -->
-                        <div class="col-lg-6">
+                        <div class="col-lg-3">
                             <!-- col-lg-6 start here -->
-                            <div class="invoice-logo"><img src="logo.png" alt="Lifche" style="max-height: 40px;"></div>
+                            <div class="invoice-logo"><img src="logo.png" alt="Invoice logo" style="max-height: 40px;"></div>
                         </div>
                         <!-- col-lg-6 end here -->
                         <div class="col-lg-6">
                             <!-- col-lg-6 start here -->
                             <div class="invoice-from">
                                 <ul class="list-unstyled text-right">
-                                    <li><strong>Cliente:</strong></li>
+                                    <li><strong>Comprador</strong></li>
                                     <li>{{order.full_name}}</li>
                                     <li>{{order.full_address}}</li>
                                     <li>{{order.dir_localidad}}, {{order.dir_provincia}}</li>
@@ -52,21 +202,23 @@ Hola {{user.first_name}},
                                     <ul class="list-unstyled mb0">
                                         <li><strong>Pedido</strong> #{{order_number}}</li>
                                         <li><strong>Transaction ID</strong> {{transID}}</li>
-                                        <li><strong>Fecha:</strong> {{order.created_at}}</li>
+                                        <li><strong>Fecha Pedido:</strong> {{order.created_at}}</li>
                                         <li><strong>Status:</strong> {{payment.status}}</li>
                                     </ul>
                                 </div>
                             </div>
 
-                            <div class="invoice-items">
-                                <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
-                                    <table class="table table-bordered">
-                                    
-                                        <thead>
-                                            <tr>
-                                                <th class="per70 text-center">Producto</th>
-                                                <th class="per5 text-center">Cantidad</th>
-                                                <th class="per25 text-center">Total</th>
+
+                            <div class="card">
+                                <h5 class="card-header">Productos</h5>
+                                <div class="card-body">
+                                    <table class="table-shopping-cart">
+                                        <thead class="text-muted">
+                                            <tr class="small text-uppercase">
+                                                <th scope="col">Producto</th>
+                                                <th scope="col" width="120">Cantidad</th>
+                                                <th scope="col" width="120">Precio</th>
+            
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -93,7 +245,7 @@ Hola {{user.first_name}},
                                             </tr>
                                             <tr>
                                                 <th colspan="2" class="text-right">Envio:</th>
-                                                <th class="text-center">${{order.envio}} </th>
+                                                <th class="text-center">A coordinar </th>
                                             </tr>
 
                                             <tr>
@@ -104,8 +256,12 @@ Hola {{user.first_name}},
                                     </table>
                                 </div>
                             </div>
+
+
+
                             <div class="invoice-footer mt25">
                                 <p class="text-center">Gracias por comprar con nosotros!</p>
+                              
                             </div>
                         </div>
                         <!-- col-lg-12 end here -->
@@ -121,5 +277,7 @@ Hola {{user.first_name}},
 
 </body>
 
+{% endblock %}
 
 {% endautoescape %}
+

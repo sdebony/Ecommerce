@@ -1,0 +1,91 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 align="center">Compras</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="{% url 'panel_pedidos' 'New' %}">Volver</a></li>
+              <li class="breadcrumb-item active">Compra # 123456     
+                </li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+        <!-- Main content -->
+            <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
+            {% csrf_token %}
+            <!-- info row -->
+                <div class="col-sm-12 invoice-col">
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Proveedor:</label>
+                            <div class="input-group-append">
+                                <input type="text" name="proveedor" id="proveedor" class="form-control" value="Proveedor" required>
+                                <button class="btn btn-primary" type="button" hx-target="#dialog" onclick="return abrir_modal2('{% url 'search_lookup' keyword=' ' order_number=' ' %}')">
+                                    <i class="fa fa-search"></i></button>
+                               
+                            </div>
+                        </div>
+                        <div class="col form-group">
+                            <label>Comprador:</label>
+                            <input type="text" name="comprador" id="comprador" class="form-control" value="{{ user }}" required disabled>
+                        </div>
+                    </div>
+                </div>
+            </form> 
+ 
+        </div>
+    </section>
+    <!-- /.content -->
+  </div>
+
+  
+{% endblock %}
+
+
+{% block control_modal%}
+
+<script>
+
+  function abrir_modal2(url)
+  {
+   
+    var keyword=$('#producto').val();
+    console.log(keyword)
+    if (keyword=="")
+    {
+      keyword="all"
+    }
+   
+    url = '/compras/search/' + encodeURIComponent(keyword) 
+  
+    console.log(url)
+   
+    $("#popup").load(url, function(){
+      $(this).modal({
+        backdrop:'static',
+        keyboard: false
+      })
+      $(this).modal('show');
+    });
+    return false;
+  }
+
+  
+</script>
+
+{% endblock%}
+

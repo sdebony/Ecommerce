@@ -265,7 +265,7 @@
           {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'REPORTE ARTICULOS' %}
-                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos' %}">Reporte Articulos</a>
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos_list' %}">Reporte Articulos</a>
               {% endif%}
             {% endif %}
           {% endfor %}
@@ -282,6 +282,33 @@
       </div>
     </li>
     <!--   FIN REPORTES -->
+    <!--  INICIO COMPRAS-->
+      <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCompras" aria-expanded="true" aria-controls="collapseCompras">
+          <i class="fas fa-cogs"></i>
+          <span>Compras</span>
+        </a>
+        <div id="collapseCompras" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+  
+           
+  
+            <h6 class="collapse-header">Compras</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'COMPRAS' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'compras' %}">Compras</a>
+                {% endif%}
+              
+              {% endif %}
+            {% endfor %}
+  
+  
+          </div>
+        </div>
+      </li>
+      <!--   FIN COMPRAS -->
+
 
       <!--  INICIO FIN MERCADO LIBRE-->
       <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
@@ -299,6 +326,9 @@
               {% if items.modo_ver %}
                 {% if items.codigo.codigo == 'CONFIG ML' %}
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_productos_vendor_detail' %}">Productos Vendedor</a>
+                {% endif%}
+                {% if items.codigo.codigo == 'CONFIG ML' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_search' %}">Buscar Productos</a>
                 {% endif%}
               {% endif %}
             {% endfor %}

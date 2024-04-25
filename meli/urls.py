@@ -8,6 +8,8 @@ urlpatterns = [
   path('', views.meli_save_token, name='meli_save_token'),  # Redireciona para salvar o token obtido na url de autenticação do ML  localhost:8000/meli 
   path('config/get_token/', views.meli_get_first_token, name='meli_get_first_token'),
   path('meli/vendor/', views.meli_productos_vendor_detail, name='meli_productos_vendor_detail'),
+  path('search/', views.meli_search, name='meli_search'),
+  path('search/categoria/<str:categoria_id>', views.meli_search_categoria, name='meli_search_categoria'),
 
   
   

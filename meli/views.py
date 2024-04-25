@@ -1,9 +1,11 @@
-from django.shortcuts import render
+
 from django.shortcuts import render, get_object_or_404,redirect
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import AccountPermition
 from meli.models import meli_params
 from django.contrib import messages
+from orders.models import Order
+from accounts.models import UserProfile
 
 from datetime import datetime
 
@@ -62,11 +64,25 @@ def meli_get_first_token(request):
 
     try:
         if request.user.is_authenticated:
-            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            #accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            accesousuario =  AccountPermition.objects.get(user=request.user,codigo__codigo ='CONFIG ML')
+
             if accesousuario:
                 if accesousuario.modo_ver==False:
                    print("Sin acceso a Mercado Libre")
                    return redirect('panel') 
+            else:
+                print("Sin Acceso Panel")
+                orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+                orders_count = orders.count()
+
+                userprofile = UserProfile.objects.get(user_id=request.user.id)
+        
+                context = {
+                    'orders_count': orders_count,
+                    'userprofile': userprofile,
+                }
+                return redirect("dashboard")     
         else:
             return render(request,'panel/login.html',)  
     except ObjectDoesNotExist:
@@ -74,13 +90,10 @@ def meli_get_first_token(request):
 
     
     if accesousuario.codigo.codigo =='CONFIG ML':
-
-        print("meli_get_first_token")
-        url = "https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=" + settings.CLIENTE_ID  +  "&redirect_uri=" + settings.REDIRECT_URI  
-        print("URL:",url)
-        return redirect(url)
-
+       url = "https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=" + settings.CLIENTE_ID  +  "&redirect_uri=" + settings.REDIRECT_URI  
+       return redirect(url)
     else:
+     
         return redirect('panel')
        
 def meli_save_token(request):
@@ -254,6 +267,8 @@ def meli_productos_vendor_detail(request):
             else:
                 url = "https://api.mercadolibre.com/sites/MLA/search?nickname=" + str(nick_name)
 
+
+
             access_token = meli_get_authorization_code(settings.CLIENTE_ID)
             payload = {}
             headers = {
@@ -265,24 +280,6 @@ def meli_productos_vendor_detail(request):
 
                 response_json = json.loads(response.text) #Diccionario
                 
-                #for articulos in response_json['results']:
-                #    print(articulos['id'])
-                #    print(articulos['title'])
-                #    print(articulos['permalink'])
-                #    print(articulos['condition'])
-                #    print(articulos['catalog_product_id'])
-                #    print(articulos['category_id'])
-                #    print(articulos['price'])
-                #    print(articulos['original_price'])
-                #    for atributos in articulos['attributes']:
-                #        print(atributos['name'])
-                #        print(atributos['value_name'])
-                #        
-                #    print('Cuotas',articulos['installments']['quantity'])
-                #    print('Precio',articulos['installments']['amount'])
-                #    print('Interes',articulos['installments']['rate'])
-                #    print('Moneda',articulos['installments']['currency_id'])
-
                 articulos = response_json
             else:
                 messages.error(request,"Error de conexion  en Mercado Libre.")
@@ -297,3 +294,119 @@ def meli_productos_vendor_detail(request):
         return render(request,'meli/meli_vendor_detail.html',context) 
 
     return render(request,'panel/login.html',)
+
+def meli_search_categoria(request, categoria_id):
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        arts_category = []
+        print("--> categoria:",categoria_id)
+      
+        if request.method =="POST":
+            str_search = request.POST.get("str_search")
+            str_search = str_search.replace(" ","%20")
+            url = "https://api.mercadolibre.com/sites/MLA/search?q=" + str(str_search) + "&category=" + str(categoria_id)
+        else:
+            url = "https://api.mercadolibre.com/categories/" + str(categoria_id) 
+        
+
+        print("url:", url)
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        payload = {}
+        headers = {
+            'Authorization': access_token #'APP_USR-5374552499309003-040715-531af5500eba214cfed3597ccc74e677-4388206'
+        }
+        
+        response = requests.request("GET", url, headers=headers, data=payload)
+        if response.status_code==200 : 
+
+            response_json = json.loads(response.text) #Diccionario
+            
+            arts_category = response_json
+
+           
+        else:
+            messages.error(request,"Error de conexion  en Mercado Libre.")
+            print("ERROR DE CONEXION")
+
+        
+        context = {
+            'permisousuario':permisousuario,
+            'arts_category':arts_category,
+        }
+
+        return render(request,'meli/meli_search_category.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def meli_search(request):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        articulos = []
+        str_search=""
+        if request.method =="POST":
+            str_search = request.POST.get("str_search")
+            str_search = str_search.replace(" ","%20")
+
+            url = "https://api.mercadolibre.com/sites/MLA/search?q=" + str(str_search)
+           
+            #offset=0
+            #params = {"q": str_search, "offset": offset}
+            access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+            payload = {}
+            headers = {
+                'Authorization': access_token #'APP_USR-5374552499309003-040715-531af5500eba214cfed3597ccc74e677-4388206'
+            }
+            #response = requests.request("GET", url, headers=headers, params=params)
+            response = requests.request("GET", url, headers=headers, data=payload)
+            if response.status_code==200 : 
+
+                response_json = json.loads(response.text) #Diccionario
+                
+                articulos = response_json
+                #print("***********************")
+                #print(articulos)
+                #print("**********************")
+            else:
+                messages.error(request,"Error de conexion  en Mercado Libre.")
+                print("ERROR DE CONEXION")
+
+        
+        context = {
+            'permisousuario':permisousuario,
+            'articulos':articulos,
+            'str_search':str_search
+        }
+
+        return render(request,'meli/meli_search.html',context) 
+
+    return render(request,'panel/login.html',)
+

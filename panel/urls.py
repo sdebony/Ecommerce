@@ -16,12 +16,10 @@ urlpatterns = [
     path('producto/variant/', views.panel_productos_variantes, name='panel_producto_variante'),
     path('producto/variant_del/', views.panel_productos_variantes_del, name='panel_producto_variante_del'),
     path('producto/del/<int:product_id>', views.panel_productos_del, name='panel_productos_del'),
-
     path('producto/import/stock/', views.import_stock, name='panel_import_stock'), 
     path('producto/import/precios/', views.import_precios, name='panel_import_precios'), 
     path('producto/import/productos/', views.import_productos_xls, name='panel_producto_import'),
     path('producto/import/delproductos/', views.panel_producto_import_del_all, name='panel_producto_import_del_all'),
-     
     path('producto/import/', views.panel_importar_productos, name='panel_importar_productos'),
     path('producto/save/', views.guardar_tmp_productos, name='panel_guardar_tmp_productos'),
     path('producto/habilitar/<int:product_id>/<int:estado>', views.panel_producto_habilitar, name='panel_producto_habilitar'),
@@ -89,7 +87,7 @@ urlpatterns = [
     path('mov/cierre/calcular', views.panel_cierre_registrar, name='panel_cierre_registrar'),
 
     #REPORTES
-    path('reportes/articulo', views.panel_reporte_articulos, name='panel_reporte_articulos'),
+    path('reportes/articulo', views.panel_reporte_articulos_list, name='panel_reporte_articulos_list'),
 
     
     

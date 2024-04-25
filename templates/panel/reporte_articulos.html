@@ -1,67 +1,98 @@
-
-
 {% extends 'panel/base.html' %}
-{% load static %}
+
 {% block page_content %}
 
+        <div class="container-fluid">
 
-
-
- <!-- Earnings (Monthly) Card Example -->
- <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2"> 
-        <div class="card-body">
-            <div class="row no-gutters align-items-center">
-                <div class="col mr-2">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> XXXXXXXXXXXXXXXXXX </div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">$ 10000</div>
-                </div>
-            
-                <div class="col-auto">
-                        <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
-                </div>
+            <!-- Page Heading -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Reporte de Articulos</h1>
+                <form action="{% url 'panel_reporte_articulos_list' %}" enctype="multipart/form-data" method="POST">
                 
+                  {% csrf_token %}
+                  <div class="dropdown no-arrow">Desde:
+                    <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde  | date:'d/m/Y' }}" />
+                          Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta | date:'d/m/Y' }}"/>
+                          <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+                  </div>
+                </form>
             </div>
-        </div>
-    </div>
- </div>
- <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2"> 
-        <div class="card-body">
-            <div class="row no-gutters align-items-center">
-                <div class="col mr-2">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> XXXXXXXXXXXXXXXXXX </div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">$ 10000</div>
-                </div>  
-                <div class="col-auto">
-                    <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
+            <!-- Content Row -->
+            <!-- Content Row -->
+            <div class="row">
+              <!-- Area Chart -->
+                <div class="col-xl-12 col-lg-11">
+                    <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                 
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary"># Top ten productos mas vendidos</h6>                       
+                            </div>
+                            <table id="table" data-toggle="table" data-pagination="false" data-search="true"
+                                data-show-columns="false" data-show-toggle="false" data-show-fullscreen="false"
+                                data-toolbar=".buttons-toolbar"  data-locale="es-AR">
+                                <thead>
+                                    <th data-sortable="true" data-field="product_name">Artìculo</th>
+                                    <th data-sortable="true" data-field="price">Cantidad</th>
+                                    <th data-sortable="true" data-field="stock">Precio de venta</th>
+                                   
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{item.product__product_name }}</td>
+                                        <td>{{item.cantidad }}</td>
+                                        <td>{{item.importe }}</td>
+                                     
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>                                
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary"># Top ten clientes mayor venta</h6>                       
+                            </div>
+                            <table id="table" data-toggle="table" data-pagination="false" data-search="true"
+                                data-show-columns="false" data-show-toggle="false" data-show-fullscreen="false"
+                                data-toolbar=".buttons-toolbar"  data-locale="es-AR">
+                                <thead>
+                                    <th data-sortable="true" data-field="product_name">Apellido</th>
+                                    <th data-sortable="true" data-field="price">Nombre</th>
+                                    <th data-sortable="true" data-field="stock">Importe Total</th>
+                                    <th data-sortable="true" data-field="is_available">Cantidad Pedidos</th>
+                                   
+                                </thead>
+                                <tbody>
+                                    {% for cliente in clientes %}
+                                    <tr>
+                                        <td>{{ cliente.last_name }}</td>
+                                        <td>{{ cliente.first_name }}</td>
+                                        <td>$ {{ cliente.total }}</td>
+                                        <td>{{ cliente.cantidad }}</td>
+                                        
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table> 
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary"># 22222222222</h6>                       
+                            </div>
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary"># 22222222222</h6>                       
+                            </div>
+                        </div>
                 </div>
+              
             </div>
-        </div>
-    </div>
-
-</div>
-
-  
-
- <!-- Earnings (Monthly) Card Example -->
- <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-primary shadow h-100 py-2"> 
-        <div class="card-body">
-            <div class="row no-gutters align-items-center">
-                <div class="col mr-2">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> XXXXXXXXXXXXXXXXXX </div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">$ 10000</div>
-                </div>
-            
-                <div class="col-auto">
-                        <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
-
-
+        </div> 
 {% endblock %}

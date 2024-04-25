@@ -9,14 +9,14 @@
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <h1 class="h3 mb-6 text-gray-800">Productos del Vendedor </h1>
+        <h1 class="h3 mb-6 text-gray-800">Buscar Productos </h1>
              
         
-        <form action="{% url 'meli_productos_vendor_detail' %}" enctype="multipart/form-data" name="token" id="token" method="POST">
+        <form action="{% url 'meli_search' %}" enctype="multipart/form-data" name="token" id="token" method="POST">
             {% csrf_token %}
             <div class="col form-group">
-                <label for="">Nick Name:</label>
-                <input type="text" name="nick_name" id="nick_name" class="form-control" value="LIFCHE%20ARGENTINA" >
+                <label for="">Producto:</label>
+                <input type="text" name="str_search" id="str_search" class="form-control" value="{{ str_search }}" >
             </div>
            
             <button type="submit" class="btn btn-warning"><span class=""></span> Buscar </button>
@@ -41,8 +41,7 @@
                     <th scope="col">category_id</th>
                     <th scope="col">Marca</th>
                     <th scope="col">Cuotas</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">%</th>
+                    <th scope="col">% Interes</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,17 +50,20 @@
                         <tr>
                             <th><a href={{arts.permalink}} target="_blank">{{ arts.id }}</a> </th>
                             <th>{{arts.title}} </th>
-                            <th>{{arts.original_price}}</th>    
-                            <th>{{arts.price}}</th>
-                            <th>{{arts.category_id}}</th>
+                            {% if arts.original_price %}
+                                <th>$ {{arts.original_price }}</th>
+                            {% else %}
+                                    <th>$ {{arts.price }}</th>
+                            {% endif %}    
+                            <th>$ {{arts.price }}</th>
+                            <th><a href="{% url 'meli_search_categoria' arts.category_id %}">{{arts.category_id}}</a></th>
                             {% for attr in arts.attributes %}
                                 {% if attr.id == 'BRAND'%}
                                 <th>{{attr.value_name }} </th>
                                 {% endif %}    
                             {% endfor %}    
-                                <th>{{arts.installments.quantity }} </th>
-                                <th>{{arts.installments.amount }} </th>
-                                <th>{{arts.installments.rate }} </th>
+                            <th>{{arts.installments.quantity }} </th>
+                            <th>{{arts.installments.rate}} </th>
                                 
                             
                             

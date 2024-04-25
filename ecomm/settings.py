@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'orders',
     'api',
     'panel',
+    'compras',
     'meli',
     'contabilidad',
     'admin_honeypot',
@@ -205,6 +206,6 @@ STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
 
 #MELI
-CLIENTE_ID="5374552499309003"
-REDIRECT_URI="https://lifche.qualities.com.ar/panel/"
-CLIENT_SECRET="1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
+CLIENTE_ID="1279208844446512"                           #"5374552499309003"
+REDIRECT_URI="https://lifche.qualities.com.ar/meli/"    #"https://lifche.qualities.com.ar/panel/"
+CLIENT_SECRET="GimLKbcpxGBStJd56R38iJAzCXqxqWJR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"

@@ -1,0 +1,100 @@
+{% load static %}
+
+<div class="col-xl-6 col-md-6 mb-6">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" align="center">Pedido: {{ order_number }} -     Productos encontrados : {{ product_count }} </div>
+                 <div class="input-group w-100">
+                <input type="text" class="form-control" name="order_number" id="order_number" style="width:60%;" value={{ order_number }}  disabled hidden>
+                <input type="text" class="form-control" name="product_name" id="product_name" style="width:60%;" value={{ keyword }}  disabled hidden>
+                <div class="input-group-append">
+                 
+                </div> <pre style='display:inline'  class="float-right"> </pre>
+                <small class="float-right">
+                  <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary"><span class="fa fa-undo"></span>Volver</a>
+                 </small>
+           </div> 
+            
+                  <!-- Table row -->
+                  <div class="row">
+                    <div class="col-12 table-responsive">
+                      <table class="table table-striped">
+                        <thead>
+                        <tr>
+                          <th>Imagen</th>
+                          <th>Product</th>
+                          <th>Precio</th>
+                          <th>Variante</th>
+                          <th>Stock</th>
+                          
+                        </tr>
+                        </thead>
+                        <tbody  >
+                        {% for item in products %}  
+                        <tr>
+                          
+                              <td>
+                                <a href="{% url 'panel_pedidos_modificar' order_number item.id  1 %}">
+                                  <figure class="itemside align-items-center">
+                                    <div class="aside"><img src="https://yourfiles.cloud/uploads/{{item.images}}" class="img-sm" width="100" height="100"></div>
+                                    <figcaption class="info">
+                                      <a href="#" class="title text-dark"></a>
+                                      <p class="text-muted small">
+                                        {% if cart_item.variations.all %}
+                                          {% for item in cart_item.variations.all %}
+                                            {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+                                          {% endfor %}
+                                        {% endif %}
+                                      </p>
+                                    </figcaption>
+                                  </figure>
+                              </a>
+                              </td>
+                              
+                                <td>
+                                    <a href="{% url 'panel_pedidos_modificar' order_number item.id  1 %}">
+                                      {{ item.product_name}}
+                                    </a>
+                                </td>
+                                <td>
+                                  <a href="{% url 'panel_pedidos_modificar' order_number item.id  1 %}">
+                                  {{ item.price}}
+                                  </a>
+                                </td>
+                                
+                                <td>
+                                  {% for var in item.variations.all %}
+                                    {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
+                                  {% endfor %}
+                                </td>
+                                <td>
+                                  <a href="{% url 'panel_pedidos_modificar' order_number item.id  1 %}">
+                                    {{ item.stock}}
+                                    </a>
+                                </td>
+                                
+                          </a>
+                        </tr>
+                        {% endfor %}
+                        
+                        </tbody>
+                      </table>
+                    </div>
+                    <!-- /.col -->
+                  </div>
+                  <!-- /.row -->
+    
+              
+           
+           
+            <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary"><span class="fa fa-undo"></span>Volver</a>
+          </div>
+          <div class="col-auto">
+            <i class="far fa-question-circle fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

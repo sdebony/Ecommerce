@@ -7,9 +7,8 @@
 <section class="section-content padding-y bg">
 <div class="container">
   <h1 class="h6 mb-3 text-gray-600">
-    <p>UNA VEZ RECIBIDO TU PEDIDO, 
-    CONTROLAMOS EL STOCK Y NOS COMUNICAMOS CON VOS PARA COORDINAR EL PAGO. 
-   TE PEDIMOS NOS ENVIES TU EMAIL PARA ENVIARTE LA FACTURA.</p>
+    <p>EN LA BREVEDAD NOS ESTAMOS COMUNICANCO CON VOS, VIA MAIL PARA COMUNICARTE EL COSTO DEL ENVIO 
+      Y COORDINAR EL PAGO DE TU PEDIDO. GRACIAS!!!!.</p>
   </h1>
 <!-- ============================ COMPONENT 1 ================================= -->
 
@@ -63,22 +62,26 @@
           <input type="text" name="dir_telefono" id="dir_telefono" class="form-control" value="" required>
         </div>
       </div>
-      <div class="form-row">
-        <div class="col form-group">
-          <label for="">Calle</label>
-          <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="">
-        </div>
-        <div class="col form-group">
-          <label for="">Nro</label>
-          <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="">
-        </div>
+      <div id="div_sucursal">  
+          <div class="form-row">
+            <div class="col form-group">
+              <label for="">Calle</label>
+              <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="">
+            </div>
+            <div class="col form-group">
+              <label for="">Nro</label>
+              <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col form-group">
+              <label for="">Localidad</label>
+              <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="">
+            </div>
+          </div>
       </div>
       <div class="form-row">
-        <div class="col form-group">
-          <label for="">Localidad</label>
-          <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="">
-        </div>
-        <div class="col form-group">
+          <div class="col form-group">
           <label for="">Provincia</label>
           <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="" required>
         </div>
@@ -198,6 +201,7 @@
                 if (r.dir_correo==false){
                   document.getElementById("img_correo").src="{% static 'img/uncheck.jpg' %}";
                   $("#dir_correo").val("0");
+                  document.getElementById("div_sucursal").style.display = "block";
                 }
                 if (r.dir_correo==true){
                   document.getElementById("img_correo").src="{% static 'img/check.jpg' %}";
@@ -209,7 +213,7 @@
                   $("#dir_nro").val("0");
                   $("#dir_cp").val("1000");
                   $("#dir_localidad").val("Localidad");
-                  
+                  document.getElementById("div_sucursal").style.display = "none";
                 } 
                 
             },

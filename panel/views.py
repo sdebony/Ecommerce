@@ -356,7 +356,7 @@ def panel_product_list_category(request):
 
 def panel_reporte_articulos(request):
     
-   
+    print("Ducplicado panel_reporte_articulos. Linea: 259")
     if validar_permisos(request,'REPORTES'):
        
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
@@ -1179,7 +1179,7 @@ def panel_product_crud(request):
             
             
             
-            access_token = request.POST.get("access_token")
+            product_id = request.POST.get("product_id")
             product_name = request.POST.get("product_name")
             description = request.POST.get("description")
             habilitado = request.POST.getlist("is_available[]")
@@ -4078,16 +4078,77 @@ def panel_pedidos_obtener_linea(request,item=None):
     else:
             return render (request,"panel/login.html")
 
-def panel_reporte_articulos(request):
+def panel_reporte_articulos_list(request):
+
 
     if validar_permisos(request,'REPORTE ARTICULOS'):
+        fecha_1 = request.POST.get("fecha_desde")
+        fecha_2 = request.POST.get("fecha_hasta")     
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=90) 
+            fecha_desde = fecha_hasta - dias
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+        #print(fecha_desde,fecha_hasta)
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
+        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
+                     Round(
+                Sum('order_total'),
+                output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')[:10]
 
+        
+        items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
+        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(cantidad=Sum('quantity'),
+            importe=Sum('product_price')).order_by('-quantity')[:10]
+       
+        hist_pedidos = []
+
+        for i in range(1, 13): 
+            payments_months = Order.objects.filter(fecha__month = i)
+            month_earnings = round(sum([Order.order_total for Order in payments_months]))
+            hist_pedidos.append(month_earnings)
+
+
+        
+        yr = int(datetime.today().strftime('%Y'))
+        dt = 1
+        mt = int(datetime.today().strftime('%m'))
+        lim_fecha_desde = datetime(yr,mt,dt)
+        if mt==12:
+            mt=1
+            yr+=1
+        else:
+            mt = int(mt) + 1
+        
+        lim_fecha_hasta = datetime(yr,mt,dt)
+        lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
+      
+       
+        form = []
         context = {
-            'permisousuario':permisousuario
-             }
-        return render(request,'panel/reporte_articulos.html',context) 
-            
+            'permisousuario':permisousuario,
+            'hist_pedidos':hist_pedidos,
+            'items': items,
+            #'cuentas':cuentas,
+            'clientes':clientes,
+            'form': form,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta,
+            'lim_fecha_desde':lim_fecha_desde,
+            'lim_fecha_hasta':lim_fecha_hasta
+           
+            }
+        
+        print("********************")
+        print(items)
+        print("*************CLIENTES***********")
+        
+        return render (request,"panel/reporte_articulos.html",context)
     else:
-            return render (request,"panel/login.html")
+        return render (request,"panel/login.html")
