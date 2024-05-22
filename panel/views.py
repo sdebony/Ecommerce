@@ -2191,7 +2191,10 @@ def import_productos_xls(request):
                                         print("sub Categoria .Save:",slug_subcat)
                                         sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
                                     if sub_cat:
-                                        print("Peso:",sheet1.cell_value(rowNumber, 8))
+                                        int_peso = sheet1.cell_value(rowNumber, 8)
+                                        float_peso = float("{0:.2f}".format((float)(int_peso)))
+                                        print("float_peso",float_peso)
+                                        
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(product_name).lower(),
@@ -2207,7 +2210,9 @@ def import_productos_xls(request):
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
-                                            peso = int(sheet1.cell_value(rowNumber, 8))
+                                            peso = float_peso
+
+
                                             #is_popular = False,
                                                 )
                                         tmp_producto.save()
