@@ -1194,7 +1194,7 @@ def panel_product_crud(request):
             peso = peso.replace(",", ".")
             stock = stock.replace(",", ".") 
             price = price.replace(",", ".") 
-            images = images.replace("%20", " ") 
+            #images = images.replace("%20", " ") 
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
@@ -1228,6 +1228,7 @@ def panel_product_crud(request):
                         description=description,
                         price=price,
                         images=images,
+                        imgfile = images,
                         stock=stock,
                         is_available=habilitado,
                         category=category,
@@ -1251,6 +1252,7 @@ def panel_product_crud(request):
                         description= description,
                         price=price,
                         images=images,
+                        imgfile = images,
                         stock=stock,
                         is_available=True,
                         category=category,
@@ -1276,13 +1278,14 @@ def panel_producto_img(request):
             product_id = product.id
             if product_id:
                 imagen = str(product.images)
-                imagen = imagen.replace("%20"," ")
+                #imagen = imagen.replace("%20"," ")
 
                 #UPDATE IMAGE
                 print(product_id,"***  UPDATE IMAGE ***",imagen)
                 producto = Product(
                         id=product_id ,
                         images=imagen,
+                        imgfile = imagen,
                         product_name=product.product_name,
                         slug=slugify(product.product_name).lower(),
                         description=product.description,
@@ -1322,6 +1325,7 @@ def panel_producto_habilitar(request,product_id=None,estado=None):
                             id=product_id,
                             is_available=habilitado,
                             images=producto.images,
+                            imgfile = producto.imgfile,
                             modified_date=datetime.today(),
                             product_name=producto.product_name,
                             slug=slugify(producto.product_name).lower(),
@@ -2190,6 +2194,7 @@ def import_productos_xls(request):
                                             variation_value = "", #sheet1.cell_value(rowNumber, 3),
                                             price=sheet1.cell_value(rowNumber, 2),
                                             images=img_name,
+                                            imgfile = img_name,
                                             stock=sheet1.cell_value(rowNumber, 4),
                                             is_available=sheet1.cell_value(rowNumber, 5),
                                             category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
@@ -2508,6 +2513,7 @@ def guardar_tmp_productos(request):
                         category = category,
                         subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory),
                         images = imagen,
+                        imgfile = imagen,
                         stock = a.stock,
                         price = float(a.price),
                         is_available = a.is_available,

@@ -12,6 +12,7 @@ class Product(models.Model):
     description     = models.TextField(max_length=650, blank=True)
     price           = models.FloatField()
     images          = models.ImageField(upload_to='photos/products')
+    imgfile         = models.TextField(max_length=300, blank=True)
     stock           = models.IntegerField()
     is_available    = models.BooleanField(default=True)
     category        = models.ForeignKey(Category, on_delete=models.CASCADE)
