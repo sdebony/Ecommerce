@@ -111,7 +111,8 @@
                         <label for="">Descripcion</label>
                         <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
                         {% if producto.images %}
-                            <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" hidden>
+                            <input id="images2" type="text" name="images2" class="form-control" value="{{ producto.images.url }}" hidden>
+                            <input id="images" type="text" name="images" class="form-control" value="{{producto.images}}">
                         {% endif %}
                     </div>
                     </div>
@@ -123,8 +124,9 @@
     <aside class="col-lg-6">
         <div class="card">
             <div class="card-body">
-                <form action="{% url 'panel_producto_img' %}" enctype="multipart/form-data" method="POST">
+<!--                <form action="{% url 'panel_producto_img' %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
+-->
                     <h4 class="card-title mb-4">Imagen </h4>
                     <aside class="col-md-6">
                         <article class="gallery-wrap">
@@ -140,17 +142,8 @@
                         </article> <!-- gallery-wrap .end// -->
                     </aside>
 
-                    <div class="form-row">
-                        <div class="col form-group">
-                            <label for="">Imagen:</label>
-                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                            <input id="imgFile" type="text" name="imgFile" class="form-control" value="{{producto.images}}">
-                            <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
-                        </div>
-                        
-                    </div>
-                </form>
-            </div>
+<!--                </form>
+ -->           </div>
         </div><br>
 
     <aside class="col-lg-14">

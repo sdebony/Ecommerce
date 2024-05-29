@@ -1194,6 +1194,7 @@ def panel_product_crud(request):
             peso = peso.replace(",", ".")
             stock = stock.replace(",", ".") 
             price = price.replace(",", ".") 
+            images = images.replace("%20", " ") 
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
@@ -1205,7 +1206,7 @@ def panel_product_crud(request):
                 if not images:
                     images = "none.jpg" #default      
                 else:
-                    images = producto.images
+                    images = images #producto.images
                 
                 if habilitado:
                     habilitado=True
@@ -1285,19 +1286,23 @@ def panel_producto_img(request):
                 #    open(f"media/photos/products/{fn}", 'wb').write( fileitem.file.read())  #"/media/photos/products/
                 #    
                 #    imgroot = f"photos/products/{fileitem}"
+                
                 if not fileitem:
                     fileitem = 'none.jpg'
 
+                imagen = f"{fileitem}"
 
-                print(fileitem)
+                imagen = imagen.replace("%20"," ")
+
+                #print(fileitem)
 
                 if product_id:
                     producto = Product.objects.filter(id=product_id).first()
                     #UPDATE IMAGE
-                    print("***  UPDATE IMAGE ***")
+                    print(product_id,"***  UPDATE IMAGE ***",imagen)
                     producto = Product(
                             id=product_id ,
-                            images=fileitem,
+                            #images=producto.images,
                             product_name=producto.product_name,
                             slug=slugify(producto.product_name).lower(),
                             description=producto.description,
@@ -1309,9 +1314,11 @@ def panel_producto_img(request):
                             modified_date=datetime.today(),
                             )
                     producto.save()
+                    messages.success(request,"Artículo actualizado con éxito.",'green')
                     return redirect('panel_producto_detalle', str(product_id))
+           
             except:
-                print("No selecciono imagen")
+                messages.error(request,"No se puedo grabar el artículo",'red')
                 return redirect('panel_producto_detalle', str(product_id))
         return redirect('panel')
     else:
@@ -2151,6 +2158,9 @@ def import_productos_xls(request):
                                 img_name = sheet1.cell_value(rowNumber, 3)
                                 if not img_name:
                                     img_name = 'none.jpg'
+                                else:
+                                    img_name = img_name.replace('%20', ' ')
+
 
                                 print("Articulo:",product_name,"| categoria:",cat_name,"| subCategoria",sub_cat_name)
                                 slug_cat = slugify(cat_name).lower()
