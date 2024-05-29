@@ -1270,56 +1270,33 @@ def panel_product_crud(request):
 def panel_producto_img(request):
 
     if validar_permisos(request,'PRODUCTO'):          
-        if request.method =="POST":
-            product_id = request.POST.get("product_id")
-
-            try:
-                if request.POST.get("imgFile"):
-                    fileitem = request.POST.get("imgFile")
-                    
-                #imgroot = "photos/products/none.jpg" #default
-                # check if the file has been uploaded
-                #if fileitem.name:
-                #    # strip the leading path from the file name
-                #    fn = os.path.basename(fileitem.name)
-                #    # open read and write the file into the server
-                #    open(f"media/photos/products/{fn}", 'wb').write( fileitem.file.read())  #"/media/photos/products/
-                #    
-                #    imgroot = f"photos/products/{fileitem}"
-                
-                if not fileitem:
-                    fileitem = 'none.jpg'
-
-                imagen = f"{fileitem}"
-
+        
+        productos = Product.objects.all()
+        for product in productos:
+            product_id = product.id
+            if product_id:
+                imagen = str(product.images)
                 imagen = imagen.replace("%20"," ")
 
-                #print(fileitem)
-
-                if product_id:
-                    producto = Product.objects.filter(id=product_id).first()
-                    #UPDATE IMAGE
-                    print(product_id,"***  UPDATE IMAGE ***",imagen)
-                    producto = Product(
-                            id=product_id ,
-                            #images=producto.images,
-                            product_name=producto.product_name,
-                            slug=slugify(producto.product_name).lower(),
-                            description=producto.description,
-                            price=producto.price,
-                            stock=producto.stock,
-                            is_available=True,
-                            category=producto.category,
-                            created_date =producto.created_date, 
-                            modified_date=datetime.today(),
-                            )
-                    producto.save()
-                    messages.success(request,"Artículo actualizado con éxito.",'green')
-                    return redirect('panel_producto_detalle', str(product_id))
-           
-            except:
-                messages.error(request,"No se puedo grabar el artículo",'red')
-                return redirect('panel_producto_detalle', str(product_id))
+                #UPDATE IMAGE
+                print(product_id,"***  UPDATE IMAGE ***",imagen)
+                producto = Product(
+                        id=product_id ,
+                        images=imagen,
+                        product_name=product.product_name,
+                        slug=slugify(product.product_name).lower(),
+                        description=product.description,
+                        price=product.price,
+                        stock=product.stock,
+                        is_available=True,
+                        category=product.category,
+                        subcategory=product.subcategory,
+                        created_date =product.created_date, 
+                        modified_date=datetime.today(),
+                        )
+                producto.save()
+                print("Producto actualizado: ",product_id)
+            
         return redirect('panel')
     else:
         return render (request,"panel/login.html")
@@ -2159,7 +2136,7 @@ def import_productos_xls(request):
                                 if not img_name:
                                     img_name = 'none.jpg'
                                 else:
-                                    img_name = img_name.replace('%20', ' ')
+                                    img_name = img_name.replace('%20', '')
 
 
                                 print("Articulo:",product_name,"| categoria:",cat_name,"| subCategoria",sub_cat_name)
