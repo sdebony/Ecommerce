@@ -227,3 +227,9 @@ def submit_review(request, product_id):
                 data.save()
                 messages.success(request, 'Thank you! Your review has been submitted.')
                 return redirect(url)
+
+
+def condiciones (request):
+
+    return render (request,"includes/como_comprar.html")
+    

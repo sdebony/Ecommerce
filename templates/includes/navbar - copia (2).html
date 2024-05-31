@@ -45,12 +45,12 @@
             <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
             <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
           </a>
-          <div></div>
+          
           <div class="widget-header ml-left">
             <a href="{% url 'store' %}"> <h5 class="btn btn-primary">Productos</h5></a>
            <div>
           </div>
-          
+          <hr>
           <form action="{% url 'search' %}" class="search" method='GET'>
             <div class="input-group w-100">
                 <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
@@ -59,15 +59,13 @@
                     <i class="fas fa-search"></i>
                   </button>
                 </div>
-                <span  class="px-2"> <a href="{% url 'condiciones' %}">Como hacer tu pedido </a></span>
               </div>
           </form>
-        
             
   </nav>
 </header> <!-- section-header.// -->
 	<!-- ========================= FOOTER END // ========================= -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  
+ 
   </body>
   </html>
