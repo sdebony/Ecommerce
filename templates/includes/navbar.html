@@ -1,73 +1,103 @@
 {% load static %}
-
-
-{% if request.path|slice:":7" != '/store/' %}
-  
-  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, #3167EB , #7A7A7A);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
-  <a href="#" style="color: white;text-transform: uppercase;letter-spacing: 2px;">
-  <span>&#x1F525</span>  BIENVENIDO AL CATALOGO MAYORISTA<span>&#x1F525</span></a>
+ 
+  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  <a href="#" style="color:black;text-transform: uppercase;letter-spacing: 2px;">
+    BIENVENIDO AL CATALOGO MAYORISTA</a>
   </div> <!-- container //  -->
-{% endif %}
-<div> &nbsp; </div>
-<header class="section-header">
-  <div class="col-lg-7 col-md-3 text-align-center">
-    <a href="{% url 'home' %}"  >
-      <img class="img-fluid" src="{% static './images/logo.png' %}"  alt="Logo">
-    </a> 
-   
-  </div>
-  <nav class="navbar navbar-expand-lg navbar-light background-image" >
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    
-    <div class="navbar-collapse collapse show in" id="navbarTogglerDemo01">
-      <div>.</div>
-      {% if user.id is None %}
-          <div class="widget-header ml-left">
-            <small class="title text-muted">Bienvenido Invitado!</small>
-            <div>
-              <a href="{% url 'login' %}">Ingresar</a> <span class="dark-transp"> | </span>
-              <a href="{% url 'register' %}"> Registrarse</a>
-            </div>
-          </div>
-          {% else %}
-          <div class="widget-header ml-left">
-            <small class="title text-muted">Bienvenido {{user.first_name}}!</small>
-            <div>
-              <a href="{% url 'meli_get_first_token' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
-              
-              <a href="{% url 'logout' %}"> Logout</a>
-            </div>
-          </div>
-          {% endif %}
-          <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
-            <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
-            <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
-          </a>
-          <div></div>
-          <div class="widget-header ml-left">
-            <a href="{% url 'store' %}"> <h5 class="btn btn-primary">Productos</h5></a>
-           <div>
-          </div>
-          
-          <form action="{% url 'search' %}" class="search" method='GET'>
-            <div class="input-group w-100">
-                <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
-                <div class="input-group-append">
-                  <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i>
-                  </button>
-                </div>
-                <span  class="px-2"> <a href="{% url 'condiciones' %}">Como hacer tu pedido </a></span>
+
+ 
+<header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
+
+  <!--  DIV 2 PARA SCROLL  *************************-->
+
+  <div id="TopDiv_light" class="container">
+    <div  class="row " >
+          <div class="col text-align-left" >
+             <div class="input-group-append">  <!-- style="width: 50%;"-->
+                  <a href="{% url 'store' %}" class="btn btn-primary text-center btn-block"> 	
+                      <i class="fa fa-list"></i> &nbsp Productos</a>
               </div>
-          </form>
+              <div class="d-flex p-1" >     
+                   <form action="{% url 'search' %}" class="search  btn-block" method='GET'>
+                          <div class="input-group-append" >
+                              <input type="text" class="form-control"  placeholder="Search" name="keyword"  required>
+                              <div class="input-group-append ">
+                                <button class="btn btn-primary btn-block" type="submit">
+                                  <i class="fas fa-search"></i>
+                                </button>
+                              </div>
+                              <!-- <span  class="px-2"> <a href="{% url 'condiciones' %}">Como hacer tu pedido </a></span> -->
+                          </div>
+                   </form>
+              </div>
+                        
+          </div>
+      
+      <div  class="col align-items-center">
         
-            
-  </nav>
+          <small>
+          <a href="{% url 'home' %}">  
+              <img id="myLogo" class="mw-100"  src="{% static './images/logo.jpg' %}"  alt="Logo">
+          </a>
+          </small>
+      </div>
+      <div class="col align-items-right">
+            <a href="{% url 'cart' %}">
+              <div class="btn btn-primary btn-block"> <i class="fa fa-shopping-cart">&nbsp Carrito</i> 	<!-- style="width: 50%;" -->
+              <span class="badge badge-pill badge-danger notify">({{cart_count}})</span></div>
+            </a>
+                {% if user.id is None %}
+                <div class="align-items-right">
+                  <div>&nbsp</div>
+                  <small class="title text-muted">Bienvenido Invitado!</small>
+                  <a href="{% url 'meli_get_first_token' %}" target="_blank">
+                    <small class="title text-muted">Iniciar Sesion!</small></a>
+
+                </div>
+              {% else %}
+                <div class="align-items-right">
+                  <small class="title text-muted">Bienvenido {{user.first_name}}!</small>
+                  <br>
+                  <a href="{% url 'logout' %}">
+                    <small class="title text-muted">Cerrar Sesion!</small></a>
+                  
+                  <div>
+                <!--   <a href="{% url 'meli_get_first_token' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
+                    
+                    <a href="{% url 'logout' %}"> Cerrar sesion</a>--> 
+                  </div>
+                </div>
+              {% endif %}
+      
+      </div>
+    </div>
+</div>
+  <!--  FIN DIV 2 PARA SCROLL *********************-->
+
+
 </header> <!-- section-header.// -->
 	<!-- ========================= FOOTER END // ========================= -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  
+  <script>
+   
+
+//  document.addEventListener('scroll', function() {
+//    const div = document.getElementById('TopDiv');
+//    const div2 = document.getElementById('TopDiv_light');
+
+//    if (window.scrollY === 0) {
+//        div.classList.remove('hidden');
+//        div2.classList.add('hidden');
+//    } else {
+//        div.classList.add('hidden');
+//        div2.classList.remove('hidden');
+//    }
+//});
+
+ // document.addEventListener('DOMContentLoaded', function() {
+ //   const div2 = document.getElementById('TopDiv_light');
+//    div2.classList.add('hidden');
+//});
+  </script>
   </body>
   </html>

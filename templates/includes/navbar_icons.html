@@ -1,0 +1,209 @@
+{% load static %}
+ 
+  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  <a href="#" style="color:black;text-transform: uppercase;letter-spacing: 2px;">
+    BIENVENIDO AL CATALOGO MAYORISTA</a>
+  </div> <!-- container //  -->
+
+
+ <script>
+  
+    var logo = document.getElementById('img_logo');
+    window.addEventListener('scroll',()=> {
+	  
+    var scroll  = window.scrollY
+  	if (scroll>30) {
+	  	logo.style.visibility=false;
+    } else {
+      logo.style.visibility=true;
+    }
+  });
+
+
+ </script> 
+ 
+<header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
+
+  <style>
+
+      #TopDiv {
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+      #TopDiv_light {
+          transition: opacity 0.5s ease, visibility 0.5s ease;
+          opacity: 1;
+          visibility: visible;
+        }
+        .hidden {
+          opacity: 0;
+          visibility: hidden;
+        }
+    
+</style>
+  <div id="TopDiv" class="container text-right">
+      <div  class="row">
+        <div class="col">
+          <div>&nbsp</div>
+          <div class="align-items-left">
+           <div class="input-group w-80">   
+              <form action="{% url 'search' %}" class="search" method='GET'>
+                    <input type="text" class="form-control" style="width: 60%;" placeholder="Search" name="keyword" required>
+                    <div class="input-group-append">
+                      <button class="btn btn-secondary" type="submit">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                    <!-- <span  class="px-2"> <a href="{% url 'condiciones' %}">Como hacer tu pedido </a></span> -->
+                  </div>
+              </form>
+
+              <a href="store'}" class="widget-header pl-3 ml-3">
+                <div class="icon icon-sm rounded-circle border"><i class="fa fa-list" aria-hidden="true"></i></div> 	
+                <span class="badge badge-pill badge-danger notify">Productos</span>
+              </a>
+              
+          </div>  
+        </div>
+            <div  class="col">
+              <div>&nbsp</div>
+              <a href="{% url 'home' %}">
+                  <img id="myLogo" class="img-fluid"  src="{% static './images/logo.jpg' %}"  alt="Logo">
+                  <li class="nav-item">
+                    <!-- <h3><a class="navbar" href="{% url 'store' %}">|Productos| </a></h3> -->
+                  </li>
+        
+              </a>
+            </div>
+            <div class="col">
+              <div>&nbsp</div>
+                <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
+                  <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div> 	
+                  <span class="badge badge-pill badge-danger notify">({{cart_count}})</span>
+                </a>
+                {% if user.id is None %}
+                    <a href="{% url 'login' %}" class="widget-header pl-3 ml-3">
+                      <div class="icon icon-sm rounded-circle border"><i class="fa fa-user"></i></div> 	
+                      <span class="badge badge-pill badge-danger notify"></span>
+                    </a>
+                {% else %}
+                <a href="{% url 'meli_get_first_token' %}" target="_blank" class="widget-header pl-3 ml-3">
+                      <div class="icon icon-sm rounded-circle border"><i class="fa fa-user"></i></div> 	
+                      <span class="badge badge-pill badge-danger notify"></span>
+                    </a>
+                {% endif %}
+                {% if user.id is None %}
+                  <div class="align-items-center">
+                    <div>&nbsp</div>
+                    <small class="title text-muted">Bienvenido Invitado!</small>
+                 <!--   <div>
+                      <a href="{% url 'login' %}">Ingresar</a> <span class="dark-transp"> | </span>
+                      <a href="{% url 'register' %}"> Registrarse</a>
+                    </div>
+-->                  </div>
+                {% else %}
+                  <div class="align-items-center">
+                    <small class="title text-muted">Bienvenido {{user.first_name}}!</small>
+                    <div>
+                  <!--   <a href="{% url 'meli_get_first_token' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
+                      
+                      <a href="{% url 'logout' %}"> Cerrar sesion</a>--> 
+                    </div>
+                  </div>
+                {% endif %}
+        
+            </div>
+        </div>
+   
+       
+  
+  </div>
+
+  <!--  DIV 2 PARA SCROLL  *************************-->
+  
+  <div id="TopDiv_light" class="container text-right">
+    <div  class="row">
+      <div class="col">
+        <div>&nbsp</div>
+        <div class="align-items-center">
+            <form action="{% url 'search' %}" class="search" method='GET'>
+              <div class="input-group w-80">
+                  <input type="text" class="form-control" style="width: 60%;" placeholder="Search" name="keyword" required>
+                  <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                  <!-- <span  class="px-2"> <a href="{% url 'condiciones' %}">Como hacer tu pedido </a></span> -->
+                </div>
+            </form>
+        </div>
+      </div><center>
+      <div  class="col">
+        <div>&nbsp</div>
+        <a href="{% url 'home' %}"> <small> 
+            <img id="myLogo" class="img-fluid"  src="{% static './images/logo.jpg' %}"  alt="Logo" width="40%" height="40%">
+          </small>
+  
+        </a>
+      </div></center>
+        <div class="col align-items-center">
+          <div>&nbsp</div>
+            <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
+              <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div> 	
+              <span class="badge badge-pill badge-danger notify">({{cart_count}})</span>
+            </a>
+            {% if user.id is None %}
+                    <a href="{% url 'login' %}" class="widget-header pl-3 ml-3">
+                      <div class="icon icon-sm rounded-circle border"><i class="fa fa-user"></i></div> 	
+                      <span class="badge badge-pill badge-danger notify"></span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'meli_get_first_token' %}" target="_blank" class="widget-header pl-3 ml-3">
+                      <div class="icon icon-sm rounded-circle border"><i class="fa fa-user"></i></div> 	
+                      <span class="badge badge-pill badge-danger notify"></span>
+                    </a>
+                {% endif %}    
+        </div>
+      </div>
+
+    
+
+   
+  
+</div>
+  <!--  FIN DIV 2 PARA SCROLL *********************-->
+
+
+</header> <!-- section-header.// -->
+	<!-- ========================= FOOTER END // ========================= -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+   
+
+  document.addEventListener('scroll', function() {
+    const div = document.getElementById('TopDiv');
+    const div2 = document.getElementById('TopDiv_light');
+
+    if (window.scrollY === 0) {
+        div.classList.remove('hidden');
+        div2.classList.add('hidden');
+    } else {
+        div.classList.add('hidden');
+        div2.classList.remove('hidden');
+    }
+});
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const div2 = document.getElementById('TopDiv_light');
+    div2.classList.add('hidden');
+});
+  </script>
+  </body>
+  </html>
