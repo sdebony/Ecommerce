@@ -109,16 +109,15 @@
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap">
 				
-					<div class="fix-height">
-						<a href="{{ product.get_url }}" class="title">{{ product.product_name |truncatechars:50}} </a>
-						<div class="price-wrap mt-2">
-							<span class="price">$ {{ product.price }}</span>
-						</div> <!-- price-wrap.// -->
+					<div class="fix-start p-1">
+						<a href="{{ product.get_url }}" class="text-left"><p class="text-lowercase">{{ product.product_name |truncatechars:70}} </p></a>
+						
 					</div>
 							
 					{% if product.stock > 0 %}
 			
-					<div class="input-group-prepend">	 
+					<div class="input-group-prepend p-1">
+							<span class="input-group-text">$ {{ product.price }}</span>
 							<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
 							<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 							<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
