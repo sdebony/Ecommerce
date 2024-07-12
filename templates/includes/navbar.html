@@ -1,17 +1,20 @@
 {% load static %}
  
-  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
-  <a href="#" style="color:black;text-transform: uppercase;letter-spacing: 2px;">
-    BIENVENIDO AL CATALOGO MAYORISTA</a>
+  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:5px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  
+    BIENVENIDO AL CATALOGO MAYORISTA
+    
   </div> <!-- container //  -->
 
- 
+  
 <header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
-  <!--  DIV 2 PARA SCROLL  *************************-->
-<p> &nbsp</p>
-
+  <!--  DIV 2 PARA SCROLL  <small class="title text-muted"></small>  *************************-->
+  <br>
+  <span class="small"></span>
   <div id="TopDiv_light" class="container">
+
     <div  class="row " >
+      <span class="small"></span>
           <div class="col text-align-left" >
              <div class="input-group-append">  <!-- style="width: 50%;"-->
                   <a href="{% url 'store' %}" class="btn btn-primary text-center btn-block"> 	
@@ -56,12 +59,11 @@
                 </div>
               {% else %}
                 <div class="align-items-right">
-                  <small class="title text-muted">Bienvenido {{user.first_name}}!</small>
+                  <small class="title text-muted">{{user.first_name |truncatechars:18 }}</small>
                   <br>
-                  <a href="{% url 'logout' %}">
-                    <small class="title text-muted">Cerrar Sesion!</small></a>
+                  <a href="{% url 'dashboard' %}">
+                    <small class="title text-muted">Mi Perfil</small></a> 
                   
-                  <div>
                 <!--   <a href="{% url 'meli_get_first_token' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
                     
                     <a href="{% url 'logout' %}"> Cerrar sesion</a>--> 
@@ -73,8 +75,8 @@
     </div>
 </div>
   <!--  FIN DIV 2 PARA SCROLL *********************-->
-
-
+  
+<br>  
 </header> <!-- section-header.// -->
 	<!-- ========================= FOOTER END // ========================= -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

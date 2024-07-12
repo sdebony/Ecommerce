@@ -91,12 +91,12 @@
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap p-1">
 				<div class="fix-start">
-					<a href="{{ product.get_url }}" class="text-left"><p class="text-lowercase">{{ product.product_name |truncatechars:70}} </p></a>
+					<a href="{{ product.get_url }}" class="text-left"><p>{{ product.product_name |truncatechars:70}} </p></a>
 				</div>
 				{% if product.stock > 0 %}
 				<div class="input-group-prepend p-1">
 					
-					<span class="input-group-text">$ {{ product.price }}</span>	 
+					<span class="input-group-text" style="font-size: 15px">$ {{ product.price }}</span>	 
 					<input type="number" class="form-control form-control-sm d-flex"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 					<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
 					<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 

@@ -3,14 +3,7 @@
 
 {% block content %}
 <!-- ========================= SECTION PAGETOP 
-<section class="section-pagetop bg">
-<div class="container">
-	{% if 'search' in request.path %}
-		<h2 class="title-page">Search Result</h2>
-	{% else %}
-		<h2 class="title-page">Our Store</h2>
-	{% endif %}
-
+*********************************MOBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!
 </div> 
 </section>
 ========================= -->
@@ -33,24 +26,24 @@
 			<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 		<figure class="card card-product-grid" >
 			<section id="{{product.id}}">
-				<div class="img-wrap" style="font-size: 1.3em;">
-					<!-- <a href="https://yourfiles.cloud/uploads/{{product.images.url}}" target="_blank"> --> 
+				<!-- <div class="img-wrap" style="font-size: 1.2em;">
+				-->	
 					{% if product.images %}
 						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
 					{% else %}
 						<img src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
 					{% endif %}
 				</a>
-			</div> <!-- img-wrap.// -->
+			 <!--  </div>img-wrap.// -->
 					<div class="fix-start p-1">
-						<a href="{{ product.get_url }}" class="text-left"><p class="text-lowercase">{{ product.product_name |truncatechars:70}} </p></a>
+						<a href="{{ product.get_url }}" class="text-left"><p>{{ product.product_name |truncatechars:70}} </p></a>
 						
 					</div>
 							
 					{% if product.stock > 0 %}
 			
 					<div class="input-group-prepend">
-							<span class="input-group-text lg" aria-label="Large">$ {{ product.price }}</span>
+							<span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ product.price }}</span>
 							<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
 							<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 							<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
@@ -83,23 +76,23 @@
 
 	
   <!-- Modal -->
-<div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-	<div class="modal-dialog">
-	  <div class="modal-content">
-		<div class="modal-header">
-			<h5 class="modal-title" id="staticBackdropLabel"><i class="fa fa-shopping-cart"> - Carrito </i> </h5>
-		  
-		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		  </button>
+	<div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="staticBackdropLabel"><i class="fa fa-shopping-cart"> - Carrito </i> </h5>
+			
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+			</div>
+			<div class="modal-body">
+			Producto Agregado
+			</div>
 		</div>
-		<div class="modal-body">
-		  Producto Agregado
 		</div>
-	  </div>
 	</div>
-  </div>
-	<!-- FIN MODAL-->
+		<!-- FIN MODAL-->
 				
 </div> <!-- row end.// -->
 

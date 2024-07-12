@@ -112,7 +112,7 @@
 			<figcaption class="info-wrap">
 				
 					<div class="fix-height">
-						<a href="{{ product.get_url }}" class="text-muted small">{{ product.product_name |truncatechars:50}} - $ {{ product.price }}</a>
+						<a href="{{ product.get_url }}" class="text-muted small" style="font-size: 15px">{{ product.product_name |truncatechars:50}} - $ {{ product.price }}</a>
 					</div>
 							
 					{% if product.stock > 0 %}
