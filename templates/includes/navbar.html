@@ -7,8 +7,8 @@
 
  
 <header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
-
   <!--  DIV 2 PARA SCROLL  *************************-->
+<p> &nbsp</p>
 
   <div id="TopDiv_light" class="container">
     <div  class="row " >
@@ -33,11 +33,12 @@
                         
           </div>
       
-      <div  class="col align-items-center">
+      <div  class="col text-transform">
         
           <small>
-          <a href="{% url 'home' %}">  
-              <img id="myLogo" class="mw-100"  src="{% static './images/logo.jpg' %}"  alt="Logo">
+          <a href="{% url 'home' %}"><div class="mr-1"> 
+              <img id="myLogo" class="img-fluid"  src="{% static './images/lifche.jpg' %}"  alt="Logo">
+            </div> 
           </a>
           </small>
       </div>
@@ -48,7 +49,6 @@
             </a>
                 {% if user.id is None %}
                 <div class="align-items-right">
-                  <div>&nbsp</div>
                   <small class="title text-muted">Bienvenido Invitado!</small>
                   <a href="{% url 'login' %}" target="_blank">
                     <small class="title text-muted">Iniciar Sesion!</small></a>

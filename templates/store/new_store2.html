@@ -17,74 +17,9 @@
 <!-- ========================= SECTION INTRO END// ========================= -->
 
 <!-- ========================= SECTION CONTENT ========================= -->
-<section class="section-content padding-y">
+
 <div class="container">
 	
-<div class="row">
-	<aside class="col-md-3">
-		
-<!--
-<div class="filter_menu">
-	<article class="filter-group">	
-			<div class="card-body">	
-				<label for="">Categorias NewStore2</label>
-					<select name="filtro-cat" id="filtro-cat" class="form-control">
-						{% if not category_name %}
-							<option selected disabled value="">Filtros</option>
-						{% else %}
-							<option  select value="category/{{ category.slug}}/">{{ category_name }}</option>
-						
-						{% endif %}
-						{% for category in links %}
-								<option  value="category/{{ category.slug}}/">{{ category.category_name }}</option>
-							
-						{% endfor %}
-					</select>
-			</div> 
-            <div class="card-body">
-				
-				
-				<label for="">Sub Categorias - {{sub_category_name}}</label>
-					<select name="filtro-subcat" id="filtro-subcat" class="form-control">
-						{% if not sub_category_name %}
-						<option selected disabled value=""> -- Seleccione -- </option>
-						{% else %}
-							<option selected value="{{subcategory.sub_category_slug}}/">{{ sub_category_name }}</option>		
-                        {% endif %}
-                        {% for subcategory in subcategories %}
-                                <option value="{{subcategory.sub_category_slug}}/">{{ subcategory.subcategory_name }}</option>		
-                            	
-                        {% endfor%}
-                    
-					</select>
-			</div> 
-	</article> 
-</div> 
-
--->
-
-	</aside> <!-- col.// -->
-	<!-- <main class="col-md-9">  -->
-	<main class="col-md-9">
-<!--
-<header class="border-bottom mb-4 pb-3">
-		<div class="form-inline">
-			<nav aria-label="breadcrumb">
-				<ol class="breadcrumb">
-				  <li class="breadcrumb-item"><a href="{% url 'store' %}">Home</a></li>
-				  {% if category_name %} 
-				  <li class="breadcrumb-item"><a href="{% url 'products_by_category' category_slug %}">{{category_name}}</a></li>
-				  {% endif %}
-				  {% if sub_category_name %}	
-				  <li class="breadcrumb-item active" aria-current="page">{{sub_category_name}}</li>
-				  {% endif %}
-				</ol>
-			  	<span class="mr-md-auto"><b>{{ product_count }}</b> articulos encontrados</span>
-				 
-			</nav>
-		</div>
-</header>
-	-->
 
 <input type="text" value="{{category_slug }}" id="cat_slug" nameid="cat_slug" hidden>
 
@@ -101,14 +36,12 @@
 				<div class="img-wrap" style="font-size: 1.3em;">
 					<!-- <a href="https://yourfiles.cloud/uploads/{{product.images.url}}" target="_blank"> --> 
 					{% if product.images %}
-						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}" width="30" height="40">
+						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
 					{% else %}
-						<img src="https://yourfiles.cloud/uploads/none.jpg" width="30" height="40">
+						<img src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
 					{% endif %}
 				</a>
 			</div> <!-- img-wrap.// -->
-			<figcaption class="info-wrap">
-				
 					<div class="fix-start p-1">
 						<a href="{{ product.get_url }}" class="text-left"><p class="text-lowercase">{{ product.product_name |truncatechars:70}} </p></a>
 						
@@ -116,8 +49,8 @@
 							
 					{% if product.stock > 0 %}
 			
-					<div class="input-group-prepend p-1">
-							<span class="input-group-text">$ {{ product.price }}</span>
+					<div class="input-group-prepend">
+							<span class="input-group-text lg" aria-label="Large">$ {{ product.price }}</span>
 							<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
 							<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
 							<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
@@ -136,7 +69,6 @@
 					<button type="submit" class="btn  btn-primary" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
 						<span class="text">Agregar</span> <i class="fa fa-shopping-cart"></i> </button>
 					-->
-			</figcaption>
 			</section>
 		</figure>
 		</form>
@@ -203,8 +135,8 @@
 </div>
 
 </div> <!-- container .//  -->
-</section>
-
+<!-- <section class="section-content"></section>
+-->
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
     

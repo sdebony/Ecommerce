@@ -164,10 +164,10 @@
     </div>
   </div>  
   <!--  FIN DIV 2 PARA SCROLL *********************-->
-
+<span><input type="text" value="{{category_slug }}" id="cat_slug" nameid="cat_slug" hidden><br></span>
 <div class="row">
-  <div class="col">
-    <header class="border-bottom mb-4 pb-3">
+  <div class="col ">
+<!--    <header class="border-bottom mb-4 pb-3">-->
       <div class="form-inline">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
@@ -178,13 +178,11 @@
             {% if sub_category_name %}	
             <li class="breadcrumb-item active" aria-current="page">{{sub_category_name}}</li>
             {% endif %}
-          </ol>
-            <span class="mr-md-auto"><b>{{ product_count }}</b> articulos encontrados</span>
-          
+          </ol>          
         </nav>
       </div>
-    </header><!-- sect-heading -->
-    <input type="text" value="{{category_slug }}" id="cat_slug" nameid="cat_slug" hidden>
+    <!-- </header> sect-heading -->
+    
   </div>
 </div>
 
@@ -211,7 +209,6 @@
     const div2 = document.getElementById('TopDiv_light');
    div2.classList.add('hidden');
 });
-  
   
     
 $(function () {
@@ -249,12 +246,6 @@ $(function () {
   
 		
 });
-
-    
-   
-
-
-  
   </script>
   </body>
   </html>
