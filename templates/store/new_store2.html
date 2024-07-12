@@ -18,55 +18,56 @@
 
 <div class="row">
 	{% if products %}
-	{% for product in products %}
-	
-	<div class="col-md-2 w-50 p-1">
-		<form action="{% url 'add_cart' product.id %}" method="POST">
-			{% csrf_token %}
-			<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
-		<figure class="card card-product-grid" >
-			<section id="{{product.id}}">
-				<!-- <div class="img-wrap" style="font-size: 1.2em;">
-				-->	
-					{% if product.images %}
-						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
-					{% else %}
-						<img src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
-					{% endif %}
-				</a>
-			 <!--  </div>img-wrap.// -->
-					<div class="fix-start p-1">
-						<a href="{{ product.get_url }}" class="text-left"><p>{{ product.product_name |truncatechars:70}} </p></a>
-						
-					</div>
+		{% for product in products %}
+		
+		<div class="col-md-2 w-50 p-1">
+			<form action="{% url 'add_cart' product.id %}" method="POST">
+				{% csrf_token %}
+				<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
+				<figure class="card card-product-grid" >
+					<section id="{{product.id}}">
+						<div class="img-wrap">
+						{% if product.images %}
+							<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
+						{% else %}
+							<img src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
+						{% endif %}
+						</div>
+					
+						<!--  </div>img-wrap.// -->
+						<div class="fix-start p-1">
 							
-					{% if product.stock > 0 %}
-			
-					<div class="input-group-prepend">
-							<span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ product.price }}</span>
-							<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
-							<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
-							<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
-								<i class="fa fa-shopping-cart"></i>
-							</button>
+							<a href="{{ product.get_url }}" class="text-left">{{ product.product_name |truncatechars:70}}</a>
+							
+						</div>
+								
+						{% if product.stock > 0 %}
+				
+						<div class="input-group-prepend">
+								<span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ product.price }}</span>
+								<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
+								<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+								<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
+									<i class="fa fa-shopping-cart"></i>
+								</button>
+							
+						</div>
+						{% else %}
+						<div class="input-group-prepend">	
+							<h5 class="text-danger">Sin Stock</h5>
+						</div>
+						{% endif %}
+	
+						<!--
+						<button type="submit" class="btn  btn-primary" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
+							<span class="text">Agregar</span> <i class="fa fa-shopping-cart"></i> </button>
+						-->
 						
-					</div>
-					{% else %}
-					<div class="input-group-prepend">	
-						<h5 class="text-danger">Sin Stock</h5>
-					</div>
-					{% endif %}
-
-						
-					<!--
-					<button type="submit" class="btn  btn-primary" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
-						<span class="text">Agregar</span> <i class="fa fa-shopping-cart"></i> </button>
-					-->
-			</section>
-		</figure>
-		</form>
-	</div> <!-- col.// -->
-	{% endfor %}
+					</section>
+				</figure>
+			</form>
+		</div> <!-- col.// -->
+		{% endfor %}
 	{% else %}
 	<div>
 		<h2>No result found. Please try again.</h2>
@@ -81,13 +82,12 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="staticBackdropLabel"><i class="fa fa-shopping-cart"> - Carrito </i> </h5>
-			
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 				<span aria-hidden="true">&times;</span>
-			</button>
+				</button>
 			</div>
 			<div class="modal-body">
-			Producto Agregado
+				Producto Agregado
 			</div>
 		</div>
 		</div>
