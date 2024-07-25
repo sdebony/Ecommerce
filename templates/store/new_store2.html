@@ -4,10 +4,20 @@
 {% block content %}
 <!-- ========================= SECTION PAGETOP 
 *********************************MOBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!
-</div> 
-</section>
 ========================= -->
 <!-- ========================= SECTION INTRO END// ========================= -->
+
+<head>
+	<style>
+        img:hover {
+            transform: scale(1.4);
+        }
+        
+		p {
+			font-family: Arial; font-size: 0.3cm
+		}	
+		  </style>
+</head>
 
 <!-- ========================= SECTION CONTENT ========================= -->
 
@@ -23,21 +33,29 @@
 		<div class="col-md-2 w-50 p-1">
 			<form action="{% url 'add_cart' product.id %}" method="POST">
 				{% csrf_token %}
+				
 				<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 				<figure class="card card-product-grid" >
 					<section id="{{product.id}}">
 						<div class="img-wrap">
 						{% if product.images %}
-							<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
+							<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
 						{% else %}
-							<img src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
+							<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
 						{% endif %}
 						</div>
 					
 						<!--  </div>img-wrap.// -->
 						<div class="fix-start p-1">
 							
-							<a href="{{ product.get_url }}" class="text-left">{{ product.product_name |truncatechars:70}}</a>
+							<!-- <a href="{{ product.get_url }}" class="text-left">{{ product.product_name |truncatechars:70}}</a> -->
+						 
+								{% if product.product_name|length > 25 %}
+									<p style="font-family:'Courier New', Courier, monospace;  font-size: 15x">{{ product.product_name|truncatechars:45 }}</p> 
+								{% else %}
+									<p  style="font-family:'Courier New', Courier, monospace; font-size: 15x" >{{product.product_name|truncatechars:30}}</p>
+									<p  style="font-family:'Courier New', Courier, monospace; font-size: 15x">&nbsp</p>
+								{% endif %}
 							
 						</div>
 								
@@ -46,8 +64,9 @@
 						<div class="input-group-prepend">
 								<span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ product.price }}</span>
 								<input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
-								<input type="text" class="form-control"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
-								<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
+								<input type="number" class="form-control"  id="quantity" name="quantity" value="1" > <!-- onchange="this.form.submit()"-->
+								<!-- <button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> -->
+								<button type="submit" class="btn  btn-primary btn-sm"> 
 									<i class="fa fa-shopping-cart"></i>
 								</button>
 							
@@ -76,7 +95,7 @@
 	
 
 	
-  <!-- Modal -->
+  <!-- Modal 
 	<div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
 		<div class="modal-dialog">
 		<div class="modal-content">
@@ -92,7 +111,7 @@
 		</div>
 		</div>
 	</div>
-		<!-- FIN MODAL-->
+- FIN MODAL-->
 				
 </div> <!-- row end.// -->
 
@@ -131,7 +150,44 @@
 <!-- <section class="section-content"></section>
 -->
 <!-- ========================= SECTION CONTENT END// ========================= -->
+{% if messages %}
+<dialog id="modal" class="modal-dialog-center modal-auto-clear modal-sm"><h2><i class="fa fa-shopping-cart"><span> - Carrito </span> </i> </h2>
+	<button id="btn_abrir_modal" hidden></button>
+				
+	
+		{% if messages %}
+			{% for message in messages %}
+			<div id="message_close" > <!-- class="container"-->
+				<div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %} role="alert">
+					{{ message }}
+				</div>
+				
+			</div>
+			{% endfor %}
+		{% endif %}
+	
+	<button id="btn_cerrar_modal" class="btn-btn-primary">Cerrar</button>
+				
+</dialog>
+{% endif %}
+</body>
+<script>
+	const btnAbrirModal = document.querySelector("#btn_abrir_modal"); 
+	const btnCerrarModal = document.querySelector("#btn_cerrar_modal");
+	const Modal = document.querySelector("#modal");
 
+	btnAbrirModal.addEventListener("click",()=>{
+		Modal.showModal();
+	})
+	btnCerrarModal.addEventListener("click",()=>{
+		Modal.close();
+	})
+
+	window.addEventListener('load', function() {
+		Modal.showModal();
+	});
+	
+</script>
     
 
 <script>

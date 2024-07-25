@@ -2,7 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, ReviewRating, ProductGallery
 from category.models import Category,SubCategory
 from carts.models import CartItem
-from django.db.models import Q
+from django.db.models import Q,Value
+from django.db.models.functions import Concat
+
 
 from carts.views import _cart_id
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -47,10 +49,8 @@ def store(request, category_slug=None,subcategory_slug=None):
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
             subcategories = SubCategory.objects.filter(category=categories)
-            products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')
-            #products = Product.objects.filter(is_available=True).order_by('product_name')
+            products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')            
             product_count = products.count()
-
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
@@ -70,9 +70,9 @@ def store(request, category_slug=None,subcategory_slug=None):
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             #subcategories = get_object_or_404(SubCategory, category=categories)
             subcategories = SubCategory.objects.filter(category=categories)
-            products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')
-           
-           
+            products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')           
+            #products = Product.objects.filter(category=categories, is_available=True).order_by('product_name').annotate(desc= Concat(f'product_name',Value('*')))
+        
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
@@ -92,6 +92,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         products = Product.objects.filter(category=categories,subcategory=subcat, is_available=True).order_by('product_name')
         
         product_count = products.count()
+
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)
@@ -227,7 +228,6 @@ def submit_review(request, product_id):
                 data.save()
                 messages.success(request, 'Thank you! Your review has been submitted.')
                 return redirect(url)
-
 
 def condiciones (request):
 

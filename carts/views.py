@@ -23,7 +23,9 @@ def add_cart(request, product_id):
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
 
+    product_info = product.product_name
 
+    
      # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
@@ -69,13 +71,14 @@ def add_cart(request, product_id):
                 else:
                     item.quantity = 1
                 item.save()
-
+                messages.success(request, 'Producto agregado: (' + quantity + ') x ' + product_info)
             else:
                 item = CartItem.objects.create(product=product, quantity=1, user=current_user)
                 if len(product_variation) > 0:
                     item.variations.clear()
                     item.variations.add(*product_variation)
                 item.save()
+                messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
         else:
             if not quantity:
                quantity = 1
@@ -91,6 +94,7 @@ def add_cart(request, product_id):
                 cart_item.variations.clear()
                 cart_item.variations.add(*product_variation)
             cart_item.save()
+            messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
             #messages.success(request, 'Producto agregado')
         if volver_store=="0":
             return redirect('cart')
@@ -130,6 +134,7 @@ def add_cart(request, product_id):
                 cart_id = _cart_id(request)
             )
         cart.save()
+        messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
 
         is_cart_item_exists = CartItem.objects.filter(product=product, cart=cart).exists()
         if is_cart_item_exists:
@@ -164,6 +169,7 @@ def add_cart(request, product_id):
                 else:
                     item.quantity = 1
                 item.save()
+                messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
                
 
             else:
@@ -172,6 +178,7 @@ def add_cart(request, product_id):
                     item.variations.clear()
                     item.variations.add(*product_variation)
                 item.save()
+                messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
         else:
             #print("5. cantidad:",quantity)
             if not quantity:
@@ -187,7 +194,7 @@ def add_cart(request, product_id):
                 cart_item.variations.add(*product_variation)
             #messages.success(request, 'Producto agregado')
             cart_item.save()
-
+            messages.success(request,  'Producto agregado: (' + quantity + ') x ' + product_info)
         
         if volver_store=="0":
             return redirect('cart')

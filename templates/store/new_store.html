@@ -3,18 +3,18 @@
 
 {% block content %}
 <!-- ========================= SECTION PAGETOP 
-<section class="section-pagetop bg">
-<div class="container">
-	{% if 'search' in request.path %}
-		<h2 class="title-page">Search Result</h2>
-	{% else %}
-		<h2 class="title-page">Our Store</h2>
-	{% endif %}
-
-</div> 
-</section>
+VERSION MOBILE OPERATIVO 
 ========================= -->
 <!-- ========================= SECTION INTRO END// ========================= -->
+<head>
+	<style>
+        img:hover {
+            transform: scale(1.4);
+        }
+        
+    </style>
+</head>
+
 
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-content padding-y">
@@ -112,12 +112,14 @@
 			<figcaption class="info-wrap">
 				
 					<div class="fix-height">
-						<a href="{{ product.get_url }}" class="text-muted small" style="font-size: 15px">{{ product.product_name |truncatechars:50}} - $ {{ product.price }}</a>
+
+						<span  class="text-muted small" style="font-size: 15px">{{ product.product_name |truncatechars:70}}</span>
+						<!-- <a href="{{ product.get_url }}" class="text-muted small" style="font-size: 15px">{{ product.product_name |truncatechars:50}} - $ {{ product.price }}</a>
 					</div>
 							
 					{% if product.stock > 0 %}
 					<div class="input-group-prepend">	
-						<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+						<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1"> <!--  onchange="this.form.submit()" -->
 						<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
 						<button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop" readonly="readonly"> 
 							<i class="fa fa-shopping-cart"></i>
@@ -205,12 +207,30 @@
 </section>
 
 <!-- ========================= SECTION CONTENT END// ========================= -->
+{% if messages %}
+<dialog id="modal" class="modal-dialog-center modal-auto-clear modal-sm"><h2><i class="fa fa-shopping-cart"><span> - Carrito </span> </i> </h2>
+	<button id="btn_abrir_modal" hidden></button>
+				
+	
+		{% if messages %}
+			{% for message in messages %}
+			<div id="message_close" > <!-- class="container"-->
+				<div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %} role="alert">
+					{{ message }}
+				</div>
+				
+			</div>
+			{% endfor %}
+		{% endif %}
+	
+	<button id="btn_cerrar_modal" class="btn-btn-primary">Cerrar</button>
+				
+</dialog>
+{% endif %}
+</body>
 
-    
 
 <script>
-
-    
 $(function () {
 
         $("#filtro-cat").change(function() {
