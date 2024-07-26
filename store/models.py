@@ -42,6 +42,18 @@ class Product(models.Model):
             count = int(reviews['count'])
         return count
 
+    def desc_item_cart(self):  #Para mobile 2 lines = 60 para web 2 lineas = 70
+        tamano = len(self.product_name.rstrip())
+        iniciar = 0
+        if tamano > 70:
+            iniciar = tamano - 70  #Tomo los ultimos 70 caracteres
+
+        if tamano > 35: #Me genera una 2da linea y no mas de 70 para que no pase
+            return  self.product_name[iniciar:tamano].lower().rstrip()
+        else: #Menor de 35 caracteres entonces agrego caracteres para llenar 2 fila
+            return self.product_name.lower().rstrip() + " " + " \xa0" * (37 - tamano)
+            
+
 class VariationManager(models.Manager):
     def colors(self):
         return super(VariationManager, self).filter(variation_category='color', is_active=True)

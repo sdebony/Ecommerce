@@ -122,8 +122,6 @@ def place_order(request, total=0, quantity=0,):
             data.envio = envio
             data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.ip = request.META.get('REMOTE_ADDR')
-            print(data.dir_correo)
-            print("Save")
             data.save()
 
          
@@ -186,10 +184,7 @@ def order_cash(request):
     if request.method =="POST":
         
         order_number = request.POST.get('order_number')
-        print("**********************")
-        print(order_number)
-        print("**********************")
-        
+         
         pesoarticulos=0
         order = Order.objects.get(user=request.user, is_ordered=False, order_number=order_number)
         
@@ -199,7 +194,6 @@ def order_cash(request):
         for item in cart_items:
             orderproduct = OrderProduct()
             orderproduct.order_id = order.id
-            #orderproduct.payment = payment
             orderproduct.user_id = request.user.id
             orderproduct.product_id = item.product_id
             orderproduct.quantity = item.quantity
@@ -266,7 +260,7 @@ def order_cash(request):
                 'subtotal': subtotal,
                 })
             to_email =  request.user.email
-            cc_email = 'santidebony@hotmail.com'
+            cc_email = 'santidebony@hotmail.com' #lifche.argentina@gmail.com
             send_email = EmailMessage(mail_subject, message, to=[to_email],cc=[cc_email])
             send_email.content_subtype = "html"
             send_email.attach_file('static/images/logo.png')

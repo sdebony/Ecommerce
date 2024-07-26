@@ -96,20 +96,7 @@
 			</div> <!-- img-wrap.// -->
 			<figcaption class="info-wrap p-1">
 				<div class="fix-start">
-					
-					<!-- <span  class="text-muted small" style="font-size: 15px">{{ product.product_name |truncatechars:70}}</span>
-						<a href="{{ product.get_url }}" class="text-left"><p>{{ product.product_name |truncatechars:70}} </p></a> -->
-
-					{% if product.product_name|length > 28 %}
-						<p style="font-family:'Courier New', Courier, monospace;  font-size: 15px">{{ product.product_name|truncatechars:45 }}</p> 
-					{% else %}
-						<p  style="font-family:'Courier New', Courier, monospace; font-size: 15px" >{{product.product_name|truncatechars:30}}</p>
-						<p  style="font-family:'Courier New', Courier, monospace; font-size: 15px">&nbsp</p>
-					{% endif %}
-				
-
-
-
+						<span  class="text-muted small" style="font-size: 15px">{{ product.desc_item_cart |capfirst|truncatechars:70}}</span>
 				</div>
 				{% if product.stock > 0 %}
 				<div class="input-group-prepend p-1">

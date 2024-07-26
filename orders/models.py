@@ -92,6 +92,9 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return self.product.product_name
+    
+    def subtotal(self):
+        return self.quantity*self.product_price
 
 class OrderShipping(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

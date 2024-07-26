@@ -47,16 +47,7 @@
 					
 						<!--  </div>img-wrap.// -->
 						<div class="fix-start p-1">
-							
-							<!-- <a href="{{ product.get_url }}" class="text-left">{{ product.product_name |truncatechars:70}}</a> -->
-						 
-								{% if product.product_name|length > 25 %}
-									<p style="font-family:'Courier New', Courier, monospace;  font-size: 15x">{{ product.product_name|truncatechars:45 }}</p> 
-								{% else %}
-									<p  style="font-family:'Courier New', Courier, monospace; font-size: 15x" >{{product.product_name|truncatechars:30}}</p>
-									<p  style="font-family:'Courier New', Courier, monospace; font-size: 15x">&nbsp</p>
-								{% endif %}
-							
+							<span  class="text-muted small" style="font-size: 15px">{{ product.desc_item_cart |capfirst|truncatechars:50}}</span>
 						</div>
 								
 						{% if product.stock > 0 %}

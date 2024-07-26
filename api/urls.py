@@ -10,5 +10,5 @@ urlpatterns = [
     path('v1/cuentas/<int:cuenta>',CuentasList.as_view(),name='cuentas_list'),
     path('v1/subcategory/<int:category>',SubcategoryList.as_view(),name='subcategory_list'),
     path('v1/subcategory/',SubcategoryApi.as_view(),name='subcategory_list'),
-    #path('v1/enviar_whatsapp/', enviar_whatsapp, name='enviar_whatsapp'),
+    path('v1/enviar_whatsapp/', enviar_whatsapp, name='enviar_whatsapp'),
 ]
