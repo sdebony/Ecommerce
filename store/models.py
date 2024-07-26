@@ -49,9 +49,9 @@ class Product(models.Model):
             iniciar = tamano - 70  #Tomo los ultimos 70 caracteres
 
         if tamano > 35: #Me genera una 2da linea y no mas de 70 para que no pase
-            return  self.product_name[iniciar:tamano].lower().rstrip()
+            return  self.product_name[iniciar:tamano].lower().rstrip() 
         else: #Menor de 35 caracteres entonces agrego caracteres para llenar 2 fila
-            return self.product_name.lower().rstrip() + " " + " \xa0" * (37 - tamano)
+            return self.product_name.lower().rstrip() + " " + " \xa0" * (40 - tamano) 
             
 
 class VariationManager(models.Manager):
