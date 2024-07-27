@@ -13,9 +13,21 @@
             transform: scale(1.4);
         }
         
-		p {
+		.p {
 			font-family: Arial; font-size: 0.3cm
 		}	
+		.line-container {
+    		width: 200px;
+    		height: 20px;
+    		overflow: hidden;
+		}
+
+		.single-line {
+			width: 100%;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: pre;
+		}
 		  </style>
 </head>
 
@@ -45,11 +57,12 @@
 						{% endif %}
 						</div>
 					
+						
 						<!--  </div>img-wrap.// -->
-						<div class="fix-start p-1">
-							<span  class="text-muted small" style="font-size: 15px">{{ product.desc_item_cart |capfirst|truncatechars:50}}</span>
+						<div class="fix-start">
+							<span  class="text-muted small" style="font-size: 15px">{{ product.desc_item_cart |capfirst|truncatechars:50}}</span> <!-- |truncatechars:50--> 
 						</div>
-								
+								 
 						{% if product.stock > 0 %}
 				
 						<div class="input-group-prepend">

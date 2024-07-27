@@ -7,7 +7,7 @@
 	<aside class="col-lg-6">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title mb-4">Datos del Producto - <b>{{ producto.product_name }} </b></h4>
+                <h4 class="card-title mb-4">Datos del Producto - <b>{{ producto.product_name }}</b></h4>
                 <form action="{% url 'panel_producto_crud' %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
                     <div class="form-row">
