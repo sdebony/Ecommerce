@@ -49,7 +49,7 @@ class Product(models.Model):
 
         descripcion =self.product_name.rstrip().lower()
         tamano = len(descripcion)
-        largo = 50
+        largo = 47
         #print("INICIO:",descripcion,tamano)
         iniciar = 0
         if tamano > largo: #Máximo 2 lineas mobile
@@ -70,7 +70,7 @@ class Product(models.Model):
 
         descripcion =self.product_name.rstrip().lower()
         tamano = len(descripcion)
-        largo = 70
+        largo = 68
         #print("INICIO:",descripcion,tamano)
         iniciar = 0
         if tamano > largo: #Máximo 2 lineas mobile
