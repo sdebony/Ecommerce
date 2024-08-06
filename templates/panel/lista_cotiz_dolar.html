@@ -36,7 +36,7 @@
           <th data-sortable="true" data-field="venta">Venta</th>
           <th data-sortable="true" data-field="promedio">Promedio</th>
           <th data-sortable="true" data-field="fechaActualizacion">Fecha ultima actualizacion</th>
-      
+          <th class="all">Acciones</th> 
       </thead>
       <tbody>
         {% for item in dolar %}
@@ -48,7 +48,13 @@
           <td>{{ item.venta }}</td>
           <td>{{ item.promedio }} </td>
           <td>{{ item.fechaActualizacion }}</td>
-          
+          <td >         
+            <a href="{% url 'panel_cotiz_dolar_modif' item.created_at %}" class="href btn btn-warning btn-circle" title="Modificar"><i class="fas fa-dollar-sign"></i></a>
+            <!-- <a href="#" class="href btn btn-success btn-circle" title="Acceso"><i class="fas fa-check"></i></a> 
+            <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>-->
+          </div>
+       
+        </td>
         </tr>
         {% endfor %}
       </tbody>

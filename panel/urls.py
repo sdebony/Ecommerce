@@ -91,6 +91,7 @@ urlpatterns = [
 
     #CONFIG DOLARES
     path('dolar/', views.panel_cotiz_dolar_list, name='panel_cotiz_dolar_list'),
+    path('dolar/cotiz/<str:fecha>', views.panel_cotiz_detalle, name='panel_cotiz_dolar_modif'),
 
     
     

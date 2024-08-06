@@ -15,7 +15,9 @@ from django.db.models import Q, Sum, Count,Max , DecimalField
 from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
-from datetime import timedelta,datetime
+from datetime import timedelta,datetime,timezone
+from decimal import Decimal
+
 
 
 import smtplib
@@ -3902,10 +3904,7 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
     
     if validar_permisos(request,'PEDIDOS EDIT'):
 
-            print("Order:",order_number)
-            print("product_name",item)
-            print("Quantity", quantity)
-
+      
             if quantity == 0:
                 print("Error quantity")
                 messages.error(request, "La cantidad no puede ser cero.")
@@ -4153,22 +4152,12 @@ def panel_reporte_articulos_list(request):
         return render (request,"panel/login.html")
 
 def panel_cotiz_dolar_list(request):
-
-
+    
     if validar_permisos(request,'DOLAR'):
-        #fecha_1 = request.POST.get("fecha_desde")
-        #fecha_2 = request.POST.get("fecha_hasta")     
-        #if not fecha_1 and not fecha_2 :
         fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
         dias = timedelta(days=90) 
         fecha_desde = fecha_hasta - dias
-        #else:
-        #   
-        #    fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
-        #    fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
-
-        #print(fecha_desde,fecha_hasta)
-
+       
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         
         dolar = ImportDolar.objects.filter(created_at__range=[fecha_desde,fecha_hasta],codigo='blue').order_by('-created_at')
@@ -4185,3 +4174,69 @@ def panel_cotiz_dolar_list(request):
         return render (request,"panel/lista_cotiz_dolar.html",context)
     else:
         return render (request,"panel/login.html")
+
+def panel_cotiz_detalle(request,fecha=None):
+    
+    if validar_permisos(request,'DOLAR'):
+
+       
+        if request.method == "GET":
+      
+            fecha_dte = datetime.strptime(fecha, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+            permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+            dolar = ImportDolar.objects.filter(created_at=fecha_dte).first()
+        
+            context = {
+                'dolar':dolar,
+                'permisousuario':permisousuario,
+                'fecha_str':fecha_dte,
+              
+            }
+            
+            return render(request,'panel/dolar_cotiz.html',context) 
+
+        if request.method=="POST":
+           
+            fecha=request.POST.get("fecha")
+            venta=request.POST.get("venta")
+            compra=request.POST.get("compra")
+            
+           
+
+            venta = venta.replace(",", ".")
+            compra = compra.replace(",", ".")
+            suma = Decimal(venta) + Decimal(compra)
+           
+            promedio = suma / 2
+
+            dolar = ImportDolar.objects.get(created_at=fecha)
+            if dolar:
+                    cot_dolar = ImportDolar(
+                        id = dolar.id,
+                        created_at=fecha,
+                        codigo=dolar.codigo,
+                        moneda=dolar.moneda,
+                        nombre=dolar.nombre,
+                        venta=venta,
+                        compra=compra,
+                        promedio = round(promedio,2),
+                        fechaActualizacion= datetime.today()            )
+                    cot_dolar.save()
+            else:
+                cot_dolar = ImportDolar(
+                    created_at=fecha,
+                    codigo=dolar.codigo,
+                    moneda=dolar.moneda,
+                    nombre=dolar.nombre,
+                    venta=venta,
+                    compra=compra,
+                    promedio = round(promedio,2),
+                    fechaActualizacion= datetime.today()         
+                    )
+                cot_dolar.save()
+
+            return redirect('panel_cotiz_dolar_list')  
+
+    else:
+        return render (request,"panel/login.html")
+

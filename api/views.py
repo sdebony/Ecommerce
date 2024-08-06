@@ -16,7 +16,7 @@ from django.db.models import Q
 
 from django.conf import settings
 
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 
 
 # views.py
@@ -110,7 +110,8 @@ def GuardarDolar(request):
         fecha = data['fechaActualizacion']
         fecha_str = str(fecha)
         d=datetime.fromisoformat(fecha_str[:-1]).astimezone(timezone.utc)
-        fecha_str = d.strftime('%Y-%m-%d %H:%M:%S')
+        fecha_str = d.strftime('%Y-%m-%d %H:%M:%S') 
+        fecha_str = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S") - timedelta(hours=4)
         
         dia = datetime.today()
         dia_str = dia.strftime('%Y-%m-%d')
