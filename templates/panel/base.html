@@ -320,7 +320,6 @@
           <div class="bg-white py-2 collapse-inner rounded">
   
            
-  
             <h6 class="collapse-header">Mercado Libre</h6>
             {% for items in permisousuario %}
               {% if items.modo_ver %}
@@ -348,6 +347,17 @@
       </a>
       <div id="collapseConfig" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
+
+          <h6 class="collapse-header">Config Dolares</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'PERMISOS' %}
+                <a class="collapse-item" href="{% url 'panel_cotiz_dolar_list' %}">Dolares</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+
 
           <h6 class="collapse-header">Cuentas</h6>
           {% for items in permisousuario %}

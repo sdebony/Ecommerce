@@ -77,3 +77,22 @@ class ImportTempOrdersDetail(models.Model):
     class Meta:
         verbose_name = "ImportTempOrdersDetail"
         verbose_name_plural = "ImportTempOrdersDetails"
+
+class ImportDolar(models.Model):
+
+    created_at  = models.DateTimeField()
+    codigo      = models.CharField(max_length=50) #blue 
+    moneda      = models.CharField(max_length=5)  #USD
+    nombre      = models.CharField(max_length=50) #Blue
+    compra      = models.FloatField()
+    venta       = models.FloatField()
+    promedio    = models.FloatField()
+    fechaActualizacion =models.DateTimeField() #auto_now=True
+   
+    def __str__(self):
+        return self.codigo
+      
+      
+    class Meta:
+        verbose_name = "ImportDolar"
+        verbose_name_plural = "ImportDolar"

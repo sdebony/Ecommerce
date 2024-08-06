@@ -89,6 +89,9 @@ urlpatterns = [
     #REPORTES
     path('reportes/articulo', views.panel_reporte_articulos_list, name='panel_reporte_articulos_list'),
 
+    #CONFIG DOLARES
+    path('dolar/', views.panel_cotiz_dolar_list, name='panel_cotiz_dolar_list'),
+
     
     
 

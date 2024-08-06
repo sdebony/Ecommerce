@@ -9,11 +9,14 @@ from .serializers import DireccionesSerializer,CuentasSerializer, SubcategorySer
 from accounts.models import AccountDirecciones,Account
 from contabilidad.models import Cuentas
 from category.models import SubCategory
+from panel.models import ImportDolar
+
 
 from django.db.models import Q
 
 from django.conf import settings
 
+from datetime import datetime,timezone
 
 
 # views.py
@@ -21,12 +24,7 @@ from django.http import JsonResponse
 import requests
 import json
 
-
-
-
-
 #http://localhost:8000/api/v1/enviar_whatsapp/
-
 def enviar_whatsapp(request,nro_orden,telefono):
     url = settings.WHATSAPP_URL_ENVIO    # Reemplaza esto con la URL de la API a la que deseas enviar los datos
    
@@ -92,9 +90,61 @@ def enviar_whatsapp(request,nro_orden,telefono):
     else:
         print("WHATSAPP: ERROR: No se encontro nro de orden")
 
+#http://localhost:8000/api/v1/dolar/
+def GuardarDolar(request):
+    
+    response = requests.get("https://dolarapi.com/v1/dolares/blue")
+    data = response.json()
 
+    print(data)
 
+    
+    if response.status_code == 200:
 
+        codigo = data['casa']
+        moneda = data['moneda']
+        nombre = data['nombre']
+        compra = data['compra']
+        venta = data['venta']
+        promedio = (compra + venta ) / 2
+        fecha = data['fechaActualizacion']
+        fecha_str = str(fecha)
+        d=datetime.fromisoformat(fecha_str[:-1]).astimezone(timezone.utc)
+        fecha_str = d.strftime('%Y-%m-%d %H:%M:%S')
+        
+        dia = datetime.today()
+        dia_str = dia.strftime('%Y-%m-%d')
+
+        dolar = ImportDolar.objects.filter(created_at=dia_str).first()
+        if dolar:
+            doar_cot = ImportDolar(
+                id = dolar.id,
+                created_at  = dia_str, #Fecha de día
+                codigo      = codigo, 
+                moneda      = moneda,
+                nombre      =  nombre,
+                compra      = compra,
+                venta       = venta,
+                promedio    = promedio,
+                fechaActualizacion = fecha_str #Fecha y Hora de ultima actualizacion   
+            )   
+            doar_cot.save()
+        else:
+            doar_cot = ImportDolar(
+                created_at  = dia_str, #Fecha de día
+                codigo      = codigo, 
+                moneda      = moneda,
+                nombre      =  nombre,
+                compra      = compra,
+                venta       = venta,
+                promedio    = promedio,
+                fechaActualizacion = fecha_str #Fecha y Hora de ultima actualizacion   
+            )   
+            doar_cot.save()
+            
+            
+        return JsonResponse({'mensaje': 'Dolar actualizado correctamente'}, status=200)
+       
 class Direccion(APIView):
           
     def get(self,request,dir_id):
@@ -109,7 +159,6 @@ class Direccion(APIView):
         data = DireccionesSerializer(direccion).data
         print(data)
         return Response(data)
-
 
 class DireccionesList(APIView):
           
