@@ -1,0 +1,79 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!--  MENU EXPORT-->
+  <div class="card-header py-6 d-flex flex-row align-items-center justify-content-between">
+    <h3 class="mb-9 font-weight-bold text-primary">Costos</h3>
+              
+      
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <a href="{% url 'mov_export_xls' 5 %}" class="btn btn-secondary">Exportar xls</a>
+      
+    </div>
+ 
+  </div>
+
+  <!-- Card Header - Dropdown 
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h3 class="m-2 font-weight-bold text-primary">Costos </h3>
+  </div>  
+    -->
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not costos %}
+    <div class="alert alert-info">No se encontraron costos</div>
+    {% endif %}
+    <div class="buttons-toolbar">
+        <a class="btn btn-primary" href="{% url 'panel_categoria_new' %}"><i class="fa fa-plus"></i> Nuevo</a>
+    </div>
+
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="producto">producto</th>
+          <th data-sortable="true" data-field="costo">costo</th>
+          <th data-sortable="true" data-field="fecha_actualizacion">fecha_actualizacion</th>
+          <th data-sortable="true" data-field="usuario">usuario</th>
+         
+         
+
+          <th class="all">Acciones</th>  
+      </thead>
+      <tbody>
+        {% for item in costos %}
+        <tr>
+         <!-- 
+          <td><b><a href="{% url 'panel_categoria_detalle' item.id %}">{{ item.category_name }}</a></b></td> 
+        -->
+          <td>{{ item.producto }}</td>
+          <td>{{ item.costo }}</td>
+          <td>{{ item.fecha_actualizacion }}</td>
+          <td>{{ item.usuario }}</td>
+          <td>  
+             <a href="{% url 'panel_costo_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+          </td>
+          
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

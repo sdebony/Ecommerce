@@ -63,6 +63,7 @@ class Product(models.Model):
             print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion
+
     def desc_item_large(self):  #Para mobile 2 lines = 60 para web 2 lineas = 70
         # Versión PC caracteres por linea:     35  --> 70 caracteres
         # Versión Mobile caracteres por linea: 22  --> 44 caracteres
@@ -84,6 +85,7 @@ class Product(models.Model):
             print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion
+
 class VariationManager(models.Manager):
     def colors(self):
         return super(VariationManager, self).filter(variation_category='color', is_active=True)
@@ -137,3 +139,14 @@ class ProductGallery(models.Model):
     class Meta:
         verbose_name = 'productgallery'
         verbose_name_plural = 'product gallery'
+
+class Costo(models.Model):
+
+    producto = models.ForeignKey(Product, on_delete=models.CASCADE)
+    costo = models.FloatField()
+    fecha_actualizacion = models.DateTimeField()
+    usuario = models.ForeignKey(Account, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.producto
+

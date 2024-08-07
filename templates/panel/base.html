@@ -133,18 +133,29 @@
             <div class="bg-white py-2 collapse-inner rounded">
           
               <h6 class="collapse-header">Productos</h6>
-              {% for items in permisousuario %}
+                {% for items in permisousuario %}
+                  <!-- PRODUCTOS -->
                   {% if items.modo_ver %}
                       {% if items.codigo.codigo == 'PRODUCTO' %}
                           <a class="collapse-item" href="{% url 'panel_catalogo' %}" >Productos</a>
                       {% endif %}
                   {% endif %}
+                  <!-- CATEGORIA-->
                   {% if items.modo_ver %}
                       {% if items.codigo.codigo == 'CATEGORIA' %}
                         <a class="collapse-item" href="{% url 'panel_categoria' %}" >Categorías</a>
                       {% endif %}
                   {% endif %}
-                  
+                  <!-- COSTOS -->
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'COSTOS' %}
+                        <a class="collapse-item" href="{% url 'panel_costo_list' %}" >Costos</a>
+                      {% endif %}
+                  {% endif %}
+                {% endfor %}      
+                <h6 class="collapse-header">IMPORTAR</h6>
+                
+                {% for items in permisousuario %}    
                   {% if items.codigo.codigo == 'IMPORTAR PRECIOS' %}
                       {% if items.modo_ver %}
                           <a class="collapse-item" href="{% url 'panel_import_precios'  %}" >Importar Precios</a>
@@ -160,6 +171,12 @@
                   {% if items.codigo.codigo == 'IMPORTAR PRODUCTOS' %}
                     {% if items.modo_ver %}
                       <a class="collapse-item" href="{% url 'panel_importar_productos' %}" >Importar Productos</a>
+                    {% endif %}
+                  {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR COSTO' %}
+                    {% if items.modo_ver %}
+                        <a class="collapse-item" href="{% url 'panel_import_stock'  %}" >Importar Costos</a>
                     {% endif %}
                   {% endif %}
         

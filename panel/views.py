@@ -3,7 +3,7 @@ from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from store.models import Product,Variation
+from store.models import Product,Variation,Costo
 from orders.models import Order, OrderProduct,Payment,OrderShipping
 from category.models import Category, SubCategory
 from accounts.models import Account, UserProfile    
@@ -1890,8 +1890,9 @@ def export_xls(request,modelo=None):
     #2 - Pedidos
     #3 - Productos
     #4 - Pedidos Temp 
+    #5 - Costos
 
-        print("Export to Excel")
+        print("Export to Excel",modelo)
         response = HttpResponse(content_type='application/ms-excel')
         if modelo==1:
             response['Content-Disposition']='attachment; filename=Movimientos'+ str(datetime.now()) + '.xls'
@@ -1900,15 +1901,17 @@ def export_xls(request,modelo=None):
         elif modelo==3:
             response['Content-Disposition']='attachment; filename=Articulos_'+ str(datetime.now()) + '.xls'
         elif modelo==4:
-            response['Content-Disposition']='attachment; filename=Pedidos_Temp_'+ str(datetime.now()) + '.xls'
+            response['Content-Disposition']='attachment; filename=Pedidos_'+ str(datetime.now()) + '.xls'
+        elif modelo==5:
+            response['Content-Disposition']='attachment; filename=Costos_'+ str(datetime.now()) + '.xls'
         else:
             response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
         
         wb = xlwt.Workbook(encoding='utf-8')
 
 
-        if validar_permisos(request,'EXPORTAR MOVIMIENTOS'):    
-            if modelo==1: #MOVIMIENTOS
+        if modelo==1: #MOVIMIENTOS    
+            if validar_permisos(request,'EXPORTAR MOVIMIENTOS'):
 
                 sheet = "balance"
                 ws = wb.add_sheet(sheet)
@@ -1947,10 +1950,11 @@ def export_xls(request,modelo=None):
                 wb.save(response)
 
                 return response
-        else:
-             return render (request,"panel/login.html")
-        if validar_permisos(request,'EXPORTAR PEDIDOS'):
-            if modelo==2: #PEDIDOS
+            else:
+                return render (request,"panel/login.html")
+
+        if modelo==2: #PEDIDOS
+            if validar_permisos(request,'EXPORTAR PEDIDOS'):
                 count_status=3
 
                 if request.method =="POST":
@@ -2000,11 +2004,11 @@ def export_xls(request,modelo=None):
                                 ws.write(row_num,col_num, str(row[col_num]),font_style)
                 wb.save(response)
                 return response
-        else:
-            return render (request,"panel/login.html")
+            else:
+                return render (request,"panel/login.html")
 
-        if validar_permisos(request,'EXPORTAR PRODUCTOS'):
-            if modelo==3: #PRODCUTOS
+        if modelo==3: #PRODCUTOS
+            if validar_permisos(request,'EXPORTAR PRODUCTOS'):
 
                 sheet = "productos"
 
@@ -2030,11 +2034,11 @@ def export_xls(request,modelo=None):
                     
                 wb.save(response)
                 return response
-        else:
-            return render (request,"panel/login.html")
+            else:
+                return render (request,"panel/login.html")
 
-        if validar_permisos(request,'EXPORTAR PEDIDOS'):
-            if modelo==4: #PEDIDOS  TEMP  (DE LA TABLA TEMPORAL)
+        if modelo==4: #PEDIDOS  TEMP  (DE LA TABLA TEMPORAL)
+            if validar_permisos(request,'EXPORTAR PEDIDOS'):
                 print("Export pedidos Temp")
                 sheet = "Pedidos Temp"
                 ws = wb.add_sheet(sheet)
@@ -2085,9 +2089,43 @@ def export_xls(request,modelo=None):
 
                 wb.save(response)
                 return response
-        else:
-            return render (request,"panel/login.html")
-    
+            else:
+                return render (request,"panel/login.html")
+
+        if modelo==5: #COSTOS 
+            if validar_permisos(request,'EXPORTAR COSTOS'):
+                sheet = "Costos"
+                ws = wb.add_sheet(sheet)
+                
+                row_num=0
+                font_style= xlwt.Style.XFStyle()
+                font_style.font.bold = True
+                columns = ['Producto','Costo','Fecha de Actualización','Usuario']
+                for col_num in range(len(columns)):
+                    ws.write(row_num,col_num,columns[col_num],font_style)
+                font_style = xlwt.Style.XFStyle()
+
+                rows = Costo.objects.all().values_list('producto__product_name','costo','fecha_actualizacion','usuario__email').order_by('-fecha_actualizacion','producto__product_name')
+     
+                for row in rows:
+                    row_num += 1      
+                    for col_num in range(len(row)):
+                        if col_num==2:
+                            format_string = '%Y-%m-%d %H:%M:%S.%f'
+                            str_fecha = str(row[col_num])
+                            str_fecha = datetime.strptime(str_fecha, format_string)
+                            ws.write(row_num,col_num,str(str_fecha),font_style)
+                        elif col_num==1:
+                            monto = float("{0:.2f}".format((float)(row[col_num])))
+                            ws.write(row_num,col_num,monto)
+                        else:
+                            ws.write(row_num,col_num,str(row[col_num]),font_style)
+                        
+                wb.save(response)
+                return response
+            else:
+                return render (request,"panel/login.html")
+        
 def import_productos_xls(request):
 
     if validar_permisos(request,'IMPORTAR PRODUCTOS'):
@@ -4240,3 +4278,165 @@ def panel_cotiz_detalle(request,fecha=None):
     else:
         return render (request,"panel/login.html")
 
+def panel_costo_list(request):
+        
+    if validar_permisos(request,'COSTOS'):
+
+        fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+        dias = timedelta(days=90) 
+        fecha_desde = fecha_hasta - dias
+       
+        print(fecha_desde,fecha_hasta)
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        #
+        
+        costos = Costo.objects.filter(fecha_actualizacion__range=[fecha_desde,fecha_hasta]).order_by('-fecha_actualizacion')
+        
+        context = {
+            'permisousuario':permisousuario,
+            'costos':costos,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta
+            }
+        
+        return render (request,"panel/lista_costos.html",context)
+    else:
+        return render (request,"panel/login.html")
+
+def import_costo(request):
+    
+    if validar_permisos(request,'IMPORTAR COSTO'):
+        cant_ok = 0
+        cant_error =0
+        error_str=""
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        if request.method=="POST":
+            try:
+                myfile = request.FILES['rootfile']
+                if myfile:
+                    #fs = FileSystemStorage()
+                    #filename = fs.save(myfile.name,myfile)
+                    #archivo = fs.url(filename)
+            
+                    #int_fin = len(archivo)
+                    #archivo = archivo[1:int_fin]
+                    print("myFile", myfile )
+                    fn = os.path.basename(myfile.name)
+                    # open read and write the file into the server
+                    open(f"media/{fn}", 'wb').write(myfile.file.read())
+                    archivo = f"media/{myfile}"
+                    #archivo = f"{myfile}"
+
+            except:
+                archivo=""
+           
+            if archivo:
+            
+                print("Archivo", archivo )
+                workbook = xlrd.open_workbook(archivo)
+                print("Abriendo arhcivo...")
+
+                
+                #Get the first sheet in the workbook by index
+                sheet1 = workbook.sheet_by_index(0)
+
+                #Get each row in the sheet as a list and print the list
+                for rowNumber in range(sheet1.nrows):
+                    try:
+                        row = sheet1.row_values(rowNumber)
+                        valor = sheet1.cell_value(rowNumber, 0).lower()
+                        if valor != "producto": # Saco la primera file
+                            try:
+                                producto = sheet1.cell_value(rowNumber, 0)
+                                costo = sheet1.cell_value(rowNumber, 1)
+                                costo = float(costo)
+                                
+                            except ValueError:
+                                cant_error += 1
+                                error_str+="<br> El costo del articulo "+ str(producto)+" no es valido."
+                                pass
+
+                            tmp_producto = Product.objects.get(product_name=producto)
+                            usuario = Account.objects.get(email=request.user)
+                            if usuario:
+                                if tmp_producto:
+                                    print("Entré....")
+                                    costos = Costo (
+                                        producto=tmp_producto,
+                                        costo=costo,
+                                        fecha_actualizacion=datetime.today(),
+                                        usuario=usuario,
+                                        )
+                                    costos.save()
+                                    if tmp_producto:
+                                        cant_ok=cant_ok+1
+                                    else:
+                                        cant_error=cant_error+1
+                                        error_str = error_str + "<br> Error al grabar el costo del articulo: " + str(producto)
+                            else:
+                                cant_error=cant_error+1
+                                error_str = error_str + "No se encontro al usuario " + str(request.user)
+                    except OSError as err:
+                        print("OS error:", err)
+                        error_str = error_str + err + " ROW: " + str(rowNumber)
+                        cant_error=cant_error+1
+                        pass
+                    except ValueError:
+                        cant_error=cant_error+1
+                        error_str = error_str  + " Error al convertir int -  ROW: " + str(rowNumber)  
+                        
+                        pass
+                    except Exception as err:
+                        error_str= error_str + producto
+                        error_str= error_str + f" /n - Unexpected {err=}, {type(err)=}"
+                        cant_error=cant_error+1
+                        
+                #Borro el archivo
+                os.remove(archivo)
+                
+        context = {
+                    'cant_ok':cant_ok,
+                    'permisousuario':permisousuario,
+                    'cant_error':cant_error,
+                    'error_str':error_str,
+                   
+                            
+                    }
+        return render(request,'panel/importar_costo.html',context)
+    else:
+            return render (request,"panel/login.html")
+
+def panel_costo_del(request,id_costo=None):
+        
+    if validar_permisos(request,'COSTOS'):
+
+        fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+        dias = timedelta(days=90) 
+        fecha_desde = fecha_hasta - dias
+       
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
+        if id_costo:
+            costos = Costo.objects.filter(id=id_costo).first()
+
+            if costos:
+                id = costos.id
+                costos.delete()
+                messages.success(request,"Costo eliminado con èxito")
+            else:
+                messages.error(request,"No se encoentro el costos")
+
+        costos = Costo.objects.filter(fecha_actualizacion__range=[fecha_desde,fecha_hasta]).order_by('-fecha_actualizacion')
+        
+        context = {
+            'permisousuario':permisousuario,
+            'costos':costos,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta
+            }
+        
+        return render (request,"panel/lista_costos.html",context)
+    else:
+        return render (request,"panel/login.html")

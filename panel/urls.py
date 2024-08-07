@@ -93,6 +93,11 @@ urlpatterns = [
     path('dolar/', views.panel_cotiz_dolar_list, name='panel_cotiz_dolar_list'),
     path('dolar/cotiz/<str:fecha>', views.panel_cotiz_detalle, name='panel_cotiz_dolar_modif'),
 
+    #COSTOS
+    path('costo/', views.panel_costo_list, name='panel_costo_list'),
+    path('costo/import/', views.import_costo, name='panel_import_stock'), 
+    path('costo/del/<int:id_costo>', views.panel_costo_del, name='panel_costo_eliminar'),
+    
     
     
 
