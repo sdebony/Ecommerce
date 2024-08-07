@@ -14,7 +14,7 @@
 
             </header>
             <div class="card-body">
-                <form id="dolar" action="{% url 'panel_cotiz_dolar_modif' fecha_str  %}" enctype="multipart/form-data" method="POST">
+                <form id="dolar" name="dolar" action="{% url 'panel_cotiz_dolar_modif' fecha_str  %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
                     <input type="text" name="fecha"  class="form-control" value="{{fecha_str}}" required hidden>
                     <div class="row">
@@ -37,7 +37,7 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label>Compra</label>
-                                    <input type="text" name="compra"  class="form-control" value="{{ dolar.compra}}" required>
+                                    <input type="text" name="compra"  id="compra" class="form-control" value="{{ dolar.compra}}" required>
                                     
                                 </div>
                             </div>
@@ -69,32 +69,42 @@
 </div>
 </section>
 
-<script>
-
-        document.getElementById('dolar').addEventListener('submit', function(event) {
-            let ventaInput = document.querySelector('input[name="venta"]');
-            let ventaValue = montoInput.value.trim();
-
-            let compraInput = document.querySelector('input[name="venta"]');
-            let compraValue = montoInput.value.trim();
-            
-           // Expresión regular para validar números decimales con hasta 2 dígitos decimales
-           let decimalRegex = /^\d+(\.\d{1,2})?$/;
-
-            if (!decimalRegex.test(ventaValue))  {
-                alert("Por favor, ingrese un valor numerico de hasta 2 dígitos decimales. Utilizar el PUNTO como separador decimal");
-                event.preventDefault();
-            }
-            if (!decimalRegex.test(compraValue))  {
-                alert("Por favor, ingrese un valor numerico de hasta 2 dígitos decimales. Utilizar el PUNTO como separador decimal");
-                event.preventDefault();
-            }
-        });
-</script>
-
 
 
 {% endblock %}
 
 {% block js_page %}
+<script>
+    document.getElementById('dolar').addEventListener('submit', function(event) {
+        let montoInput = document.querySelector('input[name="venta"]');
+        
+        let montoValue = montoInput.value.trim();
+        
+        // Expresión regular para validar números decimales con hasta 2 dígitos decimales
+        let decimalRegex = /^\d+([.,]\d{1,2})?$/;   
+        if (!decimalRegex.test(montoValue)) {
+            alert("Por favor, ingrese un monto válido con hasta 2 dígitos decimales. - Ventas");
+            event.preventDefault();
+        }
+
+
+    });
+
+    document.getElementById('dolar').addEventListener('submit', function(event) {
+        let montoInput = document.querySelector('input[name="compra"]');
+        
+        let montoValue = montoInput.value.trim();
+        
+        // Expresión regular para validar números decimales con hasta 2 dígitos decimales
+        let decimalRegex = /^\d+([.,]\d{1,2})?$/;
+
+        if (!decimalRegex.test(montoValue)) {
+            alert("Por favor, ingrese un monto válido con hasta 2 dígitos decimales. - Compras");
+            event.preventDefault();
+        }
+
+
+    });
+</script>
+
 {% endblock %}
