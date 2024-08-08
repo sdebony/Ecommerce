@@ -1,7 +1,7 @@
 from django.db import models
 from accounts.models import Account
 
-from store.models import Product, Variation
+from store.models import Product, Variation, Costo
 
 
 
@@ -89,12 +89,15 @@ class OrderProduct(models.Model):
     ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    costo = models.FloatField(default=0)
+
 
     def __str__(self):
         return self.product.product_name
     
     def subtotal(self):
         return self.quantity*self.product_price
+
 
 class OrderShipping(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

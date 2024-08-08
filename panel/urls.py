@@ -88,6 +88,11 @@ urlpatterns = [
 
     #REPORTES
     path('reportes/articulo', views.panel_reporte_articulos_list, name='panel_reporte_articulos_list'),
+    path('reportes/cliente', views.panel_reporte_clientes_list, name='panel_reporte_clientes_list'),
+    path('reportes/export/articulo', views.articulos_vendidos_export_xls, name='export_articulos_vendidos'),
+    path('reportes/export/cliente', views.clientes_ventas_export_xls, name='export_clientes_ventas'),
+
+
 
     #CONFIG DOLARES
     path('dolar/', views.panel_cotiz_dolar_list, name='panel_cotiz_dolar_list'),

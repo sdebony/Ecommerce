@@ -6,7 +6,8 @@ import datetime
 import time
 from .models import Order, Payment, OrderProduct
 import json
-from store.models import Product
+from store.models import Product,Costo
+
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
@@ -46,6 +47,10 @@ def payments(request):
         orderproduct.quantity = item.quantity
         orderproduct.product_price = item.product.price
         orderproduct.ordered = True
+        costo = costo_producto(item.product_id)
+        print("COSTO COSTO COSTO COSTO COSTO")
+        print(str(costo))
+        orderproduct.costo = costo
         orderproduct.save()
 
         cart_item = CartItem.objects.get(id=item.id)
@@ -163,8 +168,7 @@ def order_complete(request):
         subtotal = 0
         for i in ordered_products:
             subtotal += i.product_price * i.quantity
-
-
+    
         payment = Payment.objects.get(payment_id=transID)
 
         context = {
@@ -199,8 +203,12 @@ def order_cash(request):
             orderproduct.quantity = item.quantity
             orderproduct.product_price = item.product.price
             orderproduct.ordered = True
-            orderproduct.save()
 
+            costo = costo_producto(item.product_id)
+            orderproduct.costo = costo
+            orderproduct.save()
+            
+            
             cart_item = CartItem.objects.get(id=item.id)
             product_variation = cart_item.variations.all()
             orderproduct = OrderProduct.objects.get(id=orderproduct.id)
@@ -217,8 +225,6 @@ def order_cash(request):
         #print("total peso Articulos:",pesoarticulos)
         # Clear cart
         CartItem.objects.filter(user=request.user).delete()
-
-        
 
         # *************************
         # ORDER COMPLETE
@@ -238,6 +244,7 @@ def order_cash(request):
             subtotal = 0
             for i in ordered_products:
                 subtotal += i.product_price * i.quantity
+                
 
             #Es pago contra recibo
             #payment = Payment.objects.get(payment_id=transID)
@@ -287,3 +294,13 @@ def order_cash(request):
         except (Order.DoesNotExist):
             print("Except")
             return redirect('home')
+
+def costo_producto(product_id):
+
+        product = Product.objects.get(id=product_id)
+        if product:
+            costo = Costo.objects.filter(producto=product).order_by('-fecha_actualizacion').first()
+            if costo:
+                return costo.costo
+            else:
+                return 0

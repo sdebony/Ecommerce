@@ -1986,20 +1986,21 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['Pedido','Fecha','Total','Nombre','Apellido','email','Producto','Cantidad','Precio']
+                    columns = ['Pedido','Fecha','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','costo']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
-                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price')
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo')
      
                     for row in rows:
                         row_num += 1      
                         for col_num in range(len(row)):              
-                            if col_num==7 or col_num==8 or col_num==2:
+                            if col_num==7 or col_num==8 or col_num==2 or col_num==9:
+
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
-                                ws.write(row_num,col_num,int(round(monto)))
+                                ws.write(row_num,col_num,monto)
                             else:
                                 ws.write(row_num,col_num, str(row[col_num]),font_style)
                 wb.save(response)
@@ -2126,6 +2127,109 @@ def export_xls(request,modelo=None):
             else:
                 return render (request,"panel/login.html")
         
+def articulos_vendidos_export_xls(request):
+    
+        fecha_1 = request.POST.get("fechadesde")
+        fecha_2 = request.POST.get("fechahasta")     
+
+        print(fecha_1,fecha_2)    
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=90) 
+            fecha_desde = fecha_hasta - dias
+        else:      
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
+        
+        wb = xlwt.Workbook(encoding='utf-8')
+
+        sheet = "Costos"
+        ws = wb.add_sheet(sheet)
+        
+        row_num=0
+        font_style= xlwt.Style.XFStyle()
+        font_style.font.bold = True
+        columns = ['Producto','Cantidad Vendida','Precio Unit']
+        for col_num in range(len(columns)):
+            ws.write(row_num,col_num,columns[col_num],font_style)
+        font_style = xlwt.Style.XFStyle()
+
+        items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
+        rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('product__product_name').annotate(cantidad=Sum('quantity'),
+            importe=Sum('product_price')).order_by('-quantity')
+    
+
+        for row in rows:
+            row_num += 1      
+            for col_num in range(len(row)):
+                if col_num==5:
+                    format_string = '%Y-%m-%d %H:%M:%S.%f'
+                    str_fecha = str(row[col_num])
+                    str_fecha = datetime.strptime(str_fecha, format_string)
+                    ws.write(row_num,col_num,str(str_fecha),font_style)
+                elif col_num==1 or col_num==2:
+                    monto = float("{0:.2f}".format((float)(row[col_num])))
+                    ws.write(row_num,col_num,monto)
+                else:
+                    ws.write(row_num,col_num,str(row[col_num]),font_style)
+                
+        wb.save(response)
+        return response
+
+def clientes_ventas_export_xls(request):
+    
+        fecha_1 = request.POST.get("fechadesde")
+        fecha_2 = request.POST.get("fechahasta")     
+
+        print(fecha_1,fecha_2)    
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=90) 
+            fecha_desde = fecha_hasta - dias
+        else:      
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
+        
+        wb = xlwt.Workbook(encoding='utf-8')
+
+        sheet = "Costos"
+        ws = wb.add_sheet(sheet)
+        
+        row_num=0
+        font_style= xlwt.Style.XFStyle()
+        font_style.font.bold = True
+        columns = ['Apellido','Nombre','Importe total','Cantidad']
+        for col_num in range(len(columns)):
+            ws.write(row_num,col_num,columns[col_num],font_style)
+        font_style = xlwt.Style.XFStyle()
+
+    
+        rows = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values_list('last_name','first_name').annotate(total=
+                    Round(
+            Sum('order_total'),
+            output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')
+
+        print(rows)
+        for row in rows:
+            row_num += 1      
+            for col_num in range(len(row)):
+                if col_num==2 or col_num==3:
+                    monto = float("{0:.2f}".format((float)(row[col_num])))
+                    ws.write(row_num,col_num,monto)
+                else:
+                    ws.write(row_num,col_num,str(row[col_num]),font_style)
+                
+        wb.save(response)
+        return response
+         
 def import_productos_xls(request):
 
     if validar_permisos(request,'IMPORTAR PRODUCTOS'):
@@ -4118,7 +4222,6 @@ def panel_pedidos_obtener_linea(request,item=None):
 
 def panel_reporte_articulos_list(request):
 
-
     if validar_permisos(request,'REPORTE ARTICULOS'):
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")     
@@ -4126,24 +4229,15 @@ def panel_reporte_articulos_list(request):
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
             dias = timedelta(days=90) 
             fecha_desde = fecha_hasta - dias
-        else:
-           
+        else:      
             fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
             fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
 
-        #print(fecha_desde,fecha_hasta)
-
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        
-        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
-                     Round(
-                Sum('order_total'),
-                output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')[:10]
-
-        
+                
         items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
         items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(cantidad=Sum('quantity'),
-            importe=Sum('product_price')).order_by('-quantity')[:10]
+            importe=Sum('product_price')).order_by('-quantity')
        
         hist_pedidos = []
 
@@ -4173,8 +4267,6 @@ def panel_reporte_articulos_list(request):
             'permisousuario':permisousuario,
             'hist_pedidos':hist_pedidos,
             'items': items,
-            #'cuentas':cuentas,
-            'clientes':clientes,
             'form': form,
             'fecha_desde':fecha_desde,
             'fecha_hasta':fecha_hasta,
@@ -4186,6 +4278,43 @@ def panel_reporte_articulos_list(request):
 
         
         return render (request,"panel/reporte_articulos.html",context)
+    else:
+        return render (request,"panel/login.html")
+
+def panel_reporte_clientes_list(request):
+
+
+    if validar_permisos(request,'REPORTE CLIENTES'):
+        fecha_1 = request.POST.get("fecha_desde")
+        fecha_2 = request.POST.get("fecha_hasta")     
+        if not fecha_1 and not fecha_2 :
+            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
+            dias = timedelta(days=90) 
+            fecha_desde = fecha_hasta - dias
+        else:
+           
+            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
+            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
+        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
+                     Round(
+                Sum('order_total'),
+                output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')
+
+        
+
+        context = {
+            'permisousuario':permisousuario,
+            'clientes':clientes,
+            'fecha_desde':fecha_desde,
+            'fecha_hasta':fecha_hasta      
+            }
+        
+
+        
+        return render (request,"panel/reporte_clientes.html",context)
     else:
         return render (request,"panel/login.html")
 

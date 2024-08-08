@@ -282,16 +282,16 @@
           {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'REPORTE ARTICULOS' %}
-                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos_list' %}">Reporte Articulos</a>
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos_list' %}">Reporte de Articulos</a>
               {% endif%}
             {% endif %}
           {% endfor %}
 
-          <h6 class="collapse-header">OTROS</h6>
+          <h6 class="collapse-header">CLIENTES</h6>
           {% for items in permisousuario %}
             {% if items.modo_ver %}
-              {% if items.codigo.codigo == 'REPORTES' %}
-                <a class="collapse-item" href="{% url 'panel_usuarios' %}">Otros Reporte</a>
+              {% if items.codigo.codigo == 'REPORTE CLIENTES' %}
+                <a class="collapse-item" href="{% url 'panel_reporte_clientes_list' %}">Reporte de Clientes</a>
               {% endif %}
             {% endif %}
           {% endfor %}

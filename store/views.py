@@ -5,7 +5,6 @@ from carts.models import CartItem
 from django.db.models import Q,Value
 from django.db.models.functions import Concat
 
-
 from carts.views import _cart_id
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse
