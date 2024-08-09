@@ -2274,7 +2274,8 @@ def import_productos_xls(request):
                 for rowNumber in range(sheet1.nrows):
                     try:
                         row = sheet1.row_values(rowNumber)
-                        if sheet1.cell_value(rowNumber, 0).lower() != "producto":
+                        dato = sheet1.cell_value(rowNumber, 0)
+                        if dato.lower() != "producto": # Saco la primera file
                             product_id=0
                             product_name = sheet1.cell_value(rowNumber, 0)
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
@@ -2446,7 +2447,8 @@ def import_precios(request):
                 for rowNumber in range(sheet1.nrows):
                     try:
                         row = sheet1.row_values(rowNumber)
-                        if sheet1.cell_value(rowNumber, 0) != "producto": # Saco la primera file
+                        dato = sheet1.cell_value(rowNumber, 0)
+                        if dato.lower() != "producto": # Saco la primera file
                             producto = sheet1.cell_value(rowNumber, 0)
                             precio = sheet1.cell_value(rowNumber, 1)
 
@@ -2562,7 +2564,8 @@ def import_stock(request):
                 for rowNumber in range(sheet1.nrows):
                     try:
                         row = sheet1.row_values(rowNumber)
-                        if sheet1.cell_value(rowNumber, 0) != "producto": # Saco la primera file
+                        dato = sheet1.cell_value(rowNumber, 0)
+                        if dato.lower() != "producto": # Saco la primera file
                             producto = sheet1.cell_value(rowNumber, 0)
                             stock = sheet1.cell_value(rowNumber, 1)
 
