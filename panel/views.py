@@ -2147,36 +2147,34 @@ def articulos_vendidos_export_xls(request):
         
         wb = xlwt.Workbook(encoding='utf-8')
 
-        sheet = "Costos"
+        sheet = "Articulos"
         ws = wb.add_sheet(sheet)
         
         row_num=0
         font_style= xlwt.Style.XFStyle()
         font_style.font.bold = True
-        columns = ['Producto','Cantidad Vendida','Precio Unit']
+        columns = ['Producto','Cantidad Vendida','Precio Unitario']
         for col_num in range(len(columns)):
             ws.write(row_num,col_num,columns[col_num],font_style)
         font_style = xlwt.Style.XFStyle()
 
         items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
-        rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('product__product_name').annotate(cantidad=Sum('quantity'),
-            importe=Sum('product_price')).order_by('-quantity')
-    
-
-        for row in rows:
+        rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('product__product_name').annotate(
+            cantidad=Round(Sum('quantity')),
+            importe=Sum('product_price')).order_by('-cantidad')
+        
+        # `rows` ya es una lista de tuplas, por lo que no necesitas hacer más conversiones
+        resultados = rows
+        row_num = 0
+        for row in resultados:
             row_num += 1      
             for col_num in range(len(row)):
-                if col_num==5:
-                    format_string = '%Y-%m-%d %H:%M:%S.%f'
-                    str_fecha = str(row[col_num])
-                    str_fecha = datetime.strptime(str_fecha, format_string)
-                    ws.write(row_num,col_num,str(str_fecha),font_style)
-                elif col_num==1 or col_num==2:
-                    monto = float("{0:.2f}".format((float)(row[col_num])))
-                    ws.write(row_num,col_num,monto)
+                if col_num == 2 or col_num == 3:
+                    monto = float("{0:.2f}".format(float(row[col_num])))
+                    ws.write(row_num, col_num, monto)
                 else:
-                    ws.write(row_num,col_num,str(row[col_num]),font_style)
-                
+                    ws.write(row_num, col_num, str(row[col_num]), font_style)
+                        
         wb.save(response)
         return response
 
@@ -2202,7 +2200,7 @@ def clientes_ventas_export_xls(request):
 
         sheet = "Costos"
         ws = wb.add_sheet(sheet)
-        
+        resultados = []
         row_num=0
         font_style= xlwt.Style.XFStyle()
         font_style.font.bold = True
@@ -2211,22 +2209,25 @@ def clientes_ventas_export_xls(request):
             ws.write(row_num,col_num,columns[col_num],font_style)
         font_style = xlwt.Style.XFStyle()
 
-    
-        rows = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values_list('last_name','first_name').annotate(total=
-                    Round(
+        #values_list => Agrupa => lista de tuplas
+        #values = No agrupa  => Diccionario
+        rows = Order.objects.filter(fecha__range=[fecha_desde, fecha_hasta]).values_list('last_name', 'first_name').annotate(
+        total=Round(
             Sum('order_total'),
-            output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')
+            output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-total')
 
-        print(rows)
-        for row in rows:
+        # `rows` ya es una lista de tuplas, por lo que no necesitas hacer más conversiones
+        resultados = rows
+        row_num = 0
+        for row in resultados:
             row_num += 1      
             for col_num in range(len(row)):
-                if col_num==2 or col_num==3:
-                    monto = float("{0:.2f}".format((float)(row[col_num])))
-                    ws.write(row_num,col_num,monto)
+                if col_num == 2 or col_num == 3:
+                    monto = float("{0:.2f}".format(float(row[col_num])))
+                    ws.write(row_num, col_num, monto)
                 else:
-                    ws.write(row_num,col_num,str(row[col_num]),font_style)
-                
+                    ws.write(row_num, col_num, str(row[col_num]), font_style)
+                        
         wb.save(response)
         return response
          
@@ -4239,9 +4240,11 @@ def panel_reporte_articulos_list(request):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
                 
         items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
-        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(cantidad=Sum('quantity'),
-            importe=Sum('product_price')).order_by('-quantity')
+        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(
+            cantidad=Sum('quantity'),
+            importe=Sum('product_price')).order_by('-cantidad')
        
+
         hist_pedidos = []
 
         for i in range(1, 13): 
@@ -4304,9 +4307,9 @@ def panel_reporte_clientes_list(request):
         clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
                      Round(
                 Sum('order_total'),
-                output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('-last_name')
-
+                output_field=DecimalField(max_digits=12, decimal_places=2)),cantidad=Count('order_number')).order_by('last_name')
         
+       
 
         context = {
             'permisousuario':permisousuario,
