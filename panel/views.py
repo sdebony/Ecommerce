@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+
 from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from store.models import Product,Variation,Costo
 from orders.models import Order, OrderProduct,Payment,OrderShipping
-from category.models import Category, SubCategory
+from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
@@ -18,6 +20,8 @@ from slugify import slugify
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal
 
+from django.db.models import F
+import json
 
 
 import smtplib
@@ -295,11 +299,12 @@ def dashboard_resultados(request):
 
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre','cuenta__moneda').annotate(total=
-            Round(
-                Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2)))
-        print(saldos)
+        # LE SACO LAS FECHAS PARA QUE TOME LOS SALDOS REALES ACTUALES
+        #saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre','cuenta__moneda').annotate(total=
+        #    Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
+        saldos = Movimientos.objects.filter().values('cuenta__nombre','cuenta__moneda').annotate(total=
+            Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
+
         context = {
             'permisousuario':permisousuario,
             'saldos':saldos,
@@ -558,6 +563,37 @@ def panel_pedidos_detalle(request,order_number=None):
         }
         
         return render(request,'panel/pedidos_detalle.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
+def panel_pedidos_imprimir_picking(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        ordenes = Order.objects.get(order_number=order_number)
+        ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+
+        # Anotar los valores de orden_picking desde Category y SubCategory
+        ordenes_detalle = ordenes_detalle.annotate(
+            category_orden_picking=F('product__category__orden_picking'),
+            subcategory_orden_picking=F('product__subcategory__orden_picking')
+        )
+
+        # Ordenar por Category.orden_picking primero y luego por SubCategory.orden_picking
+        ordenes_detalle = ordenes_detalle.order_by('category_orden_picking', 'subcategory_orden_picking')
+
+        # Ahora `ordenes_detalle` estará ordenado según el `orden_picking` de Category y SubCategory.
+
+                   
+        context = {
+            'ordenes':ordenes,
+            'permisousuario':permisousuario,
+            'ordenes_detalle':ordenes_detalle
+        }
+        
+        return render(request,'panel/pedido_picking.html',context) 
     else:
         return render (request,"panel/login.html")
 
@@ -1986,19 +2022,18 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['Pedido','Fecha','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','costo']
+                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','costo']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
-                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo')
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo')
      
                     for row in rows:
                         row_num += 1      
                         for col_num in range(len(row)):              
-                            if col_num==7 or col_num==8 or col_num==2 or col_num==9:
-
+                            if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10:
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,monto)
                             else:
@@ -2017,17 +2052,17 @@ def export_xls(request,modelo=None):
                 row_num=0
                 font_style= xlwt.Style.XFStyle()
                 font_style.font.bold = True
-                columns = ['Nombre','Description','Precio','images','stock','Habilitado','Category','Sub Category']
+                columns = ['Nombre','Description','Precio','images','stock','Habilitado','Category','Sub Category','peso']
                 for col_num in range(len(columns)):
                     ws.write(row_num,col_num,columns[col_num],font_style)
                 font_style = xlwt.Style.XFStyle()
 
-                rows = Product.objects.filter().values_list('product_name','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name').order_by('product_name')
+                rows = Product.objects.filter().values_list('product_name','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name','peso').order_by('product_name')
                 
                 for row in rows:
                     row_num += 1      
                     for col_num in range(len(row)):              
-                        if col_num==2 or col_num==4: #Numericos
+                        if col_num==2 or col_num==4 or col_num==8: #Numericos
                             monto = float("{0:.2f}".format((float)(row[col_num])))
                             ws.write(row_num,col_num,int(round(monto)))
                         else:
@@ -3716,10 +3751,8 @@ def panel_pedidos_eliminar_entrega(request,order_number=None):
     
     if validar_permisos(request,'PEDIDOS'):
 
-        print(">>>>Eliminar Entrega: ",order_number)
         try:
             if order_number:
-                print("--->", order_number)
                 ordenes = Order.objects.get(order_number=order_number)
                 if ordenes:
                     id_ordenes = ordenes.id
@@ -4575,3 +4608,66 @@ def panel_costo_del(request,id_costo=None):
         return render (request,"panel/lista_costos.html",context)
     else:
         return render (request,"panel/login.html")
+
+def panel_picking_list(request):
+    
+    if validar_permisos(request,'PICKING'):
+       
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        categoria = Category.objects.all().order_by('orden_picking')
+        subcategoria = SubCategory.objects.all().order_by('orden_picking')         
+        #ordern_picking = Orden_picking.objects.all()
+        
+        context = {
+            'permisousuario':permisousuario,
+            'categories':categoria,
+            'subcategories':subcategoria #,
+            #'ordern_picking':ordern_picking
+            }
+        
+
+        
+        return render (request,"panel/lista_picking.html",context)
+    else:
+        return render (request,"panel/login.html")
+
+def category_list(request):
+    categories = Category.objects.all().order_by('orden_picking')
+    subcategories = SubCategory.objects.all().order_by('orden_picking')
+    context = {
+        'categories': categories,
+        'subcategories': subcategories,
+    }
+    return render(request, 'categories/category_list.html', context)
+#Funcion que ordena las categorias y subcategorias para listar en la hoja de pocking
+def update_order(request):
+
+    
+    if request.method == 'POST':
+        order_data = request.POST.get('order_data', None)
+        if order_data:
+            order_list = order_data.split(',')
+            order_category = 0
+            order_subcategory = 0
+            
+            for item in order_list:
+                
+                if 'categorie_' in item: 
+                    category_id = item.split('_')[1]
+                    print("Category:", category_id, order_category)
+                    category = get_object_or_404(Category, id=category_id)
+                    category.orden_picking = order_category
+                    category.save()
+                    order_category += 1
+                elif 'subcategory_' in item:
+                    subcategory_id = item.split('_')[1]
+                    
+                    subcategory = get_object_or_404(SubCategory, id=subcategory_id)
+                    subcategory.orden_picking = order_subcategory
+                    subcategory.save()
+                    order_subcategory += 1
+
+            
+            return JsonResponse({'status': 'success'})
+        
+        return JsonResponse({'status': 'failed'}, status=400)

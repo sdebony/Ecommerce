@@ -15,7 +15,6 @@ from api.views import enviar_whatsapp
 
 #import pywhatkit  #Kit de envio de whatsapp
 
-
 def payments(request):
     body = json.loads(request.body)
     
@@ -267,7 +266,8 @@ def order_cash(request):
                 'subtotal': subtotal,
                 })
             to_email =  request.user.email
-            cc_email = 'santidebony@hotmail.com' #lifche.argentina@gmail.com
+            cc_email = 'lifche.argentina@gmail.com' #santidebony@hotmail.com
+            
             send_email = EmailMessage(mail_subject, message, to=[to_email],cc=[cc_email])
             send_email.content_subtype = "html"
             send_email.attach_file('static/images/logo.png')

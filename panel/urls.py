@@ -56,7 +56,7 @@ urlpatterns = [
     path('pedidos/mail/<str:order_number>', views.panel_pedidos_enviar_factura, name='panel_pedidos_enviar_factura'), 
     path('pedidos/mail/tracking/<str:order_number>', views.panel_pedidos_enviar_tracking, name='panel_pedidos_enviar_tracking'), 
     path('pedidos/mail/datos/<str:order_number>', views.panel_pedidos_enviar_datos_cuenta, name='panel_pedidos_enviar_datos_cuenta'), 
-    
+    path('pedidos/print/picking/<str:order_number>', views.panel_pedidos_imprimir_picking, name='panel_pedidos_imprimir_picking'), 
     
     path('pedidos/eliminar/entrega/<str:order_number>', views.panel_pedidos_eliminar_entrega, name='panel_pedidos_eliminar_entrega'), 
     path('pedidos/detalle/modif/<str:order_number>/<str:item>/<str:quantity>', views.panel_pedidos_modificar, name='panel_pedidos_modificar'), 
@@ -97,6 +97,10 @@ urlpatterns = [
     #CONFIG DOLARES
     path('dolar/', views.panel_cotiz_dolar_list, name='panel_cotiz_dolar_list'),
     path('dolar/cotiz/<str:fecha>', views.panel_cotiz_detalle, name='panel_cotiz_dolar_modif'),
+
+    #CONFIG PICKING
+    path('pick/', views.panel_picking_list, name='panel_picking_list'),
+    path('pick/update_order/', views.update_order, name='panel_picking_update_order'),
 
     #COSTOS
     path('costo/', views.panel_costo_list, name='panel_costo_list'),
