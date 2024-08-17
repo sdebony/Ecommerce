@@ -270,7 +270,7 @@ def order_cash(request):
             
             send_email = EmailMessage(mail_subject, message, to=[to_email],cc=[cc_email])
             send_email.content_subtype = "html"
-            send_email.attach_file('static/images/logo.png')
+            #send_email.attach_file('static/images/logo.png')
             send_email.send()
 
             #************************
