@@ -9,11 +9,12 @@ from store.models import Product,Variation,Costo
 from orders.models import Order, OrderProduct,Payment,OrderShipping
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
-from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias
+from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias,CierreMes
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
 
 from accounts.forms import UserForm, UserProfileForm
 from django.db.models import Q, Sum, Count,Max , DecimalField
+from django.db.models.functions import TruncMonth
 from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
@@ -22,7 +23,12 @@ from decimal import Decimal
 
 from django.db.models import F
 import json
+import calendar
 
+import locale
+
+# Configurar la localización a español
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 import smtplib
 
@@ -448,11 +454,13 @@ def panel_pedidos_list(request,status=None):
         if not status:
             status='New'
 
+        dias_default_pedidos = settings.DIAS_DEFAULT_PEDIDOS  #Rango de fechas desde y hasta para filtros hoy - x dias
+
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")     
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=15) 
+            dias = timedelta(days=dias_default_pedidos) 
             fecha_desde = fecha_hasta - dias
         else:
            
@@ -1748,6 +1756,7 @@ def panel_movimientos_list(request):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
+        dias_default_movimientos = settings.DIAS_DEFAULT_MOVIMIENTOS
         print("panel_movimientos_list")
         fecha_1=None
         fecha_2=None
@@ -1758,7 +1767,7 @@ def panel_movimientos_list(request):
         
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=15) 
+            dias = timedelta(days=dias_default_movimientos) 
             fecha_desde = fecha_hasta - dias
         else:
            
@@ -1780,6 +1789,30 @@ def panel_movimientos_list(request):
         }
         
         return render(request,'panel/lista_movimientos.html',context) 
+
+    else:
+        return render (request,"panel/login.html")
+
+def panel_movimientos_cerrados_list(request,idcierre=None):
+    
+    if validar_permisos(request,'MOVIMIENTOS'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    
+        mov = Movimientos.objects.filter(idcierre=idcierre).values('cuenta__nombre','cuenta__moneda__simbolo').annotate(total=
+        Round(
+            Sum('monto'),
+            output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__nombre')
+        
+        movimientos = Movimientos.objects.filter(idcierre=idcierre).order_by('fecha')
+        print(mov)
+        context = {
+            'mov':mov,
+            'movimientos':movimientos,
+            'permisousuario':permisousuario
+        }
+        
+        return render(request,'panel/lista_mov_cerrados_cuentas.html',context) 
 
     else:
         return render (request,"panel/login.html")
@@ -1806,18 +1839,19 @@ def panel_transferencias_list(request):
 def panel_cierre_registrar(request):
     
     if validar_permisos(request,'CIERRE CONTABLE'):
-
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
+        #SI YA EXISTE EL CIERRE EN LA TABLA DE CIERRE BUSCARLO DESDE AHI Y NO RECALCULARLO
         mes = 0
         anio=0
         cuenta=0
+        action =""
 
         if request.method =="POST":
             mes = request.POST.get("mes")
             anio = request.POST.get("anio")
-           
-
+            action = request.POST.get('action')
+       
         if mes==0 and anio==0:
             #***************************************
             # POR DEFAULT TOMAMOS EL MES CORRIENTE
@@ -1846,42 +1880,115 @@ def panel_cierre_registrar(request):
         if cuenta==0:
             cuenta = 1
 
-       
+    
         meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
         anios = [yr-1, yr,yr+1]
-      
-        print(yr, fecha_desde,fecha_hasta)
-
-
-        totales_ingresos_ventas = Movimientos.objects.filter(idcierre__isnull=True,ordernumber__isnull=False,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+    
+       
+        totales_ingresos_ventas = Movimientos.objects.filter(idcierre__exact=0,ordernumber__isnull=False,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
 
-        totales_ingresos_varios = Movimientos.objects.filter(idcierre__isnull=True,ordernumber__isnull=True,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+        totales_ingresos_varios = Movimientos.objects.filter(idcierre__exact=0,ordernumber__isnull=True,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
 
 
-        totales_ingresos = Movimientos.objects.filter(idcierre__isnull=True,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+        totales_ingresos = Movimientos.objects.filter(idcierre__exact=0,movimiento=1,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
     
     
-        totales_egresos = Movimientos.objects.filter(idcierre__isnull=True,movimiento=2,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+        totales_egresos = Movimientos.objects.filter(idcierre__exact=0,movimiento=2,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
 
 
-        totales_resultado = Movimientos.objects.filter(idcierre__isnull=True,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
+        totales_resultado = Movimientos.objects.filter(idcierre__exact=0,fecha__gte=fecha_desde, fecha__lte=fecha_hasta).values('cuenta__moneda__codigo','cuenta__moneda__simbolo').annotate(total=
             Round(
                 Sum('monto'),
                 output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__moneda')
-      
-     
+        
+        if action == "ELIMINAR":
+            int_mes =  monthToNum(mes)
+
+            cierremensual = CierreMes.objects.filter(mes=int_mes, anio=anio).first()
+            if  cierremensual:
+                id_cierre = cierremensual.id
+                udp_mov =  Movimientos.objects.filter(idcierre__exact=id_cierre)
+                for mov in udp_mov:
+                    mov.idcierre = 0
+                    mov.save()
+                cierremensual.delete()
+       
+
+    
+        if action == "CERRAR":
+
+            int_mes =  monthToNum(mes)
+            ing_saldo_pesos = 0
+            ing_saldo_dolar = 0
+            egr_saldo_pesos = 0
+            egr_saldo_dolar = 0
+            tot_saldo_pesos = 0
+            tot_saldo_dolar = 0
+
+            #Valido que no este hecho el cierre
+            for item in totales_ingresos:
+                moneda = item['cuenta__moneda__codigo']
+                if moneda =="ARS":
+                    ing_saldo_pesos = item['total']
+                if moneda =="USD":
+                    ing_saldo_dolar = item['total']
+
+            for item in totales_egresos:
+                moneda = item['cuenta__moneda__codigo']
+                if moneda =="ARS":
+                    egr_saldo_pesos = item['total']
+                if moneda =="USD":
+                    egr_saldo_dolar = item['total']
+
+            for item in totales_resultado:
+                moneda = item['cuenta__moneda__codigo']
+                if moneda =="ARS":
+                    tot_saldo_pesos = item['total']
+                if moneda =="USD":
+                    tot_saldo_dolar = item['total']
+           
+        
+           
+            cierremensual = CierreMes.objects.filter(mes=int_mes, anio=anio).first()
+            if not cierremensual:
+                cierremensual = CierreMes.objects.create(
+                    mes=int_mes, 
+                    anio=anio, 
+                    fecha=datetime.today(),
+                    fecha_desde=fecha_desde,
+                    fecha_hasta=fecha_hasta,
+                    ing_saldo_pesos=ing_saldo_pesos,
+                    ing_saldo_dolar=ing_saldo_dolar,
+                    egr_saldo_pesos=egr_saldo_pesos,
+                    egr_saldo_dolar=egr_saldo_dolar,
+                    tot_saldo_pesos=tot_saldo_pesos,
+                    tot_saldo_dolar=tot_saldo_dolar
+                )
+                id_cierre = cierremensual.id
+                udp_mov =  Movimientos.objects.filter(idcierre__exact=0,fecha__gte=fecha_desde, fecha__lte=fecha_hasta)
+                for mov in udp_mov:
+                    mov.idcierre = id_cierre
+                    mov.save()
+                    
+
+                messages.success(request, f'Se cerró el período ' + str(mes))
+            else:
+                messages.success(request, f'El período ' + str(mes) +' ya se encuentra cerrado!')
+
+                
+
         context = {
             'permisousuario':permisousuario,
             'totales_egresos':totales_egresos,      
@@ -1896,11 +2003,89 @@ def panel_cierre_registrar(request):
             'sel_mes': sel_mes,
             'sel_anio':sel_anio,
 
-                       
+                    
         }
         
         return render(request,'panel/registrar_cierre.html',context) 
+    else:
+        return render (request,"panel/login.html")
 
+def panel_balance_movimientos(request):
+
+   
+    if validar_permisos(request,'BALANCE'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    
+        # Obtener todos los cierres mensuales del año actual (por ejemplo, 2024)
+        anio_actual = int(datetime.today().strftime('%Y'))
+
+        años_disponibles = CierreMes.objects.values_list('anio', flat=True).distinct().order_by('-anio')
+        meses = range(1, 13)  # Meses de 1 (enero) a 12 (diciembre)
+        cierres_dict = {cierre.mes: cierre for cierre in CierreMes.objects.filter(anio=anio_actual)}
+
+        
+        # Obtener el total de transacciones con idcierre=0 agrupado por mes
+        nocerrado_por_mes = (Movimientos.objects.filter(idcierre=0)  # Filtrar transacciones con idcierre=0
+                    .annotate(mes=TruncMonth('fecha'))  # Agrupar por mes
+                    .values('mes')  # Seleccionar el mes
+                    .annotate(total_monto=Sum('monto'))  # Sumar el monto para cada mes
+                    .order_by('mes')  # Ordenar por mes
+                )
+        # Convertir el resultado en un diccionario para un acceso más fácil
+        totales_dict = {total['mes'].month: total['total_monto'] for total in nocerrado_por_mes}
+
+        # Inicializar los datos con todos los meses
+        data = []
+        for mes in meses:
+            if mes in cierres_dict:
+                cierre = cierres_dict[mes]
+                total_movimientos = totales_dict.get(mes, 0)
+                data.append({
+                    'mes': calendar.month_name[mes],
+                    'ingresos_pesos': cierre.ing_saldo_pesos,
+                    'ingresos_dolares': cierre.ing_saldo_dolar,
+                    'egresos_pesos': cierre.egr_saldo_pesos,
+                    'egresos_dolares': cierre.egr_saldo_dolar,
+                    'total_pesos': cierre.tot_saldo_pesos,
+                    'total_dolares': cierre.tot_saldo_dolar,
+                    'total_movimientos': total_movimientos, #Tiene mov no cerrados 
+                    'tiene_datos': True,  # Cierre Generado
+                    'idcierre':cierre.id,
+                })
+            else:
+                # Si el mes no tiene registro, añadir con valores en 0
+                data.append({
+                    'mes': calendar.month_name[mes],
+                    'ingresos_pesos': 0,
+                    'ingresos_dolares': 0,
+                    'egresos_pesos': 0,
+                    'egresos_dolares': 0,
+                    'total_pesos': 0,
+                    'total_dolares': 0,
+                    'total_movimientos': 0, 
+                    'tiene_datos': False,
+                    'idcierre':0,
+                })
+
+        # Calcular los totales anuales
+        totales = {
+            'ingresos_pesos': sum(item['ingresos_pesos'] for item in data),
+            'ingresos_dolares': sum(item['ingresos_dolares'] for item in data),
+            'egresos_pesos': sum(item['egresos_pesos'] for item in data),
+            'egresos_dolares': sum(item['egresos_dolares'] for item in data),
+            'total_pesos': sum(item['total_pesos'] for item in data),
+            'total_dolares': sum(item['total_dolares'] for item in data),
+        }
+
+       
+        return render(request, 'panel/balance_cuentas.html', {
+            'data': data, 
+            'totales': totales, 
+            'anio_actual': anio_actual, 
+            'años_disponibles': años_disponibles,
+            'permisousuario':permisousuario}
+        )
     else:
         return render (request,"panel/login.html")
 
@@ -3718,11 +3903,18 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                         if movimiento:
                             
                             id_mov = movimiento.id
-                            print("Mov --> ",id_mov )
-                            movimiento.id = id_mov
-                            movimiento.delete()
+                            id_cierre = movimiento.idcierre
+
+                            if id_cierre is None or id_cierre == 0:
+                                print("Mov --> ",id_mov )
+                                movimiento.id = id_mov
+                                movimiento.delete()
+                            else:
+                                messages.error(request,"No se puede elimiar el pago. el período está cerrado",'red')
+                                return redirect('panel_pedidos','New')
                         else:
                             print("Error al eliminar el movimiento")
+
                         ordenes.id = id_orden
                         ordenes.payment = pago
                         ordenes.status="New"
@@ -4038,12 +4230,17 @@ def panel_transferencias_eliminar(request,idtrans=None):
                 if trans:
                     idtransfer=trans.id
                     print("idtrans",idtransfer)
-                    trans.delete()
+                    delete_transf = False
                     mov1 = Movimientos.objects.filter(idtransferencia=idtransfer).all()
-                    if mov1:
-                        mov1.delete()
-                  
-
+                    for mov in mov1:
+                        if mov.idcierre==0:
+                            mov1.delete()
+                            delete_transf = True
+                        
+                    if delete_transf == True:
+                        trans.delete()
+                    else:
+                        messages.error(request,"No se puede eliminar un movimiento cerrado.","red")
             
             return redirect('panel_transferencias') 
     else:
@@ -4073,7 +4270,10 @@ def panel_movimiento_eliminar(request,idmov=None):
             if idmov: 
                 movimiento = Movimientos.objects.filter(pk=idmov).get()
                 if movimiento: 
-                    movimiento.delete()
+                    if movimiento.idcierre==0:
+                        movimiento.delete()
+                    else:
+                        messages.error(request,"No se puede eliminar un movimiento cerrado.","red")
                   
         return redirect('panel_movimientos')     
     else:

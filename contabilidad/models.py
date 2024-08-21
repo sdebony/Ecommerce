@@ -1,6 +1,12 @@
 from django.db import models
 
-from django.db.models import Sum
+
+import calendar
+
+import locale
+
+# Configurar la localización a español
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 from orders.models import Order
 # Create your models here.
@@ -46,7 +52,34 @@ class Cuentas(models.Model):
         verbose_name = "Cuenta"
         verbose_name_plural = "Cuentas"
 
-class Cierres(models.Model):
+
+
+class CierreMes(models.Model):
+
+    fecha = models.DateField()
+    fecha_desde = models.DateField()
+    fecha_hasta = models.DateField()
+    mes = models.BigIntegerField(default=0)
+    anio = models.BigIntegerField(default=0)
+    ing_saldo_pesos = models.FloatField(default=0)
+    ing_saldo_dolar = models.FloatField(default=0)
+    egr_saldo_pesos = models.FloatField(default=0)
+    egr_saldo_dolar = models.FloatField(default=0)
+    tot_saldo_pesos = models.FloatField(default=0)
+    tot_saldo_dolar = models.FloatField(default=0)
+
+    def __str__(self):
+        return '{}'.format(self.id)
+
+    def get_mes_display(self):
+        return calendar.month_name[self.mes]
+
+    class Meta:
+        unique_together = ('mes', 'anio')  # Define la combinación única de mes y año
+        verbose_name_plural = "Cierre Mesual"
+        ordering = ['-anio','-mes',]
+
+class Cierres(models.Model): #NO SE USA
 
     fecha = models.DateField(null=False) 
     mes = models.BigIntegerField(null=False)
@@ -88,7 +121,7 @@ class Movimientos(models.Model):
     observaciones = models.CharField(max_length=250,default='',null=False,blank=True)
     idtransferencia = models.BigIntegerField(default=0)
     ordernumber = models.ForeignKey(Order,on_delete=models.CASCADE,null=True)
-    idcierre = models.ForeignKey(Cierres, on_delete=models.CASCADE,null=True)
+    idcierre = models.BigIntegerField(default=0)
     
 
     def __str__(self):
@@ -121,4 +154,3 @@ class Transferencias(models.Model):
     class Meta:
         verbose_name_plural = "Transferencias"
         ordering = ['-fecha','-id',]
-

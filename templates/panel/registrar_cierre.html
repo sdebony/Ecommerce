@@ -3,67 +3,17 @@
 {% block page_content %}
 <div class="card shadow mb-4">
     <!-- Card Header - Dropdown -->
-   <!-- INI SALDO TARJETAS
-    <div class="container-fluid">
-
-       <h1 class="h3 mb-4 text-gray-800">Control - Cierre Mensual</h1>
-         <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
-       <div class="row">
-        {% for item in totales %}
-        <div class="col-xl-3 col-md-6 mb-4">
-          {% if item.cuenta__moneda == 1 %}
-            <div class="card border-left-primary shadow h-100 py-2">
-          {% else %}
-              <div class="card border-left-success shadow h-100 py-2">  
-            {% endif %}
-            <div class="card-body">
-              <div class="row no-gutters align-items-center">
-                <div class="col mr-2">
-                  <a href="">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-3">Total  {{ item.cuenta__nombre }}</div>
-                  <div class="h5 mb-0 font-weight-bold text-gray-800">
-                    {% if item.cuenta__moneda == 1 %}
-                      $ {{ item.total }}  
-                    {% else %}
-                      USD  {{ item.total }}
-                    {% endif %}
-                    </div>
-                  {% for cajas in totales_ingresos %}
-                    {% if cuentas.nombre == item.cuenta__nombre %}
-                    <h6 class="m-0 font-weight-bold text-uppercase align-items-center"> {{ item.caja__moneda}}  </h6>
-                      <div class="h6 mb-0 font-weight-bold text-gray-500">$ {{ cajas.total }}  </div>
-                    {% endif %} 
-                  {%  endfor %}
-                </a>
-                </div>
-                <div class="col-auto">
-                  {% if item.cuenta__moneda == 1 %}
-                      <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                  {% else %}
-                      <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
-
-                  {%endif%}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %} 
-
-              
-            </div>
-          </div>
-        </div>
-      FIN SALDO TARJETAS --> 
-
   <!--  TABLA FACTURAS-->
   <div class="card shadow mb-4">
     <!-- Card Header - Dropdown -->
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold text-primary align-items-center">Período: <B>{{ fecha_desde |date:'d/m/Y' }} - {{ fecha_hasta |date:'d/m/Y' }}</B></h6>
-      
+      <h4 class="m-0 font-weight-bold text-primary align-items-center">Período: <B>{{ fecha_desde |date:'d/m/Y' }} - {{ fecha_hasta |date:'d/m/Y' }}</B></h4>
     </div>
-  
+    <div>
+      <p><h9 class="m-0 font-weight-bold text-secondary align-items-right">ATENCIÒN!!. El cierre contable agrupa todos los movimientos del mes y consolida los saldos de las cuentas
+      Una vez realizado el cierre del mes, no se podràn ingrasar ni modificar movimientos que afecten los saldos de las cuentas del mes cerrado</h9></p>
+
+    </div>
     <!-- Card Body -->
     <div class="card-body">
       <div class="row">
@@ -121,7 +71,7 @@
                                     </select>
                                 </div>
 -->                             <div class="input-group-append">
-                                <button class="btn btn-primary" type="submit" class="form-control">
+                                <button class="btn btn-primary" type="submit" name="action" value="BUSCAR" class="form-control">
                               <i class="fa fa-search"></i>
                               
                           </div>
@@ -245,6 +195,10 @@
                    
                           <!-- / .card-body -->
                           <div class="card-footer">
+                            <button class="btn btn-danger" type="submit" name="action" value="ELIMINAR" class="form-control" style="float: right;">
+                              Eliminar Cierre </button><pre style='display:inline'  class="float-right"> </pre>
+                            <button class="btn btn-primary" type="submit" name="action" value="CERRAR" class="form-control" style="float: right;">
+                            Cerrar Mes </button><pre style='display:inline'  class="float-right"> </pre>
                             <a href="{% url 'panel_movimientos' %}" class="btn btn-secondary" style="float: right;">Cancelar</a>
                           </div>
                       

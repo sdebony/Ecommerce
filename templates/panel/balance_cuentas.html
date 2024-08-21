@@ -1,0 +1,72 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+<style>
+    .bg-warning {
+        background-color: #edb976 !important; /* Fondo Naranja */
+    }
+    .bg-success{
+        background-color: #81daab !important; /* Fondo verde */
+    }
+</style>
+<div class="container">
+    <h2 style="text-align: center;"> Balance </h2>
+    <span class="bg-success" >Cerrado OK</span>
+    <span class="bg-warning">Cerrado con diferencias </span>
+    <p></p>
+    <form method="get" class="mb-3">
+        
+        <label for="anio">Seleccione el año:</label>
+        <select name="anio" id="anio" class="form-control" onchange="this.form.submit()">
+        {% for año in años_disponibles %}
+            <option value="{{ año }}" {% if año == anio_actual %}selected{% endif %}>{{ año }}</option>
+        {% endfor %}
+        </select>
+</form>
+
+
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Mes</th>
+        <th>Ingresos (Pesos)</th>
+        <th>Ingresos (Dólares)</th>
+        <th>Egresos (Pesos)</th>
+        <th>Egresos (Dólares)</th>
+        <th>Total (Pesos)</th>
+        <th>Total (Dólares)</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for item in data %}
+          {% if item.tiene_datos %}
+            {% if item.total_movimientos != 0 %}
+              <tr class="bg-warning" >
+            {% else  %}
+              <tr class="bg-success" >
+            {% endif %}
+          {% endif %} 
+           
+          <td><b><a href="{% url 'panel_movimientos_cerrados_list' item.idcierre %}">{{ item.mes }}</a></b></td>
+          <td>{{ item.ingresos_pesos }}</td>
+          <td>{{ item.ingresos_dolares }}</td>
+          <td>{{ item.egresos_pesos }}</td>
+          <td>{{ item.egresos_dolares }}</td>
+          <td>{{ item.total_pesos }}</td>
+          <td>{{ item.total_dolares }}</td>
+        </tr>
+        {% endfor %}
+      <tr>
+        <th>Totales Anuales</th>
+        <th>{{ totales.ingresos_pesos }}</th>
+        <th>{{ totales.ingresos_dolares }}</th>
+        <th>{{ totales.egresos_pesos }}</th>
+        <th>{{ totales.egresos_dolares }}</th>
+        <th>{{ totales.total_pesos }}</th>
+        <th>{{ totales.total_dolares }}</th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

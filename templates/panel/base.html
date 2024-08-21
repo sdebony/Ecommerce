@@ -112,7 +112,7 @@
             {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'DASHBOARD RESULTADOS' %}
-                  <a class="collapse-item" href="{% url 'dashboard_resultados' %}" >Panel Resultados</a>
+                  <a class="collapse-item" href="{% url 'dashboard_resultados' %}" >Saldo Cuentas</a>
               {% endif %}
             {% endif %}
         {% endfor %}
@@ -259,8 +259,11 @@
                     <a class="collapse-item" href="{% url 'panel_transferencias' %}">Transferencias</a>
                   {% endif %}
                   {% if items.codigo.codigo == 'CIERRE CONTABLE' %}
-                    <a class="collapse-item" href="{% url 'panel_cierre_registrar'  %}">Resultados Contable</a>
+                    <a class="collapse-item" href="{% url 'panel_cierre_registrar'  %}">Cierre Mensual</a>
                   {% endif %}
+                  {% if items.codigo.codigo == 'BALANCE' %}
+                  <a class="collapse-item" href="{% url 'panel_balance_movimientos'  %}">Resumen Anual</a>
+                {% endif %}
               {% endif %}
             {% endfor %}
             
