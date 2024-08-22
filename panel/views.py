@@ -985,6 +985,14 @@ def panel_pedidos_eliminar(request,order_number=None):
                 ordenes = Order.objects.get(order_number=order_number)
                 if ordenes:
                     ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
+                    for linea in ordenes_detalle:
+                        id_prd = linea.product.id
+                        cantidad = linea.quantity
+                        product = Product.objects.get(id=id_prd)
+                        if product:
+                            product.stock += float(cantidad)
+                            product.save()
+
                     if ordenes_detalle:
                         ordenes_detalle.delete()
                 ordenes.delete()
@@ -998,18 +1006,23 @@ def panel_pedidos_del_detalle(request,order_number,id_linea):
 
     if validar_permisos(request,'PEDIDOS EDIT'):
 
-        print("order_number",order_number)
-        print("idlinea",id_linea)
-
         #articulo = Product.objects.filter(product_name=producto).first()
         order = Order.objects.get(order_number=order_number, is_ordered=True)
         ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
     
-        if ordered_products:           
+        if ordered_products:
+            cantidad = ordered_products.quantity  
+            idprod = ordered_products.product.id         
             ordered_products = OrderProduct(
                 id = ordered_products.id,
             )        
             ordered_products.delete()
+            #Agrego el stocl del producto borrado.
+            product = Product.objects.get(id=idprod)
+            if product:
+                product.stock += float(cantidad)
+                product.save()
+
             panel_recalcular_totales(order_number)
             messages.success(request,"Articulo eliminado con exito.")
             
@@ -1031,15 +1044,25 @@ def panel_pedidos_save_detalle(request):
             cantidad = request.POST.get("edit_quantity")
             precio = request.POST.get("edit_precio")
 
-            print("cantidad",cantidad,"order_number",order_number)
             if cantidad:
                 if precio:
                     if order_number:
                         
                         order = Order.objects.get(order_number=order_number, is_ordered=True)
                         ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
-                    
-                        if ordered_products:           
+                        if ordered_products:  
+                            #Sumo Stock de linea eliminada
+                            stock = ordered_products.quantity
+                            producto = ordered_products.product_id
+                           
+
+                            product = Product.objects.get(id=producto)
+                            if product:
+                                saldo = product.stock
+                                ajuste_stock = float(saldo) + float(stock) - float(cantidad)
+                                product.stock = ajuste_stock
+                                product.save()
+
                             ordered_products = OrderProduct(
                                 id = ordered_products.id,
                                 quantity = cantidad,
@@ -1053,6 +1076,7 @@ def panel_pedidos_save_detalle(request):
                                 updated_at = datetime.today()
                             )        
                             ordered_products.save()
+
                             panel_recalcular_totales(order_number)
                             messages.success(request,"Articulo guardado con exito.")
                     
@@ -4283,21 +4307,18 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
     
     if validar_permisos(request,'PEDIDOS EDIT'):
 
-      
             if quantity == 0:
-                print("Error quantity")
                 messages.error(request, "La cantidad no puede ser cero.")
                 return redirect('pedidos/detalle/edit/' + order_number)
 
 
             producto = Product.objects.filter(pk=item).first()
             if producto:
-                print("Modificar Pedido: ",order_number)
+
                 product_price = producto.price
                 
                 try:
                     if order_number:
-                        print("--->", order_number)
                         pedido = Order.objects.get(order_number=order_number)
                         if pedido:
                             id_pedido = pedido.id
@@ -4316,8 +4337,18 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     created_at = articulos.created_at
                                 )
                                 articulos.save()
+                                
+                                #SI EL ARTICULO EXISTE SUMO CANTIDAD ANTERIOR Y RESTO ACTUAL AL STOCK 
+                                product = Product.objects.get(id=item)
+                                if product:
+                                    #       Stock Actual +  Stock Linea Orig  - Cantidad Nueva
+                                    saldo = float(product.stock) + float(articulos.quantity) - float(quantity)
+                                    product.stock = float(saldo)
+                                    product.save()
+                                   
+
                             else:    
-                                #articulos = OrderProduct.objects.filter(order_id=id_pedido).values()
+                                
                                 articulos = OrderProduct (
                                     order = pedido,
                                     user = request.user,
@@ -4327,7 +4358,14 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     updated_at =  datetime.today()
                                 )
                                 articulos.save()
-                            print("Recalcular Totales")
+                                #SI EL ARTICULO NO EXISTE RESTO ACTUAL AL STOCK 
+                                product = Product.objects.get(id=item)
+                                if product:
+                            
+                                    product.stock -= float(quantity)
+                                    product.save()
+
+                            
                             panel_recalcular_totales(order_number)
 
                             messages.error(request,"Articulo ingresado ",'green')          
