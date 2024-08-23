@@ -2,6 +2,14 @@
 
 {% load static %}
 
+<!-- 1. BOOTSTRAP v4.0.0         CSS !-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<!-- 2. GOOGLE JQUERY JS v3.2.1  JS !-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<!-- 3. BOOTSTRAP v4.0.0         JS !-->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
 {% block content %}
 
 <section class="section-conten padding-y bg">
@@ -40,7 +48,7 @@
 				<div class="tab-content" id="entregaTabsContent">
 					<!-- ***************** -->
 					<!-- Retiro en Sucursal -->
-					<div class="tab-pane fade show active" id="sucursal" role="tabpanel" aria-labelledby="sucursal-tab">
+					<div class="tab-pane show active" id="sucursal" role="tabpanel" aria-labelledby="sucursal-tab">
 						<form action="{% url 'edit_dir_entrega' %}" method="POST" enctype="multipart/form-data">
 						
 							{% csrf_token %}
@@ -105,100 +113,98 @@
 								<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_sucursal.dir_id }}" hidden>
 								<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
 							</div>
-						</form>
-									
-						
+						</form>	
 					</div>
 					<!-- ***************** -->
 					<!-- Entrega en Domicilio -->
 					<div class="tab-pane fade" id="domicilio" role="tabpanel" aria-labelledby="domicilio-tab">
-					<form action="{% url 'edit_dir_entrega' %}" method="POST" class="mt-4" enctype="multipart/form-data">
-						{% csrf_token %}
-						<div class="alert alert-info" role="alert"><b>Entrega en Domicilio</b></div>
-						
-						<!-- Nombre y Tipo de Envío -->
-						<div class="form-row">
-							<div class="form-group col-md-6">
-								<label>Nombre</label>
-								<input type="text" name="dir_tipocorreo" class="form-control" value="2" hidden>
-								<input type="text" name="dir_nombre" class="form-control" value="{{ dir_envios.dir_nombre }}" placeholder="Ingrese un nombre para identificar." required>
-								<input type="text" name="dir_id" class="form-control" value="{{ dir_envios.dir_id }}" hidden>
-							</div>
-							<div class="form-group col-md-6">
-								<label>Tipo de Envío</label>
-								<div class="form-check">
-									<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
-									{% if dir_envios.dir_tipoenvio == 1 %} checked {% endif %}>
-									<label class="form-check-label" for="envioClasico">
-										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
-									</label>
-								</div>
-								<div class="form-check">
-									<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
-									{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %}>
-									<label class="form-check-label" for="envioExpresso">
-										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
-									</label>
-								</div>
-							</div>	
-						</div>
-
-						<!-- Código Postal, Calle, y Número -->
-						<div class="form-row">
-							<div class="form-group col-md-4">
-								<label>Código Postal</label>
-								<input type="text" name="dir_cp" class="form-control" value="{{ dir_envios.dir_cp}}" placeholder="Ingrese el código postal">
-							</div>
-							<div class="form-group col-md-4">
-								<label>Calle</label>
-								<input type="text" name="dir_calle" class="form-control" value="{{ dir_envios.dir_calle }}" placeholder="Ingrese la calle" required>
-							</div>
-							<div class="form-group col-md-4">
-								<label>Número</label>
-								<input type="text" name="dir_nro" class="form-control" value="{{ dir_envios.dir_nro }}" placeholder="Ingrese el número" required>
-								
-							</div>
-						</div>
-
-						<!-- Localidad y Provincia -->
-						<div class="form-row">
-							<div class="form-group col-md-6">
-								<label>Localidad</label>
-								<input type="text" name="dir_localidad" class="form-control" value="{{ dir_envios.dir_localidad }}" placeholder="Ingrese la localidad" required>
-								
-							</div>
-							<div class="form-group col-md-6">
-								<label>Provincia</label>
-								<input type="text" name="dir_provincia" class="form-control" value="{{ dir_envios.dir_provincia }}" placeholder="Ingrese la Provincia" required>
-							</div>
-						</div>
-
-						<!-- Código de Área y Teléfono -->
-						<div class="form-row">
-							<div class="form-group col-md-4">
-								<label for="codigoAreaSucursal">Cod Area (011)</label>
-								<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_envios.dir_area_tel }}" placeholder="Codigo de Area" required>
-							</div>
-							<div class="form-group col-md-8">
-								<label for="telefonoSucursal">Teléfono</label>
-								<input type="text" name="dir_telefono" class="form-control" value="{{ dir_envios.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
-							</div>
-						</div>
-
-						<!-- Observaciones -->
-						<div class="form-group">
-							<label>Observaciones</label>
-							<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_envios.dir_obs }}</textarea>	
-						</div>
-						
-						<!-- Botones -->
-						<div class="text-right">
-							<button type="submit" name="action" value="save" class="btn btn-primary">Guardar</button>
-							<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_envios.dir_id }}" hidden >
-							<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
+						<form action="{% url 'edit_dir_entrega' %}" method="POST" class="mt-4" enctype="multipart/form-data">
+							{% csrf_token %}
+							<div class="alert alert-info" role="alert"><b>Entrega en Domicilio</b></div>
 							
-						</div>
-					</form>
+							<!-- Nombre y Tipo de Envío -->
+							<div class="form-row">
+								<div class="form-group col-md-6">
+									<label>Nombre</label>
+									<input type="text" name="dir_tipocorreo" class="form-control" value="2" hidden>
+									<input type="text" name="dir_nombre" class="form-control" value="{{ dir_envios.dir_nombre }}" placeholder="Ingrese un nombre para identificar." required>
+									<input type="text" name="dir_id" class="form-control" value="{{ dir_envios.dir_id }}" hidden>
+								</div>
+								<div class="form-group col-md-6">
+									<label>Tipo de Envío</label>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
+										{% if dir_envios.dir_tipoenvio == 1 %} checked {% endif %}>
+										<label class="form-check-label" for="envioClasico">
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
+										</label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
+										{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %}>
+										<label class="form-check-label" for="envioExpresso">
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+										</label>
+									</div>
+								</div>	
+							</div>
+
+							<!-- Código Postal, Calle, y Número -->
+							<div class="form-row">
+								<div class="form-group col-md-4">
+									<label>Código Postal</label>
+									<input type="text" name="dir_cp" class="form-control" value="{{ dir_envios.dir_cp}}" placeholder="Ingrese el código postal">
+								</div>
+								<div class="form-group col-md-4">
+									<label>Calle</label>
+									<input type="text" name="dir_calle" class="form-control" value="{{ dir_envios.dir_calle }}" placeholder="Ingrese la calle" required>
+								</div>
+								<div class="form-group col-md-4">
+									<label>Número</label>
+									<input type="text" name="dir_nro" class="form-control" value="{{ dir_envios.dir_nro }}" placeholder="Ingrese el número" required>
+									
+								</div>
+							</div>
+
+							<!-- Localidad y Provincia -->
+							<div class="form-row">
+								<div class="form-group col-md-6">
+									<label>Localidad</label>
+									<input type="text" name="dir_localidad" class="form-control" value="{{ dir_envios.dir_localidad }}" placeholder="Ingrese la localidad" required>
+									
+								</div>
+								<div class="form-group col-md-6">
+									<label>Provincia</label>
+									<input type="text" name="dir_provincia" class="form-control" value="{{ dir_envios.dir_provincia }}" placeholder="Ingrese la Provincia" required>
+								</div>
+							</div>
+
+							<!-- Código de Área y Teléfono -->
+							<div class="form-row">
+								<div class="form-group col-md-4">
+									<label for="codigoAreaSucursal">Cod Area (011)</label>
+									<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_envios.dir_area_tel }}" placeholder="Codigo de Area" required>
+								</div>
+								<div class="form-group col-md-8">
+									<label for="telefonoSucursal">Teléfono</label>
+									<input type="text" name="dir_telefono" class="form-control" value="{{ dir_envios.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
+								</div>
+							</div>
+
+							<!-- Observaciones -->
+							<div class="form-group">
+								<label>Observaciones</label>
+								<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_envios.dir_obs }}</textarea>	
+							</div>
+							
+							<!-- Botones -->
+							<div class="text-right">
+								<button type="submit" name="action" value="save" class="btn btn-primary">Guardar</button>
+								<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_envios.dir_id }}" hidden >
+								<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
+								
+							</div>
+						</form>
 					</div>
 					<!-- ***************** -->
 					<!-- Retiro en Persona -->
