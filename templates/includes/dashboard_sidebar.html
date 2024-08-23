@@ -4,7 +4,7 @@
     <a class="list-group-item {% if '/accounts/' == request.path %}active{% endif %}" href="{% url 'dashboard' %}"> Panel </a>
     <a class="list-group-item {% if '/my_orders/' in request.path %}active{% endif %}" href="{% url 'my_orders' %}"> Mis Pedidos </a>
     <a class="list-group-item {% if '/edit_profile/' in request.path %}active{% endif %}" href="{% url 'edit_profile' %}"> Modificar Perfil </a>
-    <a class="list-group-item {% if '/edit_dir_entrega' in request.path %}active{% endif %}" href="{% url 'edit_dir_entrega' 0 %}"> Direcciones de Entrega </a>
+    <a class="list-group-item {% if '/edit_dir_entrega' in request.path %}active{% endif %}" href="{% url 'edit_dir_entrega' %}"> Direcciones de Entrega </a>
     <a class="list-group-item {% if '/change_password/' in request.path %}active{% endif %}" href="{% url 'change_password' %}"> Cambiar clave </a>
   </ul>
   <br>

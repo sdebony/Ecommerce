@@ -381,72 +381,50 @@ def order_detail(request, order_id):
     return render(request, 'accounts/order_detail.html', context)
 
 @login_required(login_url='login')
-def edit_dir_entrega(request,dir_id=None):
+def edit_dir_entrega(request):
 
     if request.method=='GET':
 
-        print("dir_id-->",dir_id)
+        dir_sucursal = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=1).first() # Direccion de Sucursal
+        dir_envios = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=2).first() # Direccion de envio
+        dir_retiro = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=3).first() # Direccion de envio
         
-        if not dir_id:
-            direccion = AccountDirecciones(dir_id=0,dir_correo=0)
-        else:
-            direccion = AccountDirecciones.objects.get(user=request.user,dir_id=dir_id)
-        
-        direcciones = AccountDirecciones.objects.filter(user=request.user)
-        
-
         context = {
-            'direccion' : direccion,
-            'direcciones': direcciones,
+            'dir_sucursal': dir_sucursal,
+            'dir_envios': dir_envios,
+            'dir_retiro': dir_retiro,
             }
 
         return render(request, 'accounts/edit_direcciones.html',context)
 
     if request.method=='POST':
 
+        action = request.POST.get('action')
+        if action == 'save':
 
-        print("request.POST")
-        dir_id= request.POST["dir_id"]
-        dir_nombre= request.POST["dir_nombre"]
-        dir_cp= request.POST["dir_cp"]
-        dir_calle= request.POST["dir_calle"]
-        dir_nro= request.POST["dir_nro"]
-        dir_localidad= request.POST["dir_localidad"]
-        dir_provincia= request.POST["dir_provincia"]
-        dir_telefono= request.POST["dir_telefono"]
-        dir_obs= request.POST["dir_obs"]
-        dir_area_tel= request.POST["dir_area_tel"]
-        dir_correo= request.POST["dir_correo"]
+            print("request.POST")
+            dir_id= request.POST["dir_id"]
+            dir_nombre= request.POST["dir_nombre"]
+            dir_cp= request.POST["dir_cp"]
+            dir_calle= request.POST["dir_calle"]
+            dir_nro= request.POST["dir_nro"]
+            dir_localidad= request.POST["dir_localidad"]
+            dir_provincia= request.POST["dir_provincia"]
+            dir_telefono= request.POST["dir_telefono"]
+            dir_obs= request.POST["dir_obs"]
+            dir_area_tel= request.POST["dir_area_tel"]
+            dir_tipocorreo= request.POST["dir_tipocorreo"]
+            dir_tipoenvio = request.POST.get("tipoEnvio")
 
-        
-        if dir_id == "0":
-            #ADD NEW
-            direcciones = AccountDirecciones(
-                    dir_nombre=dir_nombre,
-                    user=request.user,
-                    dir_cp=dir_cp,
-                    dir_calle=dir_calle,
-                    dir_nro=dir_nro,
-                    dir_localidad=dir_localidad,
-                    dir_provincia=dir_provincia,
-                    dir_area_tel=dir_area_tel,
-                    dir_telefono=dir_telefono,
-                    dir_obs=dir_obs,
-                    dir_correo=dir_correo,
-                )
-            direcciones.save()
-            dir_id=direcciones.dir_id
-            messages.success(request, 'Direccion actualizada con éxito.')
-        else:
-            
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
-            if direcciones:
-               
-                #UPDATE DIRECCION
+            print("tipoEnvio:",str(dir_tipoenvio))
+            if not dir_id:
+                dir_id = "0"
+
+            if dir_id == "0":
+                #ADD NEW
                 direcciones = AccountDirecciones(
-                        dir_id=dir_id ,
-                        user=request.user,
                         dir_nombre=dir_nombre,
+                        user=request.user,
                         dir_cp=dir_cp,
                         dir_calle=dir_calle,
                         dir_nro=dir_nro,
@@ -455,23 +433,61 @@ def edit_dir_entrega(request,dir_id=None):
                         dir_area_tel=dir_area_tel,
                         dir_telefono=dir_telefono,
                         dir_obs=dir_obs,
-                        dir_correo=dir_correo,
+                        dir_tipoenvio=dir_tipoenvio,
+                        dir_tipocorreo=dir_tipocorreo,
                     )
                 direcciones.save()
-                messages.success(request, 'Direccion actualizada con éxito.')
+                dir_id=direcciones.dir_id
+                messages.success(request, 'Direccion agregada con èxito.')
+            
+            else:
+                
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+                if direcciones:
+                
+                    #UPDATE DIRECCION
+                    direcciones = AccountDirecciones(
+                            dir_id=dir_id ,
+                            user=request.user,
+                            dir_nombre=dir_nombre,
+                            dir_cp=dir_cp,
+                            dir_calle=dir_calle,
+                            dir_nro=dir_nro,
+                            dir_localidad=dir_localidad,
+                            dir_provincia=dir_provincia,
+                            dir_area_tel=dir_area_tel,
+                            dir_telefono=dir_telefono,
+                            dir_obs=dir_obs,
+                            dir_tipoenvio=dir_tipoenvio,
+                            dir_tipocorreo=dir_tipocorreo,
+                        )
+                    direcciones.save()
+                    messages.success(request, 'Direccion agregada con èxito.')
+        elif action == "delete":
+            #DELETE DIRECCION
+            dir_id_del= request.POST["dir_id_del"]
+            if dir_id_del=="":
+                dir_id_del="0"
+                
+            if int(dir_id_del) > 0:
+                del_dir_entrega( request,dir_id_del)
+            else:
+                messages.error(request,'Seleccione una dirección de entrega para eliminarla!')
         
-        direccion = AccountDirecciones.objects.get(user=request.user,dir_id=dir_id)
-        direcciones = AccountDirecciones.objects.filter(user=request.user)
+        dir_sucursal = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=1).first() # Direccion de Sucursal
+        dir_envios = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=2).first() # Direccion de envio
+        dir_retiro = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=3).first() # Direccion de envio
     
         context = {
-            'direccion' : direccion,
-            'direcciones': direcciones,
+            'dir_sucursal': dir_sucursal,
+            'dir_envios': dir_envios,
+            'dir_retiro': dir_retiro,
             }
         return render(request, 'accounts/edit_direcciones.html',context)    
 
 
 @login_required(login_url='login')
-def edit_dir_entrega_correo(request,dir_id=None,dir_correo=None):
+def edit_dir_entrega_correo(request,dir_id=None,dir_tipocorreo=None):
 
     if dir_id ==0:
         messages.warning(request, 'Complete los datos')
@@ -499,7 +515,7 @@ def edit_dir_entrega_correo(request,dir_id=None,dir_correo=None):
                     dir_provincia=direcciones.dir_provincia,
                     dir_telefono=direcciones.dir_telefono,
                     dir_obs=direcciones.dir_obs,
-                    dir_correo=dir_correo,
+                    dir_tipocorreo=dir_tipocorreo,
                 )
             direcciones.save()
             messages.success(request, 'Direccion actualizada con éxito.')
@@ -514,29 +530,23 @@ def edit_dir_entrega_correo(request,dir_id=None,dir_correo=None):
     return render(request, 'accounts/edit_direcciones.html',context)    
 
 @login_required(login_url='login')
-def del_dir_entrega(request):
+def del_dir_entrega(request,dir_id_del=None):
 
 
-    if request.method=='POST':
+  
+    direcciones = AccountDirecciones.objects.filter(dir_id=dir_id_del).first()
+    if direcciones:
+        direcciones.delete()
+        messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
 
-        dir_id= request.POST["dir_id_del"]
-        if dir_id=="0":
-            messages.error(request,'Seleccione una dirección de entrega para eliminarla!')
-            direccion = AccountDirecciones.objects.filter(user=request.user).first()
-
-        else:
-
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
-            if direcciones:
-                direcciones.delete()
-                messages.error(request,'Se ha eliminado la Dirección de Entrega correctamente!')
-
-    direccion = AccountDirecciones.objects.filter(user=request.user).first()
-    direcciones = AccountDirecciones.objects.filter(user=request.user)
+#    dir_sucursal = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=1).first() # Direccion de Sucursal
+#    dir_envios = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=2).first() # Direccion de envio
+#    dir_retiro = AccountDirecciones.objects.filter(user=request.user, dir_tipocorreo=3).first() # Direccion de envio
     
-    
-    context = {
-        'direccion' : direccion,
-        'direcciones': direcciones,
-         }
-    return render(request, 'accounts/edit_direcciones.html',context)   
+#    context = {
+#        'dir_sucursal': dir_sucursal,
+#        'dir_envios': dir_envios,
+#        'dir_retiro': dir_retiro,
+#        }
+
+#    return render(request, 'accounts/edit_direcciones.html',context)   

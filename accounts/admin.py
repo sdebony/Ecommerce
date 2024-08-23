@@ -23,7 +23,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 class AccountDireccionesAdmin(admin.ModelAdmin):
 
-    list_display = ('dir_id', 'user', 'dir_nombre', 'dir_cp', 'dir_calle', 'dir_nro', 'dir_localidad','dir_provincia','dir_telefono','dir_obs','dir_correo')
+    list_display = ('dir_id', 'user', 'dir_nombre', 'dir_cp', 'dir_calle', 'dir_nro', 'dir_localidad','dir_provincia','dir_telefono','dir_obs','dir_tipocorreo','dir_tipoenvio')
     list_display_links = ('dir_id', 'user', 'dir_nombre')
     ordering = ('-user','dir_id',)
 

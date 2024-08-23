@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 
 {% load static %}
+
 {% block content %}
 
 <section class="section-conten padding-y bg">
 
-{% include 'includes/alerts.html' %}
+
 <div class="container">
 	<div class="row">
 	{% include 'includes/dashboard_sidebar.html' %}
@@ -13,250 +14,248 @@
 		<article class="card">
 		<header class="card-header">
 			<strong class="d-inline-block mr-3">Direcciones de Entrega</strong>
-
+			<p>En esta secciòn vas a completar los datos de envio y quedaran guardados para tu proximo pedido.
+				Una vez que hagas tu pedido podràs seleccionar entre las opciones que hayas guardado. En la solapa "Sucursal" 
+				recorda completar el nombre de la sucursal tal como figura en la pagina de correo Argentino (<a href="https://www.correoargentino.com.ar/formularios/sucursales" target="_blank">ver locales</a>). 
+				Cuando elijas "Retiro en persona", coordinaremos con vos el dia de retiro</p>
+				{% include 'includes/alerts.html' %}
 		</header>
 		<div class="card-body">
 			<div class="row">
 			<div class="col-md-12">
 				
-                <ul class="nav nav-tabs">
+        		<ul class="nav nav-tabs" id="entregaTabs" role="tablist">
 					<li class="nav-item">
-						{% if direccion.dir_id == 0 %}
-							<a class="nav-link active" href="{% url 'edit_dir_entrega' 0 %}">Agregar Nueva</a>
-						{% else %}
-							<a class="nav-link " href="{% url 'edit_dir_entrega' 0 %}">Agregar Nueva</a>
-						{% endif %}
+						<a class="nav-link active" id="sucursal-tab" data-toggle="tab" href="#sucursal" role="tab" aria-controls="sucursal" aria-selected="true">Retiro en Sucursal</a>
 					</li>
-					{% for dire in direcciones %}
-						{% if dire.dir_id == direccion.dir_id %}
-							<li class="nav-item">
-								<a class="nav-link active" href="#">{{ dire.dir_nombre}} </a>
-							</li>
-						{% else %}
-							<li class="nav-item">
-								<a class="nav-link " href="{% url 'edit_dir_entrega' dire.dir_id %}">{{ dire.dir_nombre}}</a>
-							</li>
-						{% endif %}
-					{% endfor %}
-                </ul>  
+					<li class="nav-item">
+						<a class="nav-link" id="domicilio-tab" data-toggle="tab" href="#domicilio" role="tab" aria-controls="domicilio" aria-selected="false">Entrega en Domicilio</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="persona-tab" data-toggle="tab" href="#persona" role="tab" aria-controls="persona" aria-selected="false">Retiro en Persona</a>
+					</li>
+				</ul>
 				<br>
 
-				<form action="{% url 'edit_dir_entrega' direccion.dir_id %}" method="POST" enctype="multipart/form-data">
-				{% csrf_token %}
-					<div class="card">
-						<div class="card-body">
-									<div class="alert alert-info" role="alert"><b>Correo Argentino</b></div>
-										<div class="form-row">
-										<div class="form-group col-md-2">
-												<input type="text" name="dir_correo" class="form-control" value="1" hidden  >
-												<input type="text" name="dir_cp" class="form-control" value="0"  placeholder="" hidden>
-												<input type="text" name="dir_calle" class="form-control" value=""  placeholder="" hidden>
-												<input type="text" name="dir_nro" class="form-control" value=""  placeholder="" hidden>
-												<input type="text" name="dir_localidad" class="form-control" value=""  placeholder="" hidden>
-										</div>
-									</div>
-									
-									<div class="form-row">
-										<div class="form-group col-md-8">
-											<label>Nombre Sucursal <a href="https://www.correoargentino.com.ar/formularios/sucursales" target="_blank">&nbsp;   ver locales</a></label>
-											<input type="text" name="dir_correo" class="form-control" value="1" hidden>
-											{% if direccion.dir_correo %}
-												<input type="text" name="dir_nombre" class="form-control" value="{{ direccion.dir_nombre}}" placeholder="Nombre de la Sucursal." required>
-											{% else %}
-												<input type="text" name="dir_nombre" class="form-control" value="" placeholder="Nombre de la Sucursal." required>
-											{% endif %}
-											<input type="text" name="dir_id" class="form-control" value="{{ direccion.dir_id }}" hidden>
-										</div>
-										<div class="form-group col-md-4">
-											<label>Provincia</label>
-											{% if direccion.dir_correo %}
-												<input type="text" name="dir_provincia" class="form-control" value="{{ direccion.dir_provincia }}"  placeholder="Ingrese la Provincia" required>
-											{% else %}
-												<input type="text" name="dir_provincia" class="form-control" value=""  placeholder="Ingrese la Provincia" required>
-											{% endif %}
-										</div>
-										<div class="form-group col-md-2">
-											<label>Cod Area (011)</label>
-											{% if direccion.dir_correo %}
-												<input type="text" name="dir_area_tel" class="form-control" value="{{ direccion.dir_area_tel }}"  placeholder="Codigo de Area" required>
-											{% else %}
-												<input type="text" name="dir_area_tel" class="form-control" value=""  placeholder="Codigo de Area" required>
-											{% endif %}
-										</div>
-										<div class="form-group col-md-5">
-											<label>Telefono</label>
-											{% if direccion.dir_correo %}
-												<input type="text" name="dir_telefono" class="form-control" value="{{ direccion.dir_telefono }}"  placeholder="Ingrese el telefono de contacto" required>
-											{% else %}
-												<input type="text" name="dir_telefono" class="form-control" value=""  placeholder="Ingrese el telefono de contacto" required>
-											{% endif %}
-										</div>
-									</div>
-									<div class="form-row">
-										<div class="form-group col-md-8">
-											<label>Observaciones</label>
-											{% if direccion.dir_correo %}
-											<textarea type="textarea" name="dir_obs" rows="2" class="form-control" value="" placeholder="Observaciones">{{ direccion.dir_obs }}</textarea>
-											{% else %}
-											<textarea type="textarea" name="dir_obs" rows="2" class="form-control" value="" placeholder="Observaciones"></textarea>
-											{% endif %}
-										</div>
-										
-									</div>
-									
-									<input type="submit" value="Guardar" class="btn btn-primary">	
-									<input type="button" value="Cancelar" class="btn btn-secondary">	
-								
-				
-
-
-						</div>
-					</div>
-					
-				</form>
-			
-				<br>
-				<form action="{% url 'edit_dir_entrega' direccion.dir_id %}" method="POST" enctype="multipart/form-data">
-				{% csrf_token %}
-					<div class="card">
-						<div class="card-body">
+				<div class="tab-content" id="entregaTabsContent">
+					<!-- ***************** -->
+					<!-- Retiro en Sucursal -->
+					<div class="tab-pane fade show active" id="sucursal" role="tabpanel" aria-labelledby="sucursal-tab">
+						<form action="{% url 'edit_dir_entrega' %}" method="POST" enctype="multipart/form-data">
 						
-							<div class="alert alert-info" role="alert"><B>Direccion Particular</B></div>
+							{% csrf_token %}
+							<div class="alert alert-info" role="alert"><b>Correo Argentino</b></div>
 							
-
+							<!-- Información oculta -->
 							<div class="form-row">
-								<div class="form-group col-md-6">
-									<label>Nombre</label>
-									{% if direccion.dir_correo %}
-										<input type="text" name="dir_correo" class="form-control" value="0" hidden>
-										<input type="text" name="dir_nombre" class="form-control" value="" placeholder="Ingrese un nombre para identificar." required>
-										<input type="text" name="dir_id" class="form-control" value="0" hidden>
-									{% else%}
-										<input type="text" name="dir_correo" class="form-control" value="0" hidden>
-										<input type="text" name="dir_nombre" class="form-control" value="{{ direccion.dir_nombre}}" placeholder="Ingrese un nombre para identificar." required>
-										<input type="text" name="dir_id" class="form-control" value="{{ direccion.dir_id }}" hidden>
-									
-									{% endif %}
-									
-								</div>
-								<div class="form-group col-md-6">
-									<label>Código Postal</label>
-									{% if direccion.dir_correo %}
-									<input type="text" name="dir_cp" class="form-control" value=""  placeholder="Ingrese el código postal">
-									{% else %}
-									<input type="text" name="dir_cp" class="form-control" value="{{ direccion.dir_cp}}"  placeholder="Ingrese el código postal">
-									{% endif %}
-								</div>
+								<input type="text" name="dir_tipocorreo" class="form-control" value="1" hidden>
+								<input type="text" name="dir_cp" class="form-control" value="0" hidden>
+								<input type="text" name="dir_calle" class="form-control" value="" hidden>
+								<input type="text" name="dir_nro" class="form-control" value="" hidden>
+								<input type="text" name="dir_localidad" class="form-control" value="" hidden>
+								<input type="text" name="tipoEnvio" class="form-control" value="0" hidden>
+								
 							</div>
-							
+
+							<div class="form-group">
+								<label for="nombreSucursal">Nombre Sucursal</label>
+								<input type="text" name="dir_nombre" class="form-control" value="{{ dir_sucursal.dir_nombre }}" placeholder="Nombre de la Sucursal." required>
+								<input type="text" name="dir_id" class="form-control" value="{{ dir_sucursal.dir_id }}" hidden >
+							</div>
+
+							<!-- Dirección: Calle y Número -->
 							<div class="form-row">
 								<div class="form-group col-md-8">
 									<label>Calle</label>
-									{% if direccion.dir_correo %}
-									<input type="text" name="dir_calle" class="form-control" value="" placeholder="Ingrese la calle" required>
-									{% else %}
-									<input type="text" name="dir_calle" class="form-control" value="{{ direccion.dir_calle}}" placeholder="Ingrese la calle" required>
-									{% endif %}
+									<input type="text" name="dir_calle" class="form-control" value="{{ dir_sucursal.dir_calle }}" placeholder="Ingrese la calle" required>
 								</div>
 								<div class="form-group col-md-4">
 									<label>Número</label>
-									{% if direccion.dir_correo %}
-									<input type="text" name="dir_nro" class="form-control" value=""  placeholder="Ingrese el número" required>
-									{% else %}
-									<input type="text" name="dir_nro" class="form-control" value="{{ direccion.dir_nro}} "  placeholder="Ingrese el número" required>
-									{% endif %}
-								</div>
-							</div>				
-			
-							<div class="form-row">
-								<div class="form-group col-md-6">
-									<label>Localidad</label>
-									{% if direccion.dir_correo %}
-									<input type="text" name="dir_localidad" class="form-control" value=""  placeholder="Ingrese la localidad" required>
-									{% else %}
-									<input type="text" name="dir_localidad" class="form-control" value="{{ direccion.dir_localidad}}"  placeholder="Ingrese la localidad" required>
-									{% endif %}
-								</div>
-								<div class="form-group col-md-6">
-									<label>Provincia</label>
-									{% if direccion.dir_correo %}
-									<input type="text" name="dir_provincia" class="form-control" value=""  placeholder="Ingrese la Provincia" required>
-									{% else %}
-									<input type="text" name="dir_provincia" class="form-control" value="{{ direccion.dir_provincia }}"  placeholder="Ingrese la Provincia" required>
-									{% endif %}
-								</div>
-								<div class="form-group col-md-2">
-									<label>Cod Area (011)</label>
-									{% if direccion.dir_correo %}
-										<input type="text" name="dir_area_tel" class="form-control" value=""  placeholder="Codigo de Area" required>
-									{% else %}
-										<input type="text" name="dir_area_tel" class="form-control" value="{{ direccion.dir_area_tel }}"  placeholder="Codigo de Area" required>
-									{% endif %}
-									
-								</div>
-								<div class="form-group col-md-6">
-									<label>Telefono</label>
-									{% if direccion.dir_correo %}
-										<input type="text" name="dir_telefono" class="form-control" value=""  placeholder="Ingrese el telefono de contacto" required>
-									{% else %}
-										<input type="text" name="dir_telefono" class="form-control" value="{{ direccion.dir_telefono }}"  placeholder="Ingrese el telefono de contacto" required>
-									{% endif %}
-									
+									<input type="text" name="dir_nro" class="form-control" value="{{ dir_sucursal.dir_nro }}" placeholder="Ingrese el número" required>
 								</div>
 							</div>
+
+							<!-- Provincia -->
+							<div class="form-group">
+								<label for="provinciaSucursal">Provincia</label>
+								<input type="text" name="dir_provincia" class="form-control" value="{{ dir_sucursal.dir_provincia }}" placeholder="Ingrese la Provincia" required>
+							</div>
+
+							<!-- Código de Área y Teléfono -->
 							<div class="form-row">
-								<div class="form-group col-md-8">
-									<label>Observaciones</label>
-									{% if direccion.dir_correo %}
-										<textarea type="textarea" name="dir_obs" rows="2" class="form-control" value="" placeholder="Observaciones"></textarea>
-									{% else %}
-										<textarea type="textarea" name="dir_obs" rows="2" class="form-control" value="" placeholder="Observaciones">{{ direccion.dir_obs }}</textarea>
-									{% endif %}
+								<div class="form-group col-md-2">
+									<label for="codigoAreaSucursal">Cod Area (011)</label>
+									<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_sucursal.dir_area_tel }}" placeholder="Codigo de Area" required>
 								</div>
+								<div class="form-group col-md-10">
+									<label for="telefonoSucursal">Teléfono</label>
+									<input type="text" name="dir_telefono" class="form-control" value="{{ dir_sucursal.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
+								</div>
+							</div>
+
+							<!-- Observaciones -->
+							<div class="form-group">
+								<label>Observaciones</label>
+								<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_sucursal.dir_obs }}</textarea>
+							</div>
+						
+							<!-- Botones -->
+							<div class="text-right">
+								<button type="submit" name="action" value="save" class="btn btn-primary">Guardar</button>
+								<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_sucursal.dir_id }}" hidden>
+								<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
+							</div>
+						</form>
+									
+						
+					</div>
+					<!-- ***************** -->
+					<!-- Entrega en Domicilio -->
+					<div class="tab-pane fade" id="domicilio" role="tabpanel" aria-labelledby="domicilio-tab">
+					<form action="{% url 'edit_dir_entrega' %}" method="POST" class="mt-4" enctype="multipart/form-data">
+						{% csrf_token %}
+						<div class="alert alert-info" role="alert"><b>Entrega en Domicilio</b></div>
+						
+						<!-- Nombre y Tipo de Envío -->
+						<div class="form-row">
+							<div class="form-group col-md-6">
+								<label>Nombre</label>
+								<input type="text" name="dir_tipocorreo" class="form-control" value="2" hidden>
+								<input type="text" name="dir_nombre" class="form-control" value="{{ dir_envios.dir_nombre }}" placeholder="Ingrese un nombre para identificar." required>
+								<input type="text" name="dir_id" class="form-control" value="{{ dir_envios.dir_id }}" hidden>
+							</div>
+							<div class="form-group col-md-6">
+								<label>Tipo de Envío</label>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
+									{% if dir_envios.dir_tipoenvio == 1 %} checked {% endif %}>
+									<label class="form-check-label" for="envioClasico">
+										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
+									{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %}>
+									<label class="form-check-label" for="envioExpresso">
+										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+									</label>
+								</div>
+							</div>	
+						</div>
+
+						<!-- Código Postal, Calle, y Número -->
+						<div class="form-row">
+							<div class="form-group col-md-4">
+								<label>Código Postal</label>
+								<input type="text" name="dir_cp" class="form-control" value="{{ dir_envios.dir_cp}}" placeholder="Ingrese el código postal">
+							</div>
+							<div class="form-group col-md-4">
+								<label>Calle</label>
+								<input type="text" name="dir_calle" class="form-control" value="{{ dir_envios.dir_calle }}" placeholder="Ingrese la calle" required>
+							</div>
+							<div class="form-group col-md-4">
+								<label>Número</label>
+								<input type="text" name="dir_nro" class="form-control" value="{{ dir_envios.dir_nro }}" placeholder="Ingrese el número" required>
 								
 							</div>
-							<input type="submit" value="Guardar" class="btn btn-primary">	
-							<input type="button" value="Cancelar" class="btn btn-secondary">	
 						</div>
+
+						<!-- Localidad y Provincia -->
+						<div class="form-row">
+							<div class="form-group col-md-6">
+								<label>Localidad</label>
+								<input type="text" name="dir_localidad" class="form-control" value="{{ dir_envios.dir_localidad }}" placeholder="Ingrese la localidad" required>
+								
+							</div>
+							<div class="form-group col-md-6">
+								<label>Provincia</label>
+								<input type="text" name="dir_provincia" class="form-control" value="{{ dir_envios.dir_provincia }}" placeholder="Ingrese la Provincia" required>
+							</div>
+						</div>
+
+						<!-- Código de Área y Teléfono -->
+						<div class="form-row">
+							<div class="form-group col-md-4">
+								<label for="codigoAreaSucursal">Cod Area (011)</label>
+								<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_envios.dir_area_tel }}" placeholder="Codigo de Area" required>
+							</div>
+							<div class="form-group col-md-8">
+								<label for="telefonoSucursal">Teléfono</label>
+								<input type="text" name="dir_telefono" class="form-control" value="{{ dir_envios.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
+							</div>
+						</div>
+
+						<!-- Observaciones -->
+						<div class="form-group">
+							<label>Observaciones</label>
+							<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_envios.dir_obs }}</textarea>	
+						</div>
+						
+						<!-- Botones -->
+						<div class="text-right">
+							<button type="submit" name="action" value="save" class="btn btn-primary">Guardar</button>
+							<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_envios.dir_id }}" hidden >
+							<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
+							
+						</div>
+					</form>
 					</div>
-				</form>
+					<!-- ***************** -->
+					<!-- Retiro en Persona -->
+					<div class="tab-pane fade" id="persona" role="tabpanel" aria-labelledby="persona-tab">
+						<form action="{% url 'edit_dir_entrega' %}" method="POST" enctype="multipart/form-data">
+						{% csrf_token %}
+							<div class="alert alert-info" role="alert"><b>Entrega en persona</b></div>
+							<!-- Información oculta -->
+							<div class="form-row">
+								<input type="text" name="dir_id" class="form-control" value="{{ dir_retiro.dir_id }}" hidden>
+								<input type="text" name="dir_tipocorreo" class="form-control" value="3" hidden>
+								<input type="text" name="dir_cp" class="form-control" value="0" hidden>
+								<input type="text" name="dir_calle" class="form-control" value="" hidden>
+								<input type="text" name="dir_nro" class="form-control" value="" hidden>
+								<input type="text" name="dir_localidad" class="form-control" value="" hidden>
+								<input type="text" name="dir_provincia" class="form-control" value="" hidden>
+								<input type="text" name="tipoEnvio" class="form-control" value="0" hidden>
+							</div>
+							<div class="form-group">
+								<label>Nombre</label>
+								<input type="text" name="dir_nombre" class="form-control" value="{{ dir_retiro.dir_nombre }}" placeholder="Ingrese un nombre para identificar." required>
+								
+							</div>
 
+							<!-- Código de Área y Teléfono -->
+							<div class="form-row">
+								<div class="form-group col-md-4">
+									<label for="codigoAreaSucursal">Cod Area (011)</label>
+									<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_retiro.dir_area_tel }}" placeholder="Codigo de Area" required>
+								</div>
+								<div class="form-group col-md-8">
+									<label for="telefonoSucursal">Teléfono</label>
+									<input type="text" name="dir_telefono" class="form-control" value="{{ dir_retiro.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
+								</div>
+							</div>
 
-			{% if direccion.dir_id %}
-			<form action="{% url 'del_dir_entrega' %}" method="POST" enctype="multipart/form-data">
-				{% csrf_token %}
-				<br>
-				<div class="form-row">
-					<div class="form-group col-md-8">
-						<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ direccion.dir_id }}" hidden>
-						<button type="submit" value="" class="btn btn-danger float-right">Eliminar Direccion </button>	
+							<!-- Observaciones -->
+							<div class="form-group">
+								<label>Observaciones</label>
+								<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_retiro.dir_obs }}</textarea>	
+							</div>
+							
+							<!-- Botones -->
+							<div class="text-right">
+								<button type="submit" name="action" value="save" class="btn btn-primary">Guardar</button>
+								<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_retiro.dir_id }}" hidden>
+								<button type="submit"  name="action" value="delete" class="btn btn-danger ">Eliminar</button>			
+								
+							</div>
+						</form>
 					</div>
-				</div>	
-			</form>
-			{% endif %}
-			
-
-
-
-
-
+				</div>
 				
-			
-					
-				
-				
-				
-
-
-
-
-			
-		</div>
-
-	</div> <!-- row.// -->
-		</div> <!-- card-body .// -->
-
-		</article> <!-- order-group.// -->
+			</div>
+		</div> <!-- row.// -->
+	</div> <!-- card-body .// -->
+	</article> <!-- order-group.// -->
 	</main>
 </div> <!-- row.// -->
 </div>
