@@ -11,7 +11,7 @@ class TempProductAdmin(admin.ModelAdmin):
     
 
 class TempOrderAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'first_name', 'last_name', 'email', 'created_at','updated_at','order_total','dir_telefono','dir_calle','dir_nro','dir_localidad','dir_provincia','dir_cp','dir_obs','dir_correo')
+    list_display = ('codigo', 'first_name', 'last_name', 'email', 'created_at','updated_at','order_total','dir_telefono','dir_calle','dir_nro','dir_localidad','dir_provincia','dir_cp','dir_obs','dir_tipocorreo')
     list_filter = ('codigo', 'first_name', 'last_name')
 
 

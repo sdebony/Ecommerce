@@ -56,11 +56,11 @@ class Product(models.Model):
             iniciar = tamano -largo +3  #Tomo los ultimos 70 caracteres
             descripcion =  "..." + descripcion[iniciar:tamano]
             tamano = len(descripcion)
-            print("Recorto -->",descripcion,iniciar,tamano)
+            #print("Recorto -->",descripcion,iniciar,tamano)
         else:
             descripcion = descripcion + " " + "\xa0" * (largo - tamano)
             tamano = len(descripcion.lower())
-            print("Espacios-->",descripcion,iniciar,tamano)
+            #print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion
 
@@ -78,11 +78,11 @@ class Product(models.Model):
             iniciar = tamano -largo +3  #Tomo los ultimos 70 caracteres
             descripcion =  "..." + descripcion[iniciar:tamano]
             tamano = len(descripcion)
-            print("Recorto -->",descripcion,iniciar,tamano)
+            #print("Recorto -->",descripcion,iniciar,tamano)
         else:
             descripcion = descripcion + " " + "\xa0" * (largo - tamano)
             tamano = len(descripcion.lower())
-            print("Espacios-->",descripcion,iniciar,tamano)
+            #print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion
 

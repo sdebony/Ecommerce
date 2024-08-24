@@ -39,19 +39,32 @@
             <label for="">Direcciones disponibles:</label>
             <select name="direccion" id="direccion" class="form-control" required>
               <option value="0" selected disabled >Seleccione una direccion</option> 
-              <option value="99" >RETIRO POR CAPITAL</option> 
               {% for item in direccion %}
                 <option value="{{item.dir_id}}" >{{ item.dir_nombre}}</option>
               {% endfor %}
             </select>
-            <br>
-            <label for="">Entrega en Correo Argentino: 
-              <a href=""><img name="img_correo" id="img_correo" src="/static/img/uncheck.jpg" alt="check" width="30" style="border-radius:10px;"></a>
-              <input type="text" name="dir_correo" id="dir_correo" class="form-control" value="" required hidden>
-            </label>
+            <p id="tipo_envio" class="h1 text-center"> {{ tipo_envio }}</p>
+
    </div>
       </div>
       <hr>
+      <div class="form-row">
+        <div class="form-group col-md-8" id="div_chk_tipoenvio">
+            <label>Tipo de Envío</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioClasico" value="1">
+                <label class="form-check-label" for="envioClasico">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioExpresso" value="2">
+                <label class="form-check-label" for="envioExpresso">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+                </label>
+            </div>
+        </div>  
+    </div>
       <div class="form-row">
         <div class="col form-group">
           <label for="">Email</label>
@@ -81,14 +94,18 @@
           </div>
       </div>
       <div class="form-row">
-          <div class="col form-group">
+          <div class="col form-group" id="div_provincia">
           <label for="">Provincia</label>
-          <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="" required>
+          <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="">
         </div>
-        <div class="col form-group">
+        <div class="col form-group" id="div_cp">
           <label for="">Codigo Postal</label>
           <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" >
         </div>
+          <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden>
+          <input type="number" name="dir_tipoenvio" id="dir_tipoEnvio" class="form-control" value="0" hidden  >
+          <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" required hidden>
+        
         </div>
         <div class="form-row">
           <label for="">Observaciones</label>
@@ -176,6 +193,8 @@
 
 <script>
  
+ const tipoEnvio = document.getElementById('tipoEnvio');
+        
  function buscardireccion(dir_id)     {
        
        if (dir_id==0){
@@ -188,37 +207,68 @@
             type:"GET",
             url: path,
             success: function(r){
-                document.getElementById('dir_calle').readOnly = true;
-                document.getElementById('dir_nro').readOnly = true;
-                document.getElementById('dir_localidad').readOnly = true;
+                $("#dir_id").val(r.dir_id);
                 $("#dir_calle").val(r.dir_calle);
+                $("#dir_tipocorreo").val(r.dir_tipocorreo);
                 $("#dir_nro").val(r.dir_nro);
                 $("#dir_cp").val(r.dir_cp);
                 $("#dir_telefono").val(r.dir_telefono);
                 $("#dir_localidad").val(r.dir_localidad);
                 $("#dir_provincia").val(r.dir_provincia);
                 $("#dir_obs").val(r.dir_obs);
-                if (r.dir_correo==false){
-                  document.getElementById("img_correo").src="{% static 'img/uncheck.jpg' %}";
-                  $("#dir_correo").val("0");
-                  document.getElementById("div_sucursal").style.display = "block";
+                dir_tipoenvio = r.dir_tipoenvio;
+
+                // ENVIO CLASICO - CORREO ARGENTINO
+                if (dir_tipoenvio=='1'){
+                  document.getElementById('envioClasico').checked  = true;
+                  $("#dir_tipoenvio").val(1);
+
                 }
-                if (r.dir_correo==true){
-                  document.getElementById("img_correo").src="{% static 'img/check.jpg' %}";
+                // ENVIO Express  - CORREO ARGENTINO
+                if (dir_tipoenvio=='2'){
+                  document.getElementById('envioExpresso').checked  = true;
+                  $("#dir_tipoenvio").val(2);
+                }
+                
+                // Entrega en Sucursal Correo
+                if (r.dir_tipocorreo==1){
+                  document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
+                  document.getElementById("div_chk_tipoenvio").style.display = "none";
                   document.getElementById('dir_calle').readOnly = true;
                   document.getElementById('dir_nro').readOnly = true;
                   document.getElementById('dir_localidad').readOnly = true;
-                  $("#dir_correo").val("1");
-                  $("#dir_calle").val(r.dir_nombre);
-                  $("#dir_nro").val("0");
-                  $("#dir_cp").val("1000");
-                  $("#dir_localidad").val("Localidad");
+                  document.getElementById('dir_provincia').readOnly = true;
+                  document.getElementById('dir_cp').readOnly = true; 
+                  $("#dir_localidad").val(r.dir_localidad); 
+                } // ENVIO A DOMICILIO
+                if (r.dir_tipocorreo==2){
+                  document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
+                  document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  document.getElementById("div_sucursal").style.display = "block";
+                  document.getElementById("div_provincia").style.display = "block";
+                  document.getElementById("div_cp").style.display = "block";
+                  document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  document.getElementById('dir_calle').readOnly = false;
+                  document.getElementById('dir_nro').readOnly = false;
+                  document.getElementById('dir_localidad').readOnly = false;
+                  document.getElementById('dir_provincia').readOnly = false;
+                  document.getElementById('dir_cp').readOnly = false;  
+
+                }// RETIRA CLIENTE
+                if (r.dir_tipocorreo==3){
+                  document.getElementById("tipo_envio").innerText = "Retira Cliente"
+                  document.getElementById("div_chk_tipoenvio").style.display = "none";
                   document.getElementById("div_sucursal").style.display = "none";
-                } 
-                
+                  document.getElementById("div_provincia").style.display = "none";
+                  document.getElementById("div_cp").style.display = "none";
+                  document.getElementById("div_chk_tipoenvio").style.display = "none";
+
+                }
             },
         });
     }
+    
+   
 
    $(function () {     
         $("#direccion").change(function() {
@@ -229,6 +279,21 @@
         $("#direccion").val({{direccion.dir_id }}).change();
             
     });
+
+    // Seleccionar todos los radio buttons del grupo chktipoEnvio
+    const radioButtons = document.querySelectorAll('input[name="chktipoEnvio"]');
+
+    // Función para manejar el evento de cambio
+    function handleRadioChange(event) {
+        // Obtener el valor del radio button seleccionado
+        const selectedValue = event.target.value;
+        $("#dir_tipoEnvio").val(selectedValue);
+    }
+
+// Asignar la función al evento 'change' de cada radio button
+    radioButtons.forEach(radio => {
+    radio.addEventListener('change', handleRadioChange);
+});
 
 </script>
 

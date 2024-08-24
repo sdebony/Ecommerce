@@ -821,7 +821,7 @@ def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
                     dir_provincia=pedido.dir_provincia,
                     dir_cp = pedido.dir_cp,
                     dir_obs = pedido.dir_obs,
-                    dir_correo= pedido.dir_correo,
+                    dir_tipocorreo= pedido.dir_tipocorreo,
                     order_total = total,
                     envio = envio,
                     status = pedido.status,
@@ -1126,7 +1126,7 @@ def panel_pedidos_save_enc(request):
                     dir_provincia=dir_provincia,
                     dir_cp = order.dir_cp,
                     dir_obs = order.dir_obs,
-                    dir_correo= order.dir_correo,
+                    dir_tipocorreo= order.dir_tipocorreo,
                     order_total = order.order_total,
                     envio = 0,
                     status = "New",
@@ -3311,10 +3311,7 @@ def import_pedidos_xls(request):
                             try:
                                 str_field       = "correo"
                                 correo =    str(sheet1.cell_value(rowNumber, 6))  #Entrega en correo
-                                if correo[0:2].lower().strip() =="si":
-                                    bcorreo = True
-                                else:
-                                    bcorreo = False
+                                
 
                                 nombre_completo= str(sheet1.cell_value(rowNumber, 5))
                                 i_end = nombre_completo.find(" ")
@@ -3368,7 +3365,7 @@ def import_pedidos_xls(request):
                                         dir_provincia   = dir_provincia,
                                         dir_cp          = dir_cp,
                                         dir_obs         = dir_obs,
-                                        dir_correo      = bcorreo,
+                                        dir_tipocorreo  = correo,
                                         usuario        = request.user,
                                         status          = False
                                         )                                    
@@ -3580,7 +3577,7 @@ def validar_tmp_pedidos(request):
                 dir_provincia=enc.dir_provincia,
                 dir_cp = enc.dir_cp,
                 dir_obs = enc.dir_obs,
-                dir_correo= enc.dir_correo,
+                dir_tipocorreo= enc.dir_tipocorreo,
                 order_total = order_total,
                 status = status_enc 
             ) 
@@ -3617,7 +3614,7 @@ def guardar_tmp_pedidos(request,codigo=None):
                         dir_provincia=pedidos_tmp.dir_provincia,
                         dir_cp = pedidos_tmp.dir_cp,
                         dir_obs = pedidos_tmp.dir_obs,
-                        dir_correo= pedidos_tmp.dir_correo,
+                        dir_tipocorreo= pedidos_tmp.dir_tipocorreo,
                         order_total = pedidos_tmp.order_total,
                         envio = 0,
                         status = "New",
@@ -3759,7 +3756,7 @@ def guardar_tmp_pedidos_all(request):
                             dir_provincia=pedidos_tmp.dir_provincia,
                             dir_cp = pedidos_tmp.dir_cp,
                             dir_obs = pedidos_tmp.dir_obs,
-                            dir_correo= pedidos_tmp.dir_correo,
+                            dir_tipocorreo= pedidos_tmp.dir_tipocorreo,
                             order_total = pedidos_tmp.order_total,
                             envio = 0,
                             status = "New",
@@ -4419,7 +4416,7 @@ def panel_recalcular_totales(order_number=None):
                 dir_provincia  = pedido.dir_provincia,
                 dir_cp  = pedido.dir_cp,
                 dir_obs  = pedido.dir_obs,
-                dir_correo  = pedido.dir_correo,
+                dir_tipocorreo  = pedido.dir_tipocorreo,
                 order_note  = pedido.order_note,
            
                 status = "New",

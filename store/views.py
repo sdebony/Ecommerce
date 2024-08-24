@@ -32,19 +32,14 @@ def store(request, category_slug=None,subcategory_slug=None):
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
-    print("user_agent",user_agent)
     
     if 'Mobile' in user_agent:
-        print('Estás accediendo desde un celular.')
         resolucion=settings.STORE_TEMPLATE_MOBILE
     else:
-        print('Estás accediendo desde PC.')
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
        
-    print(category_slug,subcategory_slug,"Parametros")  
     if category_slug != None:
         if subcategory_slug != None:
-            print("store 1",category_slug,subcategory_slug) 
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
             subcategories = SubCategory.objects.filter(category=categories)
@@ -65,7 +60,6 @@ def store(request, category_slug=None,subcategory_slug=None):
           
 
         else:
-            print("store 2")
             categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
             #subcategories = get_object_or_404(SubCategory, category=categories)
             subcategories = SubCategory.objects.filter(category=categories)
@@ -79,7 +73,6 @@ def store(request, category_slug=None,subcategory_slug=None):
             category_id = categories.id
             subcategy_id = 0
     else:
-        print("store 3")
         subcategories=[]
         category_slug=settings.DEF_CATEGORY
         subcategory_slug=settings.DEF_SUBCATEGORY
@@ -87,7 +80,6 @@ def store(request, category_slug=None,subcategory_slug=None):
         categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
         subcat = get_object_or_404(SubCategory, category=categories,sub_category_slug=subcategory_slug)
         subcategories = SubCategory.objects.filter(category=categories)
-        print("subcategories",subcategories,subcat)
         products = Product.objects.filter(category=categories,subcategory=subcat, is_available=True).order_by('product_name')
         
         product_count = products.count()

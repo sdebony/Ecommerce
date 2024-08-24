@@ -402,7 +402,6 @@ def edit_dir_entrega(request):
         action = request.POST.get('action')
         if action == 'save':
 
-            print("request.POST")
             dir_id= request.POST["dir_id"]
             dir_nombre= request.POST["dir_nombre"]
             dir_cp= request.POST["dir_cp"]
@@ -416,7 +415,6 @@ def edit_dir_entrega(request):
             dir_tipocorreo= request.POST["dir_tipocorreo"]
             dir_tipoenvio = request.POST.get("tipoEnvio")
 
-            print("tipoEnvio:",str(dir_tipoenvio))
             if not dir_id:
                 dir_id = "0"
 

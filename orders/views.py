@@ -88,6 +88,7 @@ def payments(request):
 def place_order(request, total=0, quantity=0,):
     current_user = request.user
     
+    
     # If the cart count is less than or equal to 0, then redirect back to shop
     cart_items = CartItem.objects.filter(user=current_user)
     cart_count = cart_items.count()
@@ -103,7 +104,11 @@ def place_order(request, total=0, quantity=0,):
     
     grand_total = total + envio
 
+   
+
     if request.method == 'POST':
+        
+    
         form = OrderForm(request.POST)
         
         if form.is_valid():
@@ -120,7 +125,9 @@ def place_order(request, total=0, quantity=0,):
             data.dir_localidad = form.cleaned_data['dir_localidad']
             data.dir_provincia = form.cleaned_data['dir_provincia']
             data.dir_cp = form.cleaned_data['dir_cp']
-            data.dir_correo =  form.cleaned_data['dir_correo']
+            data.dir_tipocorreo =  form.cleaned_data['dir_tipocorreo']
+            data.dir_tipoenvio =  form.cleaned_data['dir_tipoenvio']
+            
             data.order_note = form.cleaned_data['dir_obs']
             data.order_total = grand_total
             data.envio = envio
@@ -151,6 +158,7 @@ def place_order(request, total=0, quantity=0,):
             print("order",order)
             return render(request, 'orders/payments.html', context)
         else:
+            print(form)
             return redirect('store')
     else:
         print("invalid Form")

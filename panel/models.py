@@ -48,7 +48,7 @@ class ImportTempOrders(models.Model):
     dir_provincia       = models.CharField(max_length=50,blank=True)
     dir_cp              = models.CharField(max_length=10,blank=True)
     dir_obs             = models.CharField(max_length=255,blank=True)
-    dir_correo          = models.BooleanField(default=False) #Es correo externo
+    dir_tipocorreo      = models.BigIntegerField(default=0) #1 (Sucursal) #2(Envio a Domiciloi) #3(Retira Cliente)
     usuario             = models.CharField(max_length=25) 
     status              =models.BooleanField(default=False)
 

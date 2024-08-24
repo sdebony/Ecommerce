@@ -41,16 +41,25 @@
               <!-- title row -->
               <div class="row">
                 <div class="col-12">
-                 {% if ordenes.dir_correo %} 
-                 <input class="form-check-input" id="dir_correo" name="dir_correo[]" type="checkbox" value="1" checked>
-                  <h4><i class="fas fa-globe"></i> Correo Argentino
+                 {% if ordenes.dir_tipocorreo == 1 %} 
+                 <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="1" checked>
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino
                     <small class="float-right">Fecha: 
                         <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
                     </small>
                   </h4>
-                  {% else %}
-                  <input class="form-check-input" id="dir_correo" name="dir_correo[]" type="checkbox" value="0" >
-                  <h4><i class="fas fa-home"></i> Entrega Cliente 
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 2 %}
+                  <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expresso {% endif %}
+                    <small class="float-right">Fecha: 
+                        <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
+                    </small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 3 %}
+                  <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
+                  <h4><i class="fas fa-user"></i> Retira Cliente 
                     <small class="float-right">Fecha: 
                         <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
                     </small>

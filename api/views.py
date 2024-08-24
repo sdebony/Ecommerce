@@ -149,16 +149,16 @@ def GuardarDolar(request):
 class Direccion(APIView):
           
     def get(self,request,dir_id):
-        print("Direccion API ",dir_id)
+       
         if dir_id==99:
             user_id = Account.objects.filter(email=settings.EMAIL_HOST_USER).first()
-            print("Retira por capital. direccion 99 lifche usuario ",user_id)
+            
             if user_id:
                 direccion = get_object_or_404(AccountDirecciones,user=user_id)
         else:
             direccion = get_object_or_404(AccountDirecciones,dir_id=dir_id)
         data = DireccionesSerializer(direccion).data
-        print(data)
+        
         return Response(data)
 
 class DireccionesList(APIView):
