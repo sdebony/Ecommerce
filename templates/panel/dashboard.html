@@ -53,13 +53,13 @@
         </div>
       </div>
       {% endfor %} 
-
+      </div>
         <!-- Card Body -->
   <div class="card-body">
     {% if not mov %}
     <div class="alert alert-info">No Hay Movimientos</div>
     {% endif %}
-    
+  
 
   
 
@@ -83,7 +83,7 @@
           <th data-sortable="true" data-field="monto">Monto</th>
           <th data-sortable="true" data-field="Observaciones">Observaciones</th>
 
-          <th class="all">Acciones</th>  
+         
       </thead>
       <tbody>
         {% for item in mov %}
@@ -107,17 +107,7 @@
                 <td>{{ item.observaciones }}</td>
                 {% endif %}
           {% endif %}
-          <td >         
-              {% if not item.ordernumber   %}
-                {% if not item.idtransferencia %}
-                  <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
-                  <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
-                {% endif %}
-              {% endif %}
-
-            </div>
-        
-          </td>
+         
         </tr>
         {% endfor %}
       </tbody>
