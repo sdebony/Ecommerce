@@ -112,7 +112,7 @@
             {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'DASHBOARD RESULTADOS' %}
-                  <a class="collapse-item" href="{% url 'dashboard_resultados' %}" >Saldo Cuentas</a>
+                  <a class="collapse-item" href="{% url 'dashboard_resultados' 0 %}" >Saldo Cuentas</a>
               {% endif %}
             {% endif %}
         {% endfor %}

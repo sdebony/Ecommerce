@@ -384,7 +384,7 @@ def dashboard_cuentas(request):
     else:
         return render (request,"panel/login.html")
 
-def dashboard_resultados(request):
+def dashboard_resultados(request,cuenta_id=None):
 
     if validar_permisos(request,'DASHBOARD RESULTADOS'):
         fecha_1 = request.POST.get("fecha_desde")
@@ -414,11 +414,18 @@ def dashboard_resultados(request):
         # LE SACO LAS FECHAS PARA QUE TOME LOS SALDOS REALES ACTUALES
         #saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre','cuenta__moneda').annotate(total=
         #    Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
-        saldos = Movimientos.objects.filter().values('cuenta__nombre','cuenta__moneda').annotate(total=
+        saldos = Movimientos.objects.filter().values('cuenta__nombre','cuenta__moneda','cuenta__id').annotate(total=
             Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
+
+        if cuenta_id:
+            mov = Movimientos.objects.filter(cuenta=cuenta_id).order_by('-fecha')
+        else:
+            print("none")
+            mov=[]        
 
         context = {
             'permisousuario':permisousuario,
+            'mov':mov,
             'saldos':saldos,
             'fecha_desde':fecha_desde,
             'fecha_hasta':fecha_hasta
