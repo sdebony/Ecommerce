@@ -1,0 +1,67 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >Compra Dolar</h6>
+    </div>
+    
+     
+  <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'compras' %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not sol_compras %}
+        <div class="alert alert-info">No se encontraron solicitudes de compra</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="nombre">Nombre</th>
+          <th data-sortable="true" data-field="monto">Monto</th>   
+          <th data-sortable="true" data-field="estado">Estado</th>
+          <th data-sortable="false" data-field="">Borrar</th>
+         
+      </thead>
+      <tbody>
+        {% for item in sol_compras %}
+          <tr>
+            <td>{{ item.fecha | date:'d/m/Y' }}</td>
+            <td>{{ item.cuenta.nombre }}</td> 
+            <td>USD {{ item.monto }}</td>
+            {% if item.estado == 0 %}
+              <td><span class="badge bg-success text-white">Abierto</span></td>
+            {% else %}
+              <td><span class="badge bg-warning text-white">Finalizado</span></td>
+            {% endif %}
+            <td >         
+              <a href="{% url 'compras_usd_delete' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
+              
+          </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

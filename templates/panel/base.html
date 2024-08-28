@@ -98,7 +98,7 @@
             {% for items in permisousuario %}
                 {% if items.modo_ver %}
                   {% if items.codigo.codigo == 'DASHBOARD VENTAS' %}
-                      <a class="collapse-item" href="{% url 'dashboard_ventas' %}" >Panel de Ventas</a>
+                      <a class="collapse-item" href="{% url 'dashboard_ventas' %}" >Panel Diario</a>
                   {% endif %}
                 {% endif %}
             {% endfor %}
@@ -318,7 +318,7 @@
             {% for items in permisousuario %}
               {% if items.modo_ver %}
                 {% if items.codigo.codigo == 'COMPRAS' %}
-                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'compras' %}">Compras</a>
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'compras_list' %}">Solicitud de Compras USD</a>
                 {% endif%}
               
               {% endif %}

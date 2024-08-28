@@ -52,8 +52,6 @@ class Cuentas(models.Model):
         verbose_name = "Cuenta"
         verbose_name_plural = "Cuentas"
 
-
-
 class CierreMes(models.Model):
 
     fecha = models.DateField()

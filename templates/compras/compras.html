@@ -1,91 +1,88 @@
-{% extends 'panel/base.html' %}
 
+
+{% extends 'panel/base.html' %}
+{% load static %}
 {% block page_content %}
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 align="center">Compras</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="{% url 'panel_pedidos' 'New' %}">Volver</a></li>
-              <li class="breadcrumb-item active">Compra # 123456     
-                </li>
-            </ol>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
-    </section>
+  <form id="compras" name="compras" action="{% url 'compras_save'  %}" enctype="multipart/form-data" method="POST">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
 
-    <section class="content">
-        <div class="container-fluid">
-        <!-- Main content -->
-            <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
-            {% csrf_token %}
-            <!-- info row -->
-                <div class="col-sm-12 invoice-col">
-                    <div class="form-row">
-                        <div class="col form-group">
-                            <label>Proveedor:</label>
-                            <div class="input-group-append">
-                                <input type="text" name="proveedor" id="proveedor" class="form-control" value="Proveedor" required>
-                                <button class="btn btn-primary" type="button" hx-target="#dialog" onclick="return abrir_modal2('{% url 'search_lookup' keyword=' ' order_number=' ' %}')">
-                                    <i class="fa fa-search"></i></button>
-                               
-                            </div>
-                        </div>
-                        <div class="col form-group">
-                            <label>Comprador:</label>
-                            <input type="text" name="comprador" id="comprador" class="form-control" value="{{ user }}" required disabled>
-                        </div>
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Solicitud de Compras de USD <b>  </b></h3>
+                    <input type="number" id="idcompra" name="idcompra" class="form-control" value="{{ idcompra }}" hidden>
+                    
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                 
+
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="fecha">Fecha Solicitud:</label>
                     </div>
-                </div>
-            </form> 
- 
-        </div>
-    </section>
-    <!-- /.content -->
-  </div>
+                    <input type="text"  onblur="validar(this)" name="fecha" id="fecha"  value="{{ fecha|date:'Y-m-d' }}"required />
+                  </div>
 
-  
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="cuenta">Cuenta:</label>
+                    </div>
+                      <select class="custom-select" id="cuenta" name="cuenta">
+                        {% for item in cuentas %}
+                            {% if item.id == orden.cuenta %}
+                            <option value="{{ item.id }}" selected>{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% else %}
+                            <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="monto">Monto Solicitado:</label>
+                    </div>
+                    <input type="text" name="monto" id="monto" class="form-control" value="0" required >
+                  </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Confirmar Solicitud</button>
+                    <a href="#" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
 {% endblock %}
 
+{% block js_page %}
 
-{% block control_modal%}
 
 <script>
 
-  function abrir_modal2(url)
-  {
-   
-    var keyword=$('#producto').val();
-    console.log(keyword)
-    if (keyword=="")
-    {
-      keyword="all"
-    }
-   
-    url = '/compras/search/' + encodeURIComponent(keyword) 
-  
-    console.log(url)
-   
-    $("#popup").load(url, function(){
-      $(this).modal({
-        backdrop:'static',
-        keyboard: false
-      })
-      $(this).modal('show');
-    });
-    return false;
-  }
+  $(function () {
+
+       $("#fecha, #fecha").datetimepicker({
+           format: 'Y-m-d',
+           timepicker:false
+       });
+
+      });
 
   
 </script>
-
-{% endblock%}
-
+{% endblock %}

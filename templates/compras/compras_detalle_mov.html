@@ -1,0 +1,72 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >{{ cuenta_nombre }}</h6>
+    </div>
+    
+     
+ 
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          
+          <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="monto">Importe Total </th>   
+          <th data-sortable="true" data-field="estado">Estado</th>
+          <th data-sortable="true" data-field="usd_promedio">Valor USD Promedio</th>
+          <th data-sortable="true" data-field="total_usd_linea">Total USD</th>
+          
+        
+      </thead>
+      <tbody>
+        {% for item in resultado %}
+        <tr>
+         
+          <td>{{ item.fecha }}</td> 
+          <td>$ {{ item.monto }}</td>
+          <td><span class="badge bg-success text-white">Cobrado</span></td>
+          <td>$ {{ item.promedio }}</td>
+          <td>USD {{ item.Total_USD }}</td>
+          
+        </tr>
+        {% endfor %}
+        {% for item in pedidos_agrupados %}
+        <tr>
+         
+          <td>{{ item.fecha }}</td> 
+          <td>$ {{ item.order_total }}</td>
+          <td><span class="badge bg-warning text-white">Asignado</span></td>
+          <td>$ {{ item.promedio }}</td>
+          <td>USD {{ item.Total_USD }}</td>
+          
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+  
+  <a href="{% url 'dashboard_cuentas' %}" class="btn btn-secondary flex-row-reverse" style="float: right;">Volver</a>  
+</div>
+
+{% endblock %}
+{% block js_page %}
+{% endblock %}
+
+

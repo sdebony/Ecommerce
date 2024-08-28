@@ -34,10 +34,14 @@
                   
                   <div class="form-row">
                       <div class="col form-group">
-                        <label>Deposito en Cuenta</label>
+                        <label>Deposito en Cuenta </label>
                         <select class="form-control" id="cuenta" name="cuenta">
                         {% for item in cuentas %}
-                          <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% if item.id == orden.cuenta %}
+                            <option value="{{ item.id }}" selected>{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% else %}
+                            <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% endif %}
                         {% endfor %}
                         </select>
                       </div>

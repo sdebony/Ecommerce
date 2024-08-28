@@ -6,7 +6,7 @@
 
             <!-- Page Heading -->
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                <h1 class="h3 mb-0 text-gray-800">Panel Diario</h1>
                 <form action="{% url 'dashboard_ventas' %}" enctype="multipart/form-data" method="POST">
                 
                   {% csrf_token %}
@@ -18,248 +18,112 @@
                 </form>
             </div>
             <!-- Content Row -->
-            <!-- Content Row -->
-            <div class="row">
-              <!-- Area Chart -->
-                <div class="col-xl-8 col-lg-7">
-                  <div class="card shadow mb-4">
-                      <!-- Card Header - Dropdown -->
-                      <div
-                          class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                          <h6 class="m-0 font-weight-bold text-primary">$ Ventas Anuales</h6>           
-                      </div>
-                      <!-- Card Body -->
-                        <div class="card-body">
-                          <h1> </h1>
-                            <!-- CHART-->
-                            <div class="col-md-12">
-                                <canvas id="myChart3" width="400" height="250"></canvas>
-                                <script>
-                                    var ctx = document.getElementById('myChart3').getContext('2d');
-                                    var myChart = new Chart(ctx, {
-                                        type: 'line',
-                                        data: {
-                                            labels: [  'Ene',  'Feb',  'Mar',  'Abr',  'May',  'Jun',  'Jul',  'Ago',  'Sep',  'Oct',  'Nov',  'Dic', ],
-                                    datasets: [{
-                                        label: '#Ventas anuales',
-                                        data: [{% for data in hist_pedidos %} '{{ data  }}', {% endfor %}],
-                                        backgroundColor: [
-                                                'rgba(255, 99, 132, 0.2)',
-                                            ],
-                                            
-                                                borderWidth: 1
-                                    }]
-                                        },
-                                    options: {
-                                        scales: {
-                                            yAxes: [{
-                                                ticks: {
-                                                    beginAtZero: true,
-                                                    stacked: true
-                                                }
-            
-                                            }]
-                                        }
-                                    }
-                                    });
-                                </script>
-                            </div>
-                            <!-- FIN CHART-->
-                            <!-- FIN CHART-->
-                        </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">        
+                        <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Pedidos {{ pedidos_totales.cantidad}}</div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ pedidos_totales.total }}  </div>
+                    </div>
+                    <div class="col-auto">
+                      <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
                   </div>
                 </div>
-                <!-- Fin Area Chart -->
-                <!-- Pie Chart -->
-                <div class="col-xl-4 col-lg-5">
-                    <div class="card shadow mb-4">
-                        <!-- Card Header - Dropdown -->
-                        <div
-                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                            <h6 class="m-0 font-weight-bold text-primary"># Estados de los Pedidos</h6>                       
-                        </div>
-                        <!-- Card Body -->
-                        <div class="card-body">
-                            <div class="chart-pie pt-4 pb-2">
-                              <canvas id="myChart2" width="400" height="200"></canvas>
-                              <script>
-                                  var ctx = document.getElementById('myChart2').getContext('2d');
-                                  var myChart = new Chart(ctx, {
-                                      type: 'doughnut',
-                                      data: {
-                                          labels: [{% for pedidos in pedidos %} '{{ pedidos.status }}', {% endfor %}],
-                                  datasets: [{
-                                      label: '#Saldo de cuentas',
-                                      data: [{% for pedidos in pedidos %} {{ pedidos.cantidad }}, {% endfor %}],
-                                      backgroundColor: [
-                                          'rgba(255, 99, 132, 1)',
-                                          'rgba(54, 162, 235, 1)',
-                                          'rgba(255, 206, 86, 1)',
-                                          'rgba(75, 192, 192, 1)',
-                                          'rgba(153, 102, 255, 1)',
-                                          'rgba(255, 159, 64, 1)'
-                                            ],
-                                            borderColor: [
-                                            'rgba(255, 99, 132, 1)',
-                                            'rgba(54, 162, 235, 1)',
-                                            'rgba(255, 206, 86, 1)',
-                                            'rgba(75, 192, 192, 1)',
-                                            'rgba(153, 102, 255, 1)',
-                                            'rgba(255, 159, 64, 1)'
-                                            ],
-                                              borderWidth: 1
-                                  }]
-                                      },
-                                  options: {
-                                      scales: {
-                                          yAxes: [{
-                                              ticks: {
-                                                  beginAtZero: true,
-                                                  stacked: true
-                                              }
-                                            }]
-                                      }
-                                  }
-                                  });
-                              </script>
-                            </div>
-                            <div class="mt-4 text-center small">
-                               Cantidad de Pedidos
-                            </div>
-                        </div>
-                        <!-- End Card Body-->          
-                    </div>
-  
-                    <div class="card shadow mb-4">
-                      <!-- Card Header - Dropdown -->
-                      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                          <h6 class="m-0 font-weight-bold text-primary"># Top 5 Clientes </h6>
-                      </div>
-  
-                      <div class="card-body">
-                        <div class="chart-pie pt-4 pb-2">
-                          <canvas id="myChart5" width="400" height="200"></canvas>
-                          <script>
-                            var ctx = document.getElementById('myChart5').getContext('2d');
-                            var myChart = new Chart(ctx, {
-                                type: 'bar',
-                                data: {
-                                    labels: [{% for data in clientes %} '{{ data.last_name  }}, {{data.first_name}}', {% endfor %}],
-                            datasets: [{
-                                label: 'Clientes',
-                                data: [{% for data in clientes %} {{ data.total }}, {% endfor %}],
-                                backgroundColor: [
-                                        'rgba(255, 99, 132, 0.2)',
-                                        'rgba(255, 159, 64, 0.2)',
-                                        'rgba(255, 205, 86, 0.2)',
-                                        'rgba(75, 192, 192, 0.2)',
-                                        'rgba(54, 162, 235, 0.2)',
-                                        'rgba(153, 102, 255, 0.2)',
-                                        'rgba(201, 203, 207, 0.2)'
-                                      ],
-                                      borderColor: [
-                                        'rgb(255, 99, 132)',
-                                        'rgb(255, 159, 64)',
-                                        'rgb(255, 205, 86)',
-                                        'rgb(75, 192, 192)',
-                                        'rgb(54, 162, 235)',
-                                        'rgb(153, 102, 255)',
-                                        'rgb(201, 203, 207)'
-                                      ],
-                                        borderWidth: 1
-                            }]
-                                },
-                            options: {
-                                scales: {
-                                    yAxes: [{
-                                        ticks: {
-                                            beginAtZero: true,
-                                            stacked: true
-                                        }
-  
-                                    }]
-                                }
-                            }
-                            });
-                        </script>
-                        </div>
-  
-                      </div>
-                    </div>  
-                </div>
+              </div>
             </div>
-     
-            <div class="row">
-                <!-- Area Chart -->
-                
-                <!-- Fin Area Chart -->
-                <!-- Content Column -->
-                <div class="col-xl-4 col-lg-5">
-                          <div class="card shadow mb-4">
-                            <!-- Card Header - Dropdown -->
-                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                <h6 class="m-0 font-weight-bold text-primary"># Top 5 Items </h6>
-                            </div>
-        
-                            <div class="card-body">
-                              <div class="chart-pie pt-4 pb-2">
-                                <canvas id="items" width="400" height="200"></canvas>
-                                <script>
-                                  var ctx = document.getElementById('items').getContext('2d');
-                                  var myChart = new Chart(ctx, {
-                                      type: 'bar',
-                                      data: {
-                                          labels: [{% for data in items %} '{{ data.product__product_name  }}', {% endfor %}],
-                                  datasets: [{
-                                      label: 'Items',
-                                      data: [{% for data in items %} {{ data.cantidad }}, {% endfor %}],
-                                      backgroundColor: [
-                                              'rgba(255, 99, 132, 0.2)',
-                                              'rgba(255, 159, 64, 0.2)',
-                                              'rgba(255, 205, 86, 0.2)',
-                                              'rgba(75, 192, 192, 0.2)',
-                                              'rgba(54, 162, 235, 0.2)',
-                                              'rgba(153, 102, 255, 0.2)',
-                                              'rgba(201, 203, 207, 0.2)'
-                                            ],
-                                            borderColor: [
-                                              'rgb(255, 99, 132)',
-                                              'rgb(255, 159, 64)',
-                                              'rgb(255, 205, 86)',
-                                              'rgb(75, 192, 192)',
-                                              'rgb(54, 162, 235)',
-                                              'rgb(153, 102, 255)',
-                                              'rgb(201, 203, 207)'
-                                            ],
-                                              borderWidth: 1
-                                  }]
-                                      },
-                                  options: {
-                                      scales: {
-                                          yAxes: [{
-                                              ticks: {
-                                                  beginAtZero: true,
-                                                  stacked: true
-                                              }
-        
-                                          }]
-                                      }
-                                  }
-                                  });
-                              </script>
-                              </div>
-        
-                            </div>
-                        
-                      </div>
-                    
-                </div>
-                <!-- Content Column  -->
-                <div class="col-xl-8 mb-3">
-                
-            
-                </div>
+            <!-- Content Row -->
 
-            </div>  
+
+           <!-- Card Body -->
+  <div class="card-body">
+    {% if not pedidos_list %}
+    <div class="alert alert-info">No se encontraron pedidos</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th class="all">Acciones</th>  
+          <th data-sortable="true" data-field="order_number">Nro</th>
+          <th data-sortable="true" data-field="first_name">Nombre</th>
+          <th data-sortable="true" data-field="last_name">Apellido</th>   
+          <th data-sortable="true" data-field="phone">phone</th>
+          <th data-sortable="true" data-field="cuenta">Cuenta</th>
+          <th data-sortable="true" data-field="order_total">Total</th>
+          <th data-sortable="true" data-field="status">status</th>
+          <th data-sortable="true" data-field="fecha">Fecha </th>
+          <th data-sortable="true" data-field="nro_tracking">Tracking </th>
+         
+
+      </thead>
+      <tbody>
+        <!--  <a href="#" class="href btn btn-success btn-circle"></a>-->
+        <!--  - {{item.STATUS}}-->
+        {% for item in pedidos_list %}
+        <tr>
+          <td>
+            {% if item.status == 'New' %}
+             <i class="href btn btn-primary btn-circle"><i class="fas fa-dollar-sign"></i></i>
+            {% endif %}
+            {% if item.status == 'Cobrado' %}
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-truck"></i></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i></i>
+              {% endif %}
+            {% endif %}
+            {% if item.status == 'Entregado' %}
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-edit"></i></i>
+              {% endif %}
+            {% endif %}
+          
+        
+          </td>
+          <td><b><a href="{% url 'panel_pedidos_detalle' item.order_number %}">{{ item.order_number }}</a></b></td>
+          <td>{{ item.first_name }} </td> 
+          <td>{{ item.last_name }}</td>
+          <td>{{ item.dir_telefono }} </td>
+
+          {% if item.cuenta != 0 %}
+            {% for i in cuenta %}
+              {% if i.id == item.cuenta %}
+                <td>{{ i.nombre }}</td>
+              {% endif %}
+            {% endfor %}
+          {% else%}
+           <td>Pendiente</td>
+          {% endif %}     
+
+
+          
+          <td>$ {{ item.order_total }} </td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.fecha | date:"d/m/Y"  }}</td>
+          <td>{{ item.nro_tracking  }}</td>
+          
+          
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+          
         </div> 
 {% endblock %}

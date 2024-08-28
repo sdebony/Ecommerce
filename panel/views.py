@@ -11,17 +11,22 @@ from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias,CierreMes
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
-
+from compras.models import CompraDolar
 from accounts.forms import UserForm, UserProfileForm
-from django.db.models import Q, Sum, Count,Max , DecimalField
+
 from django.db.models.functions import TruncMonth
 from django.db.models.functions import Round
 from django.http import HttpResponse
 from slugify import slugify
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal
+from django.utils import timezone
+from django.db.models import F, ExpressionWrapper, FloatField, Value
+from django.db.models.functions import Coalesce
+from django.db.models import OuterRef, Subquery
+from django.db.models import Sum, F, Q, Count, DecimalField
+from django.db.models.functions import TruncDate
 
-from django.db.models import F
 import json
 import calendar
 
@@ -150,40 +155,30 @@ def panel_home(request):
         return render (request,"panel/login.html")
 
 def dashboard_ventas(request):
-   
+   # VENTAS DEL DIAS
+
     if validar_permisos(request,'DASHBOARD VENTAS'):
         
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta")     
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=90) 
+            dias = timedelta(days=1) 
             fecha_desde = fecha_hasta - dias
         else:
            
             fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
             fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
 
-        #print(fecha_desde,fecha_hasta)
-
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('status').annotate(cantidad=Count('order_number')).order_by('status')
-        
-        clientes = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('last_name','first_name').annotate(total=
-                     Round(
-                Sum('order_total'),
-                output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('-order_total')[:5]
 
-        
-        items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
-        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(cantidad=Sum('quantity')).order_by('-quantity')[:5]
-       
-        hist_pedidos = []
-
-        for i in range(1, 13): 
-            payments_months = Order.objects.filter(fecha__month = i)
-            month_earnings = round(sum([Order.order_total for Order in payments_months]))
-            hist_pedidos.append(month_earnings)
+        pedidos_totales = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).aggregate(
+            cantidad=Count('order_number'),total=Sum('order_total')
+            )
+      
+        pedidos_list = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
+      
+        cuenta = Cuentas.objects.all()
 
 
         
@@ -200,15 +195,15 @@ def dashboard_ventas(request):
         lim_fecha_hasta = datetime(yr,mt,dt)
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
       
+   
+
        
         form = []
         context = {
             'permisousuario':permisousuario,
-            'hist_pedidos':hist_pedidos,
-            'items': items,
-            #'cuentas':cuentas,
-            'pedidos':pedidos,
-            'clientes':clientes,
+            'pedidos_totales':pedidos_totales,
+            'pedidos_list':pedidos_list,
+            'cuenta':cuenta,
             'form': form,
             'fecha_desde':fecha_desde,
             'fecha_hasta':fecha_hasta,
@@ -249,22 +244,133 @@ def dashboard_cuentas(request):
 
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre').annotate(total=
-            Round(
-                Sum('monto'),
-                output_field=DecimalField(max_digits=12, decimal_places=2)))
         
-        mov_ing = Operaciones.objects.filter(codigo='ING').first()
-        cuentas = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta],movimiento=mov_ing).values('cuenta__nombre').annotate(porcentaje=
-         Round(
-                Sum('monto') * 100 / Max('cuenta__limite'),
-                output_field=DecimalField(max_digits=12, decimal_places=2)))
+                
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        cuentas = Cuentas.objects.filter(
+            moneda__simbolo='$' , limite__gte=1 # Filtro por el símbolo de la moneda
+        ).annotate(
+            total_monto=Coalesce(
+                Subquery(
+                    Movimientos.objects.filter(
+                        cuenta=OuterRef('pk'),
+                        fecha__month=current_month,
+                        fecha__year=current_year
+                    ).values('cuenta').annotate(total_monto=Sum('monto')).values('total_monto')[:1]
+                ), 
+                Value(0),
+                output_field=FloatField()  # Especifica el tipo de campo como FloatField
+            ),
+            total_order_total=Coalesce(
+                Subquery(
+                    Order.objects.filter(
+                        cuenta=OuterRef('pk'),
+                        status='New'
+                    ).values('cuenta').annotate(total_order_total=Sum('order_total')).values('total_order_total')[:1]
+                ), 
+                Value(0),
+                output_field=FloatField()  # Especifica el tipo de campo como FloatField
+            ),
+            resta_monto=ExpressionWrapper(
+                F('limite') - Coalesce(F('total_monto'), Value(0, output_field=FloatField())) - Coalesce(F('total_order_total'), Value(0, output_field=FloatField())),
+                output_field=FloatField()  # Especifica el tipo de campo como FloatField
+            )
+        )
+
+        #*******************************************
+        # SOLICITUD DE COMPRA DE DOLARES
+        #*********************************************
         
+        resultado = []
+       
+
+        solicitudes = CompraDolar.objects.filter(estado=False)
+        if solicitudes:
+            for item in solicitudes:
+                total_monto = 0
+                total_acum_usd = 0
+                total_acum_usd=0
+                total_asig_usd=0
+                #Obtengo los totales por fecha de los movimientos a partir de la fecha de solicitud
+                fecha_solicitud = datetime.strptime(str(item.fecha), '%Y-%m-%d %H:%M:%S')
+                fecha_solicitud = fecha_solicitud.strftime('%Y-%m-%d')
+                cuenta_id = item.cuenta.id
+
+                # **************************************
+                # C O B R A D O 
+                # **************************************
+                # Consulta original para agrupar y sumar montos
+                movimientos_agrupados = (
+                    Movimientos.objects
+                    .filter(fecha__gte=fecha_solicitud, idtransferencia=0, idcierre=0, cuenta_id=cuenta_id)
+                    .values('fecha')
+                    .annotate(total_monto=Sum('monto'))
+                    .order_by('fecha')
+                )
+                # Inicializamos la variable para la suma total
+                
+                # Recorremos los resultados agrupados
+                for item_mov in movimientos_agrupados:
+                    fecha = item_mov['fecha']
+                    total_monto = item_mov['total_monto']
+
+                    # Obtener el promedio de ImportDolar para la fecha actual
+                    import_dolar = ImportDolar.objects.filter(created_at__date=fecha).first()
+                    promedio = import_dolar.promedio if import_dolar else None
+
+                    # Si tenemos un valor de promedio, calcular y sumar
+                    if promedio:
+                        division_result = total_monto / promedio
+                        division_result_redondeado = round(division_result, 2)
+                        total_acum_usd += round(division_result_redondeado,2)
+
+                # **************************************
+                # A S I G N A D O -   N O  C O B R A D O 
+                # ************************************** 
+                pedidos_agrupados = (
+                    Order.objects
+                    .filter(status='New', cuenta=cuenta_id) #Para lo solicitado no toma la fecha ya que puede demorarse en pagar  #,fecha__gte=fecha_solicitud
+                    .values('fecha')
+                    .annotate(total_monto=Sum('order_total'))
+                    .order_by('fecha')
+                )
+                # Inicializamos la variable para la suma total
+                total_asig_usd = 0
+                # Recorremos los pedidos agrupados x fecha
+                for item_ped in pedidos_agrupados:
+                    fecha = item_ped['fecha']
+                    total_monto = item_ped['total_monto']
+
+                    # Obtener el promedio de ImportDolar para la fecha actual
+                    ped_import_dolar = ImportDolar.objects.filter(created_at__date=fecha).first()
+                    ped_promedio = ped_import_dolar.promedio if ped_import_dolar else None
+
+                    # Si tenemos un valor de promedio, calcular y sumar
+                    if ped_promedio:
+                        division_result = total_monto / ped_promedio
+                        division_result_redondeado = round(division_result, 2)
+                        total_asig_usd += round(division_result_redondeado,2)
+
+                 # Guardar los valores en un diccionario temporal
+                resultado.append({
+                    'solicitud': item,
+                    'fecha':item.fecha,
+                    'cuenta':item.cuenta.nombre,
+                    'monto':item.monto,
+                    'total_acum_pesos':round(total_monto,2),
+                    'total_acum_usd': round(total_acum_usd,2),
+                    'total_asig_usd': round(total_asig_usd,2),
+                    'total_general_usd': round(total_acum_usd + total_asig_usd,2),
+                    'faltan_usd': round(item.monto - total_acum_usd - total_asig_usd,2)
+                })
+            
         form = []
         context = {
             'permisousuario':permisousuario,
-            'data': saldos,
             'cuentas':cuentas,
+            'resultado':resultado,
             'form': form,
             'fecha_desde':fecha_desde,
             'fecha_hasta':fecha_hasta,
@@ -273,7 +379,7 @@ def dashboard_cuentas(request):
            
             }
         print("Acceso Panel")
-        #return render (request,"panel/dashboard_cuentas.html",context)
+        
         return render (request,"panel/dashboard_cuentas.html",context)
     else:
         return render (request,"panel/login.html")
@@ -1729,7 +1835,7 @@ def panel_confirmar_pago(request,order_number=None):
                 quantity += cart_item.quantity
 
             total =  float(envio) + float(subtotal)
-            print(total,quantity,subtotal)
+           
             #GRABO TRANSACCION DE PAGO
             if order:
                 payment = Payment(
@@ -1756,7 +1862,7 @@ def panel_confirmar_pago(request,order_number=None):
                 oper = Operaciones.objects.filter(codigo="ING").first() #Ingresos
                 cuentas= Cuentas.objects.get(id=cuenta_id)
             
-
+                
                 cliente = order.last_name + ", " + order.first_name
                 trx = Movimientos(
                         fecha =current_date,
@@ -4609,8 +4715,7 @@ def panel_cotiz_dolar_list(request):
             'fecha_desde':fecha_desde,
             'fecha_hasta':fecha_hasta
             }
-        
-
+    
         
         return render (request,"panel/lista_cotiz_dolar.html",context)
     else:
