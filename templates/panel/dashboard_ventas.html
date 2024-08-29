@@ -113,7 +113,15 @@
 
           
           <td>$ {{ item.order_total }} </td>
-          <td>{{ item.status }}</td>
+          {% if item.status == "New" %}
+            <td><span class="badge bg-primary text-white">{{ item.status }}</span></td>
+          {% elif item.status == "Cobrado" %}
+            <td><span class="badge bg-warning text-white">{{ item.status }}</span></td>
+          {% elif item.status == "Entregado" %}
+            <td><span class="badge bg-success text-white">{{ item.status }}</span></td>
+          {% else %}
+            <td><span class="badge bg-secondary text-white">{{ item.status }}</span></td>
+          {% endif %}
           <td>{{ item.fecha | date:"d/m/Y"  }}</td>
           <td>{{ item.nro_tracking  }}</td>
           

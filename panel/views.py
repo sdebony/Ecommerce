@@ -267,6 +267,8 @@ def dashboard_cuentas(request):
                 Subquery(
                     Order.objects.filter(
                         cuenta=OuterRef('pk'),
+                        fecha__month=current_month,
+                        fecha__year=current_year,
                         status='New'
                     ).values('cuenta').annotate(total_order_total=Sum('order_total')).values('total_order_total')[:1]
                 ), 
@@ -615,6 +617,8 @@ def panel_pedidos_list(request,status=None):
         amount_new = round(amount_new)
         amount_cobrado = round(amount_cobrado)
         amount_entregado = round(amount_entregado)
+
+        print(ordenes)
 
         context = {
             'ordenes':ordenes,
@@ -1860,6 +1864,7 @@ def panel_confirmar_pago(request,order_number=None):
                 order.payment = payment
                 order.is_ordered = True
                 order.status = "Cobrado"
+                order.cuenta = cuenta_id
                 order.envio = envio
                 order.order_total=total
                 order.save()
@@ -2344,20 +2349,27 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','costo']
+                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','Costo','Cuenta']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
-                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo')
-     
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta')
+                            
                     for row in rows:
                         row_num += 1      
                         for col_num in range(len(row)):              
                             if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10:
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,monto)
+                            elif col_num==11:
+                                cuentas = Cuentas.objects.filter(id=int(row[col_num])).first()
+                                if cuentas:
+                                    cuentas = cuentas.nombre
+                                else:
+                                    cuentas = "Cuenta no asignada"   
+                                ws.write(row_num,col_num, str(cuentas),font_style)     
                             else:
                                 ws.write(row_num,col_num, str(row[col_num]),font_style)
                 wb.save(response)
