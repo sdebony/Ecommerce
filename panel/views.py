@@ -808,12 +808,14 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         pedido = Order.objects.get(order_number=order_number)
-        archivo=""     
+        archivo1="" 
+        archivo2="" 
+        archivo3=""     
         if request.method =="POST":
-            print("Cargando imagen...")
+            print("Cargando imagen 1...")
             try:
-                if request.FILES["imgFile"]:
-                    fileitem = request.FILES["imgFile"]
+                if request.FILES["imgFile1"]:
+                    fileitem = request.FILES["imgFile1"]
                     # check if the file has been uploaded
                     archivo=fileitem
                     if fileitem.name:
@@ -826,26 +828,59 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
                                 
             except:
                  pass
+            
+            archivo1 = pdf_root
+            
+            print("Cargando imagen 2...")
+            pdf_root=""
+            try:
+                if request.FILES["imgFile2"]:
+                    fileitem = request.FILES["imgFile2"]
+                    # check if the file has been uploaded
+                    archivo=fileitem
+                    if fileitem.name:
+                        # strip the leading path from the file name
+                        fn = os.path.basename(fileitem.name)
+                        # open read and write the file into the server
+                        open(f"media/facturas/{fn}", 'wb').write( fileitem.file.read())  
+                        #pdf_root = f"media/facturas/{fileitem}"
+                        pdf_root = f"{fileitem}"                
+            except:
+                 pass
 
-            archivo = pdf_root
-            print("Cargando imagen...",pdf_root)
-            if archivo:
+            archivo2 = pdf_root
+
+            print("Cargando imagen 3...")
+            pdf_root=""
+            try:
+                if request.FILES["imgFile3"]:
+                    fileitem = request.FILES["imgFile3"]
+                    # check if the file has been uploaded
+                    archivo=fileitem
+                    if fileitem.name:
+                        # strip the leading path from the file name
+                        fn = os.path.basename(fileitem.name)
+                        # open read and write the file into the server
+                        open(f"media/facturas/{fn}", 'wb').write( fileitem.file.read())  
+                        #pdf_root = f"media/facturas/{fileitem}"
+                        pdf_root = f"{fileitem}"                
+            except:
+                 pass
+
+            archivo3 = pdf_root
+           
+            
+            if archivo1:  #Solo es requerido 1 archivo
                 
                 if pedido:
 
                     nro_tracking = request.POST.get("tracking")
-                    print("Save Tracking table")
-                        #Guardar tracking
+                    #Guardar tracking
                     pedido.fecha_tracking = datetime.now()
                     pedido.nro_tracking = nro_tracking
                     pedido.save()
 
-                    
-
                     if  pedido.email:
-
-                        
-                        print("Enviado a:", pedido.email)
                         mensaje = MIMEMultipart()
                         mensaje['From']=  settings.EMAIL_HOST_USER 
                         mensaje['To']=pedido.email 
@@ -853,14 +888,37 @@ def panel_pedidos_enviar_tracking(request,order_number=None):
 
                         mensaje.attach(MIMEText("Gracias por su compra.  Aqui le enviamos el seguimiento de su pedido junto con la foto del pedido. https://www.correoargentino.com.ar/formularios/e-commerce?id="+ str(nro_tracking),'plain'))
                         
-                        archivo_adjunto = open('media/facturas/' + archivo,'rb')
+                        archivo_adjunto1 = open('media/facturas/' + archivo1,'rb')
+                        if archivo2:
+                            archivo_adjunto2 = open('media/facturas/' + archivo2,'rb')
 
-                        adjunto_MIME = MIMEBase('aplication','octet-stream')
-                        adjunto_MIME.set_payload((archivo_adjunto).read())
-                        encoders.encode_base64(adjunto_MIME)
+                        if archivo3:
+                            archivo_adjunto3 = open('media/facturas/' + archivo3,'rb')
 
-                        adjunto_MIME.add_header('Content-Disposition',"attachment; filename= %s" %archivo)
-                        mensaje.attach(adjunto_MIME)
+                        
+                        if archivo1:
+                            adjunto_MIME1 = MIMEBase('aplication','octet-stream')
+                            adjunto_MIME1.set_payload((archivo_adjunto1).read())
+                            encoders.encode_base64(adjunto_MIME1)
+
+                            adjunto_MIME1.add_header('Content-Disposition',"attachment; filename= %s" %archivo1)
+                            mensaje.attach(adjunto_MIME1)
+
+                        if archivo2:
+                            adjunto_MIME2 = MIMEBase('aplication','octet-stream')
+                            adjunto_MIME2.set_payload((archivo_adjunto2).read())
+                            encoders.encode_base64(adjunto_MIME2)
+
+                            adjunto_MIME2.add_header('Content-Disposition',"attachment; filename= %s" %archivo2)
+                            mensaje.attach(adjunto_MIME2)
+
+                        if archivo3:
+                            adjunto_MIME3 = MIMEBase('aplication','octet-stream')
+                            adjunto_MIME3.set_payload((archivo_adjunto3).read())
+                            encoders.encode_base64(adjunto_MIME3)
+
+                            adjunto_MIME3.add_header('Content-Disposition',"attachment; filename= %s" %archivo3)
+                            mensaje.attach(adjunto_MIME3)
 
                         try:
 
