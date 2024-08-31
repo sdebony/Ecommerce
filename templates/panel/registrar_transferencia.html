@@ -60,6 +60,7 @@
                                   {% endif %}
                                 {% endfor %}
                                 </select>
+                                
                           </div>
                       </div>
                       <div class="col form-group">
@@ -108,6 +109,8 @@
                       <label for="">Observaciones</label>
                       <textarea type="textarea" name="observaciones" id="observaciones" rows="3" class="form-control"> {{trans.observaciones}}</textarea>
                       </div>
+                      <input type="number" name="moneda_origen" id="moneda_origen" class="form-control" value="0" hidden >
+                      <input type="number" name="moneda_destino" id="moneda_destino" class="form-control" value="0"  hidden >
                     
                 </div>
                   <!-- / .card-body -->
@@ -149,8 +152,8 @@
             type:"GET",
             url: path,
             success: function(r){
-                console.log(r);
-                console.log(r.moneda);
+                //console.log(r);
+                //console.log(r.moneda);
                 //mensaje(r.moneda,'red');
                 
                 if (combo==1){
@@ -163,6 +166,7 @@
                 }
                 
                 
+                
             },
         });
     }
@@ -170,11 +174,15 @@
     function calcular()
     {
         var monto_origen,conversion,monto_destino;
+        const conversionInput = document.getElementById('conversion');
+
 
         console.log("CALCULAR");
         monto_origen = $("#monto_origen").val();
         monto_destino = $("#monto_destino").val();
         conversion = $("#conversion").val();
+        moneda_origen = $("#moneda_origen").val();
+        moneda_destino = $("#moneda_destino").val();
         
 
         console.log(monto_origen,monto_destino,conversion)
@@ -188,7 +196,17 @@
             $('#monto_destino').val(0);
         }
 
-        
+        // SI ES LA MISMA MONEDA NO HAY CONVERSION
+        if (moneda_origen==moneda_destino){
+          conversion=1;
+          $('#conversion').val(conversion);
+          $('#monto_destino').val(monto_origen);
+         
+          conversionInput.disabled = true;
+        } else {
+          conversionInput.disabled = false;
+        }
+              
         if (monto_origen>0&&conversion==0&&monto_destino>0){
             conversion= Number((monto_origen/conversion).toFixed(2));
             $('#conversion').val(conversion);
@@ -202,7 +220,9 @@
             $('#monto_destino').val(monto_destino);
         
             return false;
-        }        
+        } 
+        
+        
     }
 
    $(function () {
@@ -240,15 +260,7 @@
             data: {"id":transferencia.caja_destino.id  }
         });
 
-       
-
-        //$("#moneda_origen").data('select2').trigger('select', {
-        //    data: {"id":transferencia.moneda_origen.id  }   
-        //});
-        
-        //$("#moneda_destino").data('select2').trigger('select', {
-        //    data: {"id":transferencia.moneda_destino.id}
-        //});
+      
             
     });
 
