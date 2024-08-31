@@ -415,6 +415,7 @@ def edit_dir_entrega(request):
             dir_tipocorreo= request.POST["dir_tipocorreo"]
             dir_tipoenvio = request.POST.get("tipoEnvio")
 
+            print("tipo envio",dir_tipoenvio,"tico Correo:",dir_tipocorreo)
             if not dir_id:
                 dir_id = "0"
 

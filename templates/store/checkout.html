@@ -233,7 +233,7 @@
                 // Entrega en Sucursal Correo
                 if (r.dir_tipocorreo==1){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
-                  document.getElementById("div_chk_tipoenvio").style.display = "none";
+                  document.getElementById("div_chk_tipoenvio").style.display = "block";
                   document.getElementById('dir_calle').readOnly = true;
                   document.getElementById('dir_nro').readOnly = true;
                   document.getElementById('dir_localidad').readOnly = true;
@@ -275,6 +275,7 @@
            console.log($("#direccion").val());
            buscardireccion($("#direccion").val());
         });
+        document.getElementById("div_chk_tipoenvio").style.display = "none";
     
         $("#direccion").val({{direccion.dir_id }}).change();
             

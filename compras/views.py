@@ -150,7 +150,7 @@ def compras_usd_detalle(request,sol_id=None):
             ).values('promedio')[:1]
 
             # Queryset para obtener las operaciones con la información adicional del promedio y el cálculo de Total_USD
-            movimientos_agrupados = Movimientos.objects.filter(fecha__gte=fecha_solicitud, idtransferencia=0, idcierre=0, cuenta_id=cuenta_id).annotate(
+            movimientos_agrupados = Movimientos.objects.filter(fecha__gte=fecha_solicitud, movimiento=1, idcierre=0, cuenta_id=cuenta_id).annotate(
                 promedio=Subquery(subquery_promedio, output_field=FloatField()),
                 Total_USD=Round(ExpressionWrapper(
                     F('monto') / Coalesce(Subquery(subquery_promedio), 1.0),

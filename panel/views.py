@@ -306,7 +306,7 @@ def dashboard_cuentas(request):
                 # Consulta original para agrupar y sumar montos
                 movimientos_agrupados = (
                     Movimientos.objects
-                    .filter(fecha__gte=fecha_solicitud, idtransferencia=0, idcierre=0, cuenta_id=cuenta_id)
+                    .filter(fecha__gte=fecha_solicitud, movimiento=1, idcierre=0, cuenta_id=cuenta_id)
                     .values('fecha')
                     .annotate(total_monto=Sum('monto'))
                     .order_by('fecha')
@@ -328,6 +328,8 @@ def dashboard_cuentas(request):
                         division_result_redondeado = round(division_result, 2)
                         total_acum_usd += round(division_result_redondeado,2)
 
+                total_monto_pesos =total_monto
+                total_monto = 0
                 # **************************************
                 # A S I G N A D O -   N O  C O B R A D O 
                 # ************************************** 
@@ -355,13 +357,17 @@ def dashboard_cuentas(request):
                         division_result_redondeado = round(division_result, 2)
                         total_asig_usd += round(division_result_redondeado,2)
 
+                
+                total_monto_pesos = total_monto_pesos + total_monto
+                total_monto = 0
+                
                  # Guardar los valores en un diccionario temporal
                 resultado.append({
                     'solicitud': item,
                     'fecha':item.fecha,
                     'cuenta':item.cuenta.nombre,
                     'monto':item.monto,
-                    'total_acum_pesos':round(total_monto,2),
+                    'total_acum_pesos':round(total_monto_pesos,2),
                     'total_acum_usd': round(total_acum_usd,2),
                     'total_asig_usd': round(total_asig_usd,2),
                     'total_general_usd': round(total_acum_usd + total_asig_usd,2),
