@@ -422,7 +422,7 @@ def dashboard_resultados(request,cuenta_id=None):
         # LE SACO LAS FECHAS PARA QUE TOME LOS SALDOS REALES ACTUALES
         #saldos = Movimientos.objects.filter(fecha__range=[fecha_desde,fecha_hasta]).values('cuenta__nombre','cuenta__moneda').annotate(total=
         #    Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
-        saldos = Movimientos.objects.filter().values('cuenta__nombre','cuenta__moneda','cuenta__id').annotate(total=
+        saldos = Movimientos.objects.filter().values('cuenta__nombre','cuenta__moneda','cuenta__moneda__simbolo','cuenta__id').annotate(total=
             Round(Sum('monto'),output_field=DecimalField(max_digits=12, decimal_places=2)))
 
         if cuenta_id:

@@ -36,7 +36,7 @@ def format_currency_usd(value):
     try:
         # Formato con separadores de miles
         formatted_value = "{:,.2f}".format(value)
-        return f"{formatted_value} USD"
+        return f"USD {formatted_value}"
     except (ValueError, TypeError):
         return value
 

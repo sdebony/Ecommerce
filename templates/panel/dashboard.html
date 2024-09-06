@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 
 
@@ -31,16 +31,16 @@
               {% if item.cuenta__moneda == 1 %}
                 
                 <div class="col mr-2">
-                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
-                  <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ item.total }}</div>
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ item.cuenta__nombre }} - <strong>{{item.cuenta__moneda__simbolo }} </strong></div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ item.total|format_currency }}</div>
                 </div>
                 <div class="col-auto">
                   <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
                </div>
                   {% else %}
                 <div class="col mr-2">
-                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
-                  <div class="h5 mb-0 font-weight-bold text-gray-800">U$S {{ item.total }}</div>
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ item.cuenta__nombre }} - <strong>{{item.cuenta__moneda__simbolo }}</strong> </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ item.total|format_currency_usd }}</div>
                 </div>
                 <div class="col-auto">
                 <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -93,7 +93,7 @@
           <td>{{ item.cliente }}</td>
           <td>{{ item.movimiento }}</td>
           <td>{{ item.cuenta }} - {{ item.cuenta.moneda }} </td>
-          <td>{{ item.monto}}</td>
+          <td>{{ item.monto|format_currency_def }}</td>
           {% if item.ordernumber  %}
               <td>
                 <a href="{% url 'panel_pedidos_detalle' item.ordernumber.order_number %}">{{ item.observaciones }}</a>    
