@@ -60,11 +60,18 @@
                 <!-- /.col -->
               </div>
               <!-- info row -->
+              {% if ordenes.dir_tipocorreo == 1 %} 
               <div class="row invoice-info">
                 <div class="col-sm-4 invoice-col">
-                  Para
+                    <span class="float-left">Sucursal: <strong>{{ ordenes.dir_nombre }}</strong></span>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col">
                   <address>
-                    <strong>{{ ordenes.full_name}}</strong><br>
+                    <strong>Para: {{ ordenes.full_name}}</strong><br>
                    {{ ordenes.dir_calle }} {{ ordenes.dir_nro }} <br>
                    {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}}<br>
                     Phone: {{ ordenes.dir_telefono}}<br>
@@ -114,7 +121,7 @@
 
               <div class="row">
                 <!-- accepted payments column -->
-                <div class="col-6">
+                <div class="col-8">
                   <p class="lead">
                     <div class="callout callout-info">
                       <h5><i class="fas fa-info"></i> Observaciones:</h5>
@@ -131,7 +138,7 @@
                   
                 </div>
                 <!-- /.col -->
-                <div class="col-6">
+                <div class="col-4">
                   <p class="lead"></p>
 
                   <div class="table-responsive">

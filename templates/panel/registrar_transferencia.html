@@ -2,6 +2,8 @@
 
 {% extends 'panel/base.html' %}
 {% load static %}
+{% load custom_filters %}
+
 {% block page_content %}
 
   {% if trans %}
@@ -87,20 +89,22 @@
                       
                     </select> </div>
                 </div>
+                
                   <div class="form-row">
                     <div class="col form-group">
-                        <div class="col form-group">  
+                        <div class="col form-group">
+                         
                         <label for="">Monto Origen</label>
-                        <input type="float" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen }}"  required>
+                        <input type="number" step="any" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen|floatformat:2|decimal_point }}"  required>
                         </div>
                       </div>   
                         <div class="col form-group">
                         <label for="">Cotización</label>
-                        <input type="float" name="conversion" id="conversion" class="form-control" value="{{trans.conversion }}">
-                        </div>
+                        <input type="number" step="any" name="conversion" id="conversion" class="form-control" value="{{trans.conversion|floatformat:2|decimal_point  }}">
+                      </div>
                         <div class="col form-group">
                           <label for="">Monto Destino</label>
-                          <input type="float" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino }}"  >
+                          <input type="number" step="any" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino|floatformat:2|decimal_point }}"  >
                           </div>
                       
                   </div>

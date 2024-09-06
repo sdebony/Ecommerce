@@ -2011,7 +2011,7 @@ def panel_movimientos_cerrados_list(request,idcierre=None):
             output_field=DecimalField(max_digits=12, decimal_places=2))).order_by('cuenta__nombre')
         
         movimientos = Movimientos.objects.filter(idcierre=idcierre).order_by('fecha')
-        print(mov)
+        
         context = {
             'mov':mov,
             'movimientos':movimientos,
@@ -2030,7 +2030,15 @@ def panel_transferencias_list(request):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         transf = Transferencias.objects.filter()
         cuentas = Cuentas.objects.all()
-        
+
+        for trans in transf:
+            if trans.conversion is None:
+                trans.conversion = 1
+            if trans.monto_origen is None:
+                trans.monto_origen = 0
+            if trans.monto_destino is None:
+                trans.monto_destino = 0
+            
         context = {
             'transf':transf,
             'permisousuario':permisousuario,
@@ -4196,6 +4204,7 @@ def panel_movimientos_transf(request,idtrans=None):
             fecha = datetime.today()
             fecha = fecha.strftime("%d/%m/%Y")
 
+        
             context = {
                 'trans':trans,
                 'permisousuario':permisousuario,
@@ -4218,13 +4227,10 @@ def panel_movimientos_transf(request,idtrans=None):
             observaciones=request.POST.get("observaciones")
             fecha_a_datetime = datetime.strptime(fecha, '%d/%m/%Y')
 
+            #Esto es porque cuando esta desabilitado el campo conversion porque transfiere misma moneda
+            if not conversion:
+                conversion = 1
 
-            monto_origen=monto_origen.replace(",",".")
-            monto_origen=monto_origen.replace("-","")
-            monto_destino=monto_destino.replace(",",".")
-            monto_destino=monto_destino.replace("-","")
-            conversion=conversion.replace(",",".")
-            
             
             print(fecha,cliente,cuenta_origen,cuenta_destino,monto_origen,monto_destino,conversion,observaciones)
             

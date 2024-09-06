@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 
 <style>
@@ -49,22 +49,22 @@
           {% endif %} 
            
           <td><b><a href="{% url 'panel_movimientos_cerrados_list' item.idcierre %}">{{ item.mes }}</a></b></td>
-          <td>{{ item.ingresos_pesos }}</td>
-          <td>{{ item.ingresos_dolares }}</td>
-          <td>{{ item.egresos_pesos }}</td>
-          <td>{{ item.egresos_dolares }}</td>
-          <td>{{ item.total_pesos }}</td>
-          <td>{{ item.total_dolares }}</td>
+          <td>{{ item.ingresos_pesos|format_currency }}</td>
+          <td>{{ item.ingresos_dolares|format_currency_usd }}</td>
+          <td>{{ item.egresos_pesos|format_currency }}</td>
+          <td>{{ item.egresos_dolares|format_currency_usd }}</td>
+          <td>{{ item.total_pesos|format_currency }}</td>
+          <td>{{ item.total_dolares|format_currency_usd }}</td>
         </tr>
         {% endfor %}
       <tr>
         <th>Totales Anuales</th>
-        <th>{{ totales.ingresos_pesos }}</th>
-        <th>{{ totales.ingresos_dolares }}</th>
-        <th>{{ totales.egresos_pesos }}</th>
-        <th>{{ totales.egresos_dolares }}</th>
-        <th>{{ totales.total_pesos }}</th>
-        <th>{{ totales.total_dolares }}</th>
+        <th>{{ totales.ingresos_pesos|format_currency }}</th>
+        <th>{{ totales.ingresos_dolares|format_currency_usd }}</th>
+        <th>{{ totales.egresos_pesos|format_currency }}</th>
+        <th>{{ totales.egresos_dolares|format_currency_usd }}</th>
+        <th>{{ totales.total_pesos|format_currency }}</th>
+        <th>{{ totales.total_dolares|format_currency_usd }}</th>
       </tr>
     </tbody>
   </table>

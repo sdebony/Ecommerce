@@ -36,6 +36,7 @@ class Order(models.Model):
     email = models.EmailField(max_length=50)
     fecha = models.DateField(blank=True)
 
+    dir_nombre = models.CharField(max_length=25,blank=True)
     dir_telefono = models.CharField(max_length=25)
     dir_calle = models.CharField(max_length=100,blank=True)
     dir_nro = models.CharField(max_length=25,blank=True)

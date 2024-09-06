@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'category',
     'accounts',
     'store',
+    'ecomm',
     'carts',
     'orders',
     'api',
@@ -159,7 +160,7 @@ TIME_ZONE = 'America/Argentina/Buenos_Aires'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = False
 

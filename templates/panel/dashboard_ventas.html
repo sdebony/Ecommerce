@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 
         <div class="container-fluid">
@@ -25,7 +25,7 @@
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">        
                         <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Pedidos {{ pedidos_totales.cantidad}}</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ pedidos_totales.total }}  </div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ pedidos_totales.total|format_currency }}  </div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
@@ -112,7 +112,7 @@
 
 
           
-          <td>$ {{ item.order_total }} </td>
+          <td> {{ item.order_total|format_currency }} </td>
           {% if item.status == "New" %}
             <td><span class="badge bg-primary text-white">{{ item.status }}</span></td>
           {% elif item.status == "Cobrado" %}

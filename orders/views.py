@@ -5,6 +5,8 @@ from .forms import OrderForm
 import datetime
 import time
 from .models import Order, Payment, OrderProduct
+from accounts.models import AccountDirecciones, Account
+
 import json
 from store.models import Product,Costo
 
@@ -241,6 +243,17 @@ def order_cash(request):
             if order:
                 order.is_ordered = True  #Confirmo la orden de compa
                 order.total_peso = pesoarticulos
+                user = Account.objects.filter(email=order.user).first()
+                sucursal = AccountDirecciones.objects.get(user=user,dir_tipocorreo = order.dir_tipocorreo)
+                print(sucursal)
+
+                if sucursal:
+                    dir_nombre =sucursal.dir_nombre 
+                else:
+                    dir_nombre = ""
+                
+                print(dir_nombre)
+                order.dir_nombre = dir_nombre
                 order.save()
 
             print("order status", order.is_ordered)

@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 <div class="card shadow mb-4">
     <!-- Card Header - Dropdown -->
@@ -109,11 +109,11 @@
                                     <tr>
                                     <td> Ventas</td>
                                     {% if item.cuenta__moneda__codigo == 'ARS' %}
-                                        <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>
+                                        <td>{{  item.total|default:"0"|format_currency}}</td>
                                         <td></td>
                                     {% elif item.cuenta__moneda__codigo == 'USD' %}
                                         <td></td>
-                                        <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>  
+                                        <td> {{  item.total|default:"0"|format_currency_usd}}</td>  
                                     {% endif %}
                                     </tr>
                                     {% endfor %}
@@ -123,11 +123,11 @@
                                     <tr>
                                     <td> Otros Ingresos</td>
                                     {% if item.cuenta__moneda__codigo == 'ARS' %}
-                                        <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>
+                                        <td>  {{  item.total|default:"0"|format_currency}}</td>
                                         <td></td>
                                     {% elif item.cuenta__moneda__codigo == 'USD' %}
                                         <td></td>
-                                        <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>  
+                                        <td>{{item.total|default:"0"|format_currency_usd}}</td>  
                                     {% endif %}
                                     </tr>
                                     {% endfor %}
@@ -138,9 +138,9 @@
                                     <td> Total Ingresos</td>
                                         {% for item in totales_ingresos %}
                                             {% if item.cuenta__moneda__codigo == 'ARS' %}
-                                                <td><b>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</b></td>
+                                                <td><b> {{  item.total|default:"0"|format_currency}}</b></td>
                                             {% elif item.cuenta__moneda__codigo == 'USD' %}
-                                                <td><b>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</b></td>  
+                                                <td><b>{{  item.total|default:"0"|format_currency_usd}}</b></td>  
                                             {% endif %}
                                     {% endfor %}
                                     </tr>
@@ -164,9 +164,9 @@
                                         <td> Otros Egresos</td>
                                         {% for item in totales_egresos %}
                                                 {% if item.cuenta__moneda__codigo == 'ARS' %}
-                                                    <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>
+                                                    <td>{{  item.total|default:"0"|format_currency}}</td>
                                                 {% elif item.cuenta__moneda__codigo == 'USD' %}
-                                                    <td>{{item.cuenta__moneda__simbolo}}  {{  item.total}}</td>  
+                                                    <td> {{  item.total|default:"0"|format_currency_usd}}</td>  
                                                 {% endif %}
                                         {% endfor %}
                                     </tr>
@@ -181,9 +181,9 @@
                                         
                                         {% for item in totales_resultado %}
                                                 {% if item.cuenta__moneda__codigo == 'ARS' %}
-                                                    <td bgcolor="lightblue"><b>{{item.cuenta__moneda__simbolo}} {{  item.total}}</b></td>
+                                                    <td bgcolor="lightblue"><b>{{  item.total|default:"0"|format_currency}}</b></td>
                                                 {% elif item.cuenta__moneda__codigo == 'USD' %}
-                                                    <td bgcolor="lightblue"><b>{{item.cuenta__moneda__simbolo}} {{  item.total}}</b></td>  
+                                                    <td bgcolor="lightblue"><b>{{  item.total|default:"0"|format_currency_usd}}</b></td>  
                                                 {% endif %}
                                         {% endfor %}
                                     </tr>

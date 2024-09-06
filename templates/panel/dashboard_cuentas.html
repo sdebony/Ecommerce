@@ -1,5 +1,7 @@
 {% extends 'panel/base.html' %}
 
+{% load custom_filters %}
+{% load static %}
 
 {% block page_content %}
 
@@ -63,10 +65,10 @@
                       
                         <td>{{ cuenta.nombre }}</td>
                         <td>{{ cuenta.moneda.simbolo }}</td>
-                        <td>{{ cuenta.total_monto|default:"0" }}</td>
-                        <td>{{ cuenta.total_order_total|default:"0" }}</td>
-                        <td>{{ cuenta.resta_monto|default:"0" }}</td>
-                        <td>{{ cuenta.limite }}</td>
+                        <td>{{ cuenta.total_monto|format_currency }}</td>
+                        <td>{{ cuenta.total_order_total|format_currency }}</td>
+                        <td>{{ cuenta.resta_monto|format_currency }}</td>
+                        <td>{{ cuenta.limite|format_currency }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -84,11 +86,11 @@
                             <div class="col mr-2 "><span class="text-white-75 small">Solicitud: {{ item.solicitud.id }} - {{ item.solicitud.fecha  | date:'d/m/Y' }}</span>         
                                 <div class="text-s font-weight-bold text-primary text-uppercase mb-3"> {{ item.cuenta }}
                                 </div>
-                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Solicitado: USD {{ item.solicitud.monto|default:"0" }} </span> </div>
-                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Acumulado: USD {{item.total_acum_usd |default:"0"}}  </span>  </div>
-                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Asignado:  USD {{item.total_asig_usd |default:"0"}}</span>  </div>
-                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Total: USD {{item.total_general_usd|default:"0"}}  -  ( $ {{ item.total_acum_pesos}} ) </span>  </div>
-                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Faltan: USD {{item.faltan_usd|default:"0"}}  </span>  </div>
+                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Solicitado: {{ item.solicitud.monto|format_currency_usd }} </span> </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Acumulado: {{item.total_acum_usd|format_currency_usd }}  </span>  </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Asignado: {{item.total_asig_usd |format_currency_usd }}</span>  </div>
+                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Total: {{item.total_general_usd|format_currency_usd }}  -  ( $ {{ item.total_acum_pesos|format_currency}} ) </span>  </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Faltan: {{item.faltan_usd|format_currency_usd }}  </span>  </div>
                             </div>
                         </div>   
                         <span class="text-white-75 small"><hr></span>

@@ -46,6 +46,7 @@ def add_cart(request, product_id):
                     pass
 
         is_cart_item_exists = CartItem.objects.filter(product=product, user=current_user).exists()
+        #Si ya existe el producto
         if is_cart_item_exists:
             cart_item = CartItem.objects.filter(product=product, user=current_user)
             ex_var_list = []
@@ -65,7 +66,7 @@ def add_cart(request, product_id):
                     #print("articulo existe...")
                     if item.quantity == float(quantity):
                         #print("Si la cantidad ingresada es igual a la que tiene suma 1")
-                        item.quantity = quantity
+                        item.quantity = float(quantity) + 1
                     else:
                         item.quantity = float(quantity)  #Modifico desde Cart cantidad
                 else:

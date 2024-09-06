@@ -1,4 +1,5 @@
 {% extends 'panel/base.html' %}
+{% load custom_filters %}
 
 {% block page_content %}
 
@@ -35,10 +36,10 @@
         <tr>
          
           <td>{{ item.fecha }}</td> 
-          <td>$ {{ item.monto }}</td>
+          <td> {{ item.monto|format_currency }}</td>
           <td><span class="badge bg-success text-white">Cobrado</span></td>
-          <td>$ {{ item.promedio }}</td>
-          <td>USD {{ item.Total_USD }}</td>
+          <td>{{ item.promedio|format_currency }}</td>
+          <td>{{ item.Total_USD|format_currency_usd }}</td>
           
         </tr>
         {% endfor %}
@@ -46,10 +47,10 @@
         <tr>
          
           <td>{{ item.fecha }}</td> 
-          <td>$ {{ item.order_total }}</td>
+          <td> {{ item.order_total|format_currency }}</td>
           <td><span class="badge bg-warning text-white">Asignado</span></td>
-          <td>$ {{ item.promedio }}</td>
-          <td>USD {{ item.Total_USD }}</td>
+          <td> {{ item.promedio|format_currency }}</td>
+          <td> {{ item.Total_USD|format_currency_usd }}</td>
           
         </tr>
         {% endfor %}
