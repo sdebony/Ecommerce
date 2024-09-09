@@ -103,8 +103,9 @@
           <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" >
         </div>
           <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden>
-          <input type="number" name="dir_tipoenvio" id="dir_tipoEnvio" class="form-control" value="0" hidden  >
+          <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden>
           <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" required hidden>
+          <input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="" hidden>
         
         </div>
         <div class="form-row">
@@ -192,7 +193,13 @@
 
 
 <script>
- 
+    document.querySelectorAll('input[name="chktipoEnvio"]').forEach((radio) => {
+        radio.addEventListener('change', function() {
+            const tipoEnvio = document.getElementById('dir_tipoenvio');
+            tipoEnvio.value = this.value;
+        });
+    });
+
  const tipoEnvio = document.getElementById('tipoEnvio');
         
  function buscardireccion(dir_id)     {
@@ -216,6 +223,7 @@
                 $("#dir_localidad").val(r.dir_localidad);
                 $("#dir_provincia").val(r.dir_provincia);
                 $("#dir_obs").val(r.dir_obs);
+                $("#dir_nombre").val(r.dir_nombre);
                 dir_tipoenvio = r.dir_tipoenvio;
 
                 // ENVIO CLASICO - CORREO ARGENTINO

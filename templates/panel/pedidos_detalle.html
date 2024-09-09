@@ -41,7 +41,7 @@
               
 
                  {% if ordenes.dir_tipocorreo == 1 %} 
-                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expresso {% endif %}
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}

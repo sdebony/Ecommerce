@@ -1191,23 +1191,33 @@ def panel_pedidos_del_detalle(request,order_number,id_linea):
         order = Order.objects.get(order_number=order_number, is_ordered=True)
         ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
     
-        if ordered_products:
-            cantidad = ordered_products.quantity  
-            idprod = ordered_products.product.id         
-            ordered_products = OrderProduct(
-                id = ordered_products.id,
-            )        
-            ordered_products.delete()
-            #Agrego el stocl del producto borrado.
-            product = Product.objects.get(id=idprod)
-            if product:
-                product.stock += float(cantidad)
-                product.save()
+        # Obtener todos los productos asociados a la orden
+        productos_asociados = OrderProduct.objects.filter(order_id=order.id)
+        print("Lineas de articulo del pedido:",str(productos_asociados.count()))
 
+        # Verificar si es el último producto
+        if productos_asociados.count() == 1:
+            print("No se puede eliminar el ùltimo articulo. Elimine el pedido completo.")
             panel_recalcular_totales(order_number)
-            messages.success(request,"Articulo eliminado con exito.")
-            
+            messages.success(request,"No se puede eliminar el ùltimo articulo. Elimine el pedido completo.")
+            return redirect('panel_pedidos_detalle',  str(order_number))    
+        else:
+            if ordered_products:
+                cantidad = ordered_products.quantity  
+                idprod = ordered_products.product.id         
+                ordered_products = OrderProduct(
+                    id = ordered_products.id,
+                )        
+                ordered_products.delete()
+                #Agrego el stocl del producto borrado.
+                product = Product.objects.get(id=idprod)
+                if product:
+                    product.stock += float(cantidad)
+                    product.save()
 
+                panel_recalcular_totales(order_number)
+                messages.success(request,"Articulo eliminado con exito.")
+                
         panel_pedidos_detalle(request,order_number)          
         return redirect('panel_pedidos_detalle',  str(order_number))  
     else:

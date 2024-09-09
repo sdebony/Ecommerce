@@ -129,6 +129,7 @@ def place_order(request, total=0, quantity=0,):
             data.dir_cp = form.cleaned_data['dir_cp']
             data.dir_tipocorreo =  form.cleaned_data['dir_tipocorreo']
             data.dir_tipoenvio =  form.cleaned_data['dir_tipoenvio']
+            data.dir_nombre =  form.cleaned_data['dir_nombre']
             
             data.order_note = form.cleaned_data['dir_obs']
             data.order_total = grand_total

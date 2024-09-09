@@ -15,6 +15,23 @@
 				<div class="card">
 					<h5 class="card-header">Datos de la Entrega - #{{ order.order_number }}</h5>
 					<div class="card-body">
+						{% if order.dir_tipocorreo == 1 %}
+						<p class="card-text mb-0 fw-bold">Retiro en Sucursal - <strong>{{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipocorreo == 2 %}
+						<p class="card-text mb-0 fw-bold">Envio a Domicilio - <strong> {{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipocorreo == 3 %}
+						<p class="card-text mb-0 fw-bold">Retira Cliente - <strong>{{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipoenvio == 1 %}
+						<p class="card-text mb-0 fw-bold">Tipo envio: <strong>Clàsico</strong></p>
+						{% endif %}
+						{% if order.dir_tipoenvio == 2 %}
+						<p class="card-text mb-0 fw-bold">Tipo envio: <strong>Express</strong></p>
+						{% endif %}
+										
+						<hr class="mb-0">
 						<p class="card-text mb-0">{{order.full_name}}</p>
 						<p class="card-text mb-0">{{order.full_address}}</p>
 						<p class="card-text mb-0">{{order.dir_localidad}} - {{order.dir_provincia}}</p>
