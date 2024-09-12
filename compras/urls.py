@@ -10,7 +10,16 @@ urlpatterns = [
   path('solicitud/close/<int:sol_id>', views.compras_close, name='compras_close'),
   path('solicitud/del/<int:sol_id>', views.compras_usd_delete, name='compras_usd_delete'),
 
-  
- 
-  
+  #Proveedores 
+  path('proveedores/', views.proveedores_list, name='proveedores_list'),
+  path('proveedores/add', views.proveedores_add, name='proveedores_add'),
+  path('proveedores/update/<int:prov_id>', views.proveedores_update, name='proveedores_update'),
+  path('proveedores/del/<int:prov_id>', views.proveedores_del, name='proveedores_del'),
+  #Lista de precios proveedores
+  path('proveedores/list/<int:prov_id>', views.proveedor_list_articulos, name='proveedor_list_articulos'),
+  path('proveedores/art/<int:prov_id>/<str:codigo_prod_prov>', views.proveedor_articulo, name='proveedor_articulo'),
+  path('proveedores/vincular/', views.vincular_articulo, name='vincular_articulo'),
+  path('proveedores/get_productos/<int:proveedor_id>/', views.get_productos, name='get_productos'),
+  path('proveedores/check/', views.proveedor_check_articulos, name='proveedor_check_articulos'),
+
 ]

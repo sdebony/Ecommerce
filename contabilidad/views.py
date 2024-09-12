@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404,redirect
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import AccountPermition
 
-from .models import Cuentas,Monedas
+from .models import Cuentas,Monedas,ConfiguracionParametros
 
 # Create your views here.
 
@@ -223,3 +223,4 @@ def cuentas_new(request):
            
 
     return render(request,'panel/login.html',)
+

@@ -49,3 +49,21 @@ def format_currency_def(value):
         return f"{formatted_value}"
     except (ValueError, TypeError):
         return value
+
+@register.filter
+def format_integer_def(value):
+    try:
+        # Formato con separadores de miles sin decimales
+        formatted_value = "{:,.0f}".format(value)
+        return f"{formatted_value}"
+    except (ValueError, TypeError):
+        return value
+
+@register.filter
+def format_number(value):
+    try:
+        # Formato con separadores de miles sin decimales
+        formatted_value = "{:,.2f}".format(value)
+        return f"{formatted_value}"
+    except (ValueError, TypeError):
+        return value

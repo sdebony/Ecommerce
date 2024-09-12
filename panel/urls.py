@@ -10,7 +10,7 @@ urlpatterns = [
     #PRODUCTOS
     path('productos/list', views.panel_product_list_category, name="producto_list_category"),
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
-    path('producto/<int:product_id>', views.panel_product_detalle, name='panel_producto_detalle'),
+    path('producto/<int:product_id>/', views.panel_product_detalle, name='panel_producto_detalle'),
     path('producto/', views.panel_product_crud, name='panel_producto_crud'),
     path('producto/img', views.panel_producto_img, name='panel_producto_img'),
     path('producto/variant/', views.panel_productos_variantes, name='panel_producto_variante'),
@@ -25,6 +25,8 @@ urlpatterns = [
     path('producto/habilitar/<int:product_id>/<int:estado>', views.panel_producto_habilitar, name='panel_producto_habilitar'),
     path('producto/import/del/<int:product_id>', views.panel_importar_productos_del, name='panel_importar_productos_del'),
     path('producto/search/<str:keyword>/<str:order_number>', views.search_lookup, name='search_lookup'),
+    path('producto/precios', views.panel_lista_precios, name='panel_lista_de_precios'),
+    
     
     #CATEGORIAS
     path('categoria/', views.panel_categoria_list, name='panel_categoria'),
@@ -108,8 +110,11 @@ urlpatterns = [
     path('costo/', views.panel_costo_list, name='panel_costo_list'),
     path('costo/import/', views.import_costo, name='panel_import_costo'), 
     path('costo/del/<int:id_costo>', views.panel_costo_del, name='panel_costo_eliminar'),
+    path('costo/actualizar', views.panel_costo_actualizar, name='panel_costo_actualizar'),
     
-    
+    #MARGENES
+    path('margen/', views.panel_config_margen, name='panel_config_margen'),
+    path('margen/<int:id_param>', views.panel_margen_edit, name='panel_margen_edit'),
     
 
     

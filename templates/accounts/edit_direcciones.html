@@ -52,7 +52,7 @@
 						<form action="{% url 'edit_dir_entrega' %}" method="POST" enctype="multipart/form-data">
 						
 							{% csrf_token %}
-							<div class="alert alert-info" role="alert"><b>Correo Argentino</b></div>
+							<div class="alert alert-info" role="alert"><b>Correo Argentino: Retiro en Sucursal</b></div>
 							
 							<!-- Información oculta -->
 							<div class="form-row">
@@ -86,7 +86,7 @@
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
 										{% if dir_sucursal.dir_tipoenvio == 2 %} checked {% endif %}>
 										<label class="form-check-label" for="envioExpresso">
-											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
 										</label>
 									</div>
 								</div>	
@@ -140,7 +140,7 @@
 					<div class="tab-pane fade" id="domicilio" role="tabpanel" aria-labelledby="domicilio-tab">
 						<form action="{% url 'edit_dir_entrega' %}" method="POST" class="mt-4" enctype="multipart/form-data">
 							{% csrf_token %}
-							<div class="alert alert-info" role="alert"><b>Entrega en Domicilio</b></div>
+							<div class="alert alert-info" role="alert"><b>Correo Argentino: Entrega en Domicilio</b></div>
 							
 							<!-- Nombre y Tipo de Envío -->
 							<div class="form-row">
@@ -163,7 +163,7 @@
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
 										{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %}>
 										<label class="form-check-label" for="envioExpresso">
-											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
 										</label>
 									</div>
 								</div>	

@@ -41,12 +41,12 @@
               
 
                  {% if ordenes.dir_tipocorreo == 1 %} 
-                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expresso {% endif %}
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}
                   {% if ordenes.dir_tipocorreo == 2 %}
-                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expresso {% endif %}
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
@@ -183,14 +183,13 @@
                         {% if items.modo_ver %}
                           <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
                           <pre style='display:inline'  class="float-right"> </pre>
-                          {% if ordenes.cuenta == 0 %}
-                          <a href="{% url 'enviar_datos_pago' ordenes.order_number %}"  class="btn btn-primary float-right"><i class="far fa-credit-card"></i> Enviar Datos de pago</a>
-                            <pre style='display:inline'  class="float-right"> </pre>
-                          {% endif %}
-                            
-                        
                         {% endif %}
+                        <a href="{% url 'enviar_datos_pago' ordenes.order_number %}"  class="btn btn-primary float-right"><i class="far fa-credit-card"></i> Enviar Datos de pago</a>
+                        <pre style='display:inline'  class="float-right"> </pre>
+                      
+
                       {% endif %}
+                       
                   {% endfor %}
               {% endif %} 
                 

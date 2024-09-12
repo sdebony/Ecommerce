@@ -60,12 +60,12 @@
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioExpresso" value="2">
                 <label class="form-check-label" for="envioExpresso">
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expresso
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
                 </label>
             </div>
         </div>  
     </div>
-      <div class="form-row">
+      <div class="form-row" id="div_datos">
         <div class="col form-group">
           <label for="">Email</label>
           <input type="email" name="email" class="form-control" value="{{user.email}}" required>
@@ -193,6 +193,19 @@
 
 
 <script>
+
+    window.onload = function() {
+        document.getElementById("div_chk_tipoenvio").style.display = "none";
+        document.getElementById("div_sucursal").style.display = "none";
+        document.getElementById("div_provincia").style.display = "none";
+        document.getElementById("div_cp").style.display = "none";
+        document.getElementById("div_chk_tipoenvio").style.display = "none";
+        document.getElementById("div_datos").style.display = "none";
+
+        
+
+          };
+
     document.querySelectorAll('input[name="chktipoEnvio"]').forEach((radio) => {
         radio.addEventListener('change', function() {
             const tipoEnvio = document.getElementById('dir_tipoenvio');
@@ -232,7 +245,7 @@
                   $("#dir_tipoenvio").val(1);
 
                 }
-                // ENVIO Express  - CORREO ARGENTINO
+                // ENVIO Expreso  - CORREO ARGENTINO
                 if (dir_tipoenvio=='2'){
                   document.getElementById('envioExpresso').checked  = true;
                   $("#dir_tipoenvio").val(2);
@@ -242,6 +255,7 @@
                 if (r.dir_tipocorreo==1){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
                   document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  document.getElementById("div_datos").style.display = "block";
                   document.getElementById('dir_calle').readOnly = true;
                   document.getElementById('dir_nro').readOnly = true;
                   document.getElementById('dir_localidad').readOnly = true;
@@ -252,6 +266,7 @@
                 if (r.dir_tipocorreo==2){
                   document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
                   document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  document.getElementById("div_datos").style.display = "block";
                   document.getElementById("div_sucursal").style.display = "block";
                   document.getElementById("div_provincia").style.display = "block";
                   document.getElementById("div_cp").style.display = "block";
@@ -270,6 +285,7 @@
                   document.getElementById("div_provincia").style.display = "none";
                   document.getElementById("div_cp").style.display = "none";
                   document.getElementById("div_chk_tipoenvio").style.display = "none";
+                  document.getElementById("div_datos").style.display = "none";
 
                 }
             },
@@ -286,6 +302,8 @@
         document.getElementById("div_chk_tipoenvio").style.display = "none";
     
         $("#direccion").val({{direccion.dir_id }}).change();
+
+        
             
     });
 

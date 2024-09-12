@@ -127,6 +127,7 @@ class Movimientos(models.Model):
 
 
     class Meta:
+        verbose_name = "Movimiento"
         verbose_name_plural = "Movimientos"
         ordering = ['-fecha','-id',]
 
@@ -150,5 +151,25 @@ class Transferencias(models.Model):
 
 
     class Meta:
+        verbose_name_plural = "Transferencia"
         verbose_name_plural = "Transferencias"
         ordering = ['-fecha','-id',]
+
+class ConfiguracionParametros(models.Model):
+    
+    id = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=10,null=False,blank=False)  #MG1: Margen 1 MG2: Margen 2 MG3: Margen 3 COM1: Comision 1 COM2: Comision 2
+    nombre = models.CharField(max_length=100, null=False, blank=False) #Margen 1
+    valor = models.FloatField(default=0)  # 10
+    tipo_valor = models.CharField(max_length=1,null=False,blank=False) # % o $
+    descripcion = models.CharField(max_length=100, null=False, blank=False) #Margen 1 surge del costo * margen1 
+    
+    def __str__(self):
+        return '{}'.format(self.id)
+
+    class Meta:
+        verbose_name_plural = "Parametros"
+        verbose_name_plural = "Configuracion Parametros"
+        ordering = ['id',]
+        
+        

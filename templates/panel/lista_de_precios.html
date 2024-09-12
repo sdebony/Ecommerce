@@ -1,0 +1,181 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+<style>
+  .bg-warning {
+      background-color: #f8a392 !important; /* Fondo Naranja */
+  }
+  .bg-success{
+      background-color: #81daab !important; /* Fondo verde */
+  }
+  .bg-info{
+      background-color: #6172f7 !important; /* Fondo verde */
+  }
+</style>
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <form action="{% url 'panel_lista_de_precios' %}" enctype="multipart/form-data" method="POST">
+    {% csrf_token %} 
+  <div class="card-header py-6 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="mb-9 font-weight-bold text-primary">Lista de Precios - {{ cantidad }}</h6>
+              
+      
+    <div class="dropdown no-arrow">
+      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+      </a>
+      <a href="{% url 'mov_export_xls' 6 %}" class="btn btn-secondary">Exportar xls</a>
+      
+    </div>
+ 
+  </div>
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not productos %}
+    <div class="alert alert-info">No se encontraron productos</div>
+    {% endif %}
+    
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+          <div class="col-md-3" >
+            <div class="input-group-append">
+              <h3 class="h3 mb-0 text-gray-800">Categorias:  </h3>
+            <select name="category" id="category" class="form-control">
+              <option value="0" selected > - TODOS - </option> 
+              {% for cat in categorias %}
+                  {%if cat.id == categoria %}
+                    <option value="{{cat.id}}" selected >{{ cat.category_name }}</option>
+                  {% else %}
+                    <option value="{{cat.id}}"  >{{ cat.category_name }} </option>
+                  {% endif %}
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">
+              <i class="fa fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-3" >
+          </div>
+      </div>
+    </div>
+
+  </form>
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th class="all">Nombre</th>
+          <th class="all">Costo</th>
+          <th class="all">Precio Base</th>
+          <th class="all">Precio Regular</th> 
+          <th class="all">Com V R</th>
+          <th class="all">Gan V R</th> 
+          <th class="all">P. T N</th> <!-- Precio con impuestos-->
+          <th class="all">Com T N</th>
+          <th class="all">Gan T N</th> 
+          <th class="all">P. M L</th>
+          <th class="all">Com M L</th>
+          <th class="all">Gan M L</th>
+    
+      </thead>
+      <tbody>
+        {% for item in productos %}
+        <tr>
+          
+          <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
+          <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
+          <!-- Venta Regular-->
+          <td>{{ item.precio_base|format_currency }}</td> <!-- Base minima de venta -->
+          <td>{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
+          <td>{{ item.comision1_calculado|format_currency }} </td> <!-- Margen 1 minimo-->
+          {% if item.beneficio1_calculado > 0 %}
+            <td class="bg-success">{{ item.beneficio1_calculado|format_currency }}</td> <!-- Beneficio Regular de venta-->
+          {% else %}
+            <td class="bg-warning">{{ item.beneficio1_calculado|format_currency }}</td>
+          {% endif %}
+          <!-- Venta Tienda Nube-->
+          <td>{{ item.precio_tn|format_currency }}</td> <!-- Precio Tienda Nube utilizando margen 1 + margen 2-->
+          <td>{{ item.comision2_calculado|format_currency }} </td> <!-- comision x venta tienda nube-->
+          {% if item.beneficio2_calculado > 0 %}
+          <td class="bg-success">{{ item.beneficio2_calculado|format_currency }}</td> <!-- Beneficio de venta tienda nube-->
+          {% else %}
+          <td class="bg-warning">{{ item.beneficio2_calculado|format_currency }}</td>
+          {% endif %}
+          <!-- Precio Venta ML -->
+          <td>{{ item.precio_ml|format_currency }}</td> <!-- Precio Mercado Libre utilizando margen 1 + margen 2-->
+          <td>{{ item.comision3_calculado|format_currency }} </td> <!-- comision x venta Mercado Libre-->
+          {% if item.beneficio3_calculado > 0 %}
+          <td  class="bg-success">{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
+          {% else %}
+          <td class="bg-warning">{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_page %}
+
+<script>
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+            },
+        });
+    }
+    
+   $(function () {
+
+      
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
+      
+    });
+
+    
+   
+
+</script>
+
+{% endblock %}

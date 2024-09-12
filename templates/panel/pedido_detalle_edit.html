@@ -51,7 +51,7 @@
                   {% endif %}
                   {% if ordenes.dir_tipocorreo == 2 %}
                   <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
-                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expresso {% endif %}
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     <small class="float-right">Fecha: 
                         <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
                     </small>
@@ -95,7 +95,7 @@
                         <div class="form-row">
                             <div class="col form-group"> 
                                 <label>Localidad:</label>
-                                <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ ordenes.dir_localidad  }}" required>
+                                <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ ordenes.dir_localidad  }}">
                             </div>
                             <div class="col form-group"> 
                                 <label>Provncia:</label>
@@ -268,7 +268,7 @@
                   <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
                  {% if pago_pendiente %}
                   <pre style='display:inline'  class="float-right"> </pre>
-                  <a href=""  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Cancelar</a>
+                  <a href="{% url 'panel_pedidos' 'New' %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Cancelar</a>
                   <pre style='display:inline'  class="float-right"> </pre>
                    
                   {% endif %} 

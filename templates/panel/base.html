@@ -152,7 +152,18 @@
                         <a class="collapse-item" href="{% url 'panel_costo_list' %}" >Costos</a>
                       {% endif %}
                   {% endif %}
-                {% endfor %}      
+
+                  <!-- LISTA DE PRECIOS-->
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'LISTA PRECIOS' %}
+                        <a class="collapse-item" href="{% url 'panel_lista_de_precios' %}" >Lista de Precios</a>
+                      {% endif %}
+                  {% endif %}
+                {% endfor %} 
+                
+                
+
+
                 <h6 class="collapse-header">IMPORTAR</h6>
                 
                 {% for items in permisousuario %}    
@@ -311,14 +322,27 @@
         </a>
         <div id="collapseCompras" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-  
-           
-  
             <h6 class="collapse-header">Compras</h6>
             {% for items in permisousuario %}
               {% if items.modo_ver %}
                 {% if items.codigo.codigo == 'COMPRAS' %}
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'compras_list' %}">Solicitud de Compras USD</a>
+                {% endif%}
+              
+              {% endif %}
+            {% endfor %}
+    
+            <h6 class="collapse-header">Proveedores</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'PROVEEDORES' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'proveedores_list' %}">Proveedores</a>
+                {% endif%}
+              
+              {% endif %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'PROVEEDORES' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'proveedor_check_articulos' %}">Comparacion Proveedores</a>
                 {% endif%}
               
               {% endif %}
@@ -398,11 +422,21 @@
           {% endfor %}
 
       
+
           <h6 class="collapse-header">Usuarios</h6>
           {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'PERMISOS' %}
-                <a class="collapse-item" href="{% url 'panel_usuarios' %}">Perfiles de Usuario</a>
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_usuarios' %}">Perfiles de Usuario</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+          <h6 class="collapse-header">Margenes</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'MARGENES' %}
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_config_margen' %}"> Margenes</a>
               {% endif %}
             {% endif %}
           {% endfor %}

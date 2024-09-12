@@ -1,0 +1,70 @@
+
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " > 
+        <h3><strong>Comparacion precios Proveedores</strong></h3></h6>
+        <form  action="{% url 'proveedor_check_articulos'  %}" enctype="multipart/form-data" method="POST">
+          {% csrf_token %}
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <button type="submit" class="btn btn-success">Importar Costos Proveedor</button>
+          </div>
+        </form>
+  </div>
+
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not productos %}
+        <div class="alert alert-info">No se encontraron precios de proveedores</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        
+        <th data-sortable="true" data-field="product_name">Articulo</th>
+        <th data-sortable="true" data-field="costo_prod">Costo Actual</th>   
+        <th data-sortable="true" data-field="Proveedor">Proveedor</th>
+        <th data-sortable="true" data-field="nombre_articulo">Articulo</th>
+        <th data-sortable="true" data-field="precio_por_unidad">Precio Compra Unidad</th>
+       
+         
+      </thead>
+      <tbody>
+        {% for item in productos %}
+          <tr>
+           
+            <td>{{ item.product_name }}</td> 
+            <td>{{ item.costo_prod|format_currency }} </td> 
+            <td>{{ item.proveedor }}</td> 
+            <td>{{ item.nombre_articulo }}</td> 
+            <td>{{ item.precio_por_unidad|format_currency }}</td> 
+           
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

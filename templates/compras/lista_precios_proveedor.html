@@ -1,0 +1,88 @@
+
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " > <h3><strong>{{proveedor_nombre}}</strong></h3></h6>
+    </div>
+    
+     
+  <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'proveedor_articulo' proveedor_id '0' %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not articulos %}
+        <div class="alert alert-info">No se encontraron precios de este proveedor</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        <th data-sortable="false" data-field="imagen">imagen</th>
+        <th data-sortable="true" data-field="codigo_prod_prov">Cod. proveedor</th>
+        <th data-sortable="true" data-field="nombre_articulo">Articulo</th>   
+        <th data-sortable="true" data-field="unidad_medida">Unidad Medida</th>
+        <th data-sortable="true" data-field="precio_compra">Precio Compra</th>
+        <th data-sortable="true" data-field="precio_por_unidad">Precio Compra Unidad</th>
+        <th data-sortable="true" data-field="marca">Marca</th>
+        <th data-sortable="true" data-field="id_product">Articulo</th>
+        <th data-sortable="true" data-field="fecha_actualizacion">Actualizacion</th>
+
+        <th data-sortable="false" data-field="">Acciones</th>
+         
+      </thead>
+      <tbody>
+        {% for item in articulos %}
+          <tr>
+            <td>
+                <figure class="itemside align-items-center">
+                    {% if item.imagen %}
+                    <div class="aside"><img src="https://yourfiles.cloud/uploads/{{item.imagen}}" class="img-sm" width="50" height="50"></div>
+                    {% endif %}
+                    
+                </figure>
+            </td>
+            <td><a href="{{ item.link }}" target="_blank"> {{ item.codigo_prod_prov }}</a></td>
+            <td>{{ item.nombre_articulo }}</td> 
+            <td>{{ item.unidad_medida }} ({{item.cantidad_unidad_medida|format_integer_def}})</td> 
+            <td>{{ item.precio_compra|format_currency }}</td> 
+            <td>{{ item.precio_por_unidad|format_currency }}</td> 
+            <td>{{ item.marca }}</td> 
+            {% if item.id_product.id %}
+            <td><a href="{% url 'panel_producto_detalle' item.id_product.id %}">{{ item.id_product }}</a></td>
+            {% else %}
+            <td> Sin relación</td>
+            {% endif %}
+            <td>{{ item.fecha_actualizacion|date:'Y-m-d' }}</td> 
+            <td >         
+              <a href="{% url 'proveedor_articulo' proveedor_id item.codigo_prod_prov  %}" class="href btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
+              <a href="{% url 'vincular_articulo'  %}" class="href btn btn-info btn-circle" title="Vincular"><i class="fa fa-recycle"></i></a>
+              <a href="{% url 'proveedores_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
+          </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

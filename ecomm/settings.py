@@ -209,6 +209,8 @@ DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
 
+DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
 #MELI
 CLIENTE_ID="1279208844446512"                           #"5374552499309003"
 REDIRECT_URI="https://lifche.qualities.com.ar/panel/"    #"https://lifche.qualities.com.ar/panel/"

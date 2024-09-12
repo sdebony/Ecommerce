@@ -120,7 +120,7 @@ class AccountDirecciones(models.Model):
      dir_telefono = models.CharField(max_length=25)
      dir_obs    = models.CharField(max_length=250)
      dir_tipocorreo = models.BigIntegerField(default=0) #1 Sucursal Correo  #2 Envio a Domicilio #3 Retiro en Tienda
-     dir_tipoenvio = models.BigIntegerField(default=0)  #1-Clasico  #2-Expresso
+     dir_tipoenvio = models.BigIntegerField(default=0)  #1-Clasico  #2-Expreso
 
      def __str__(self):
         return f'{self.dir_id}'

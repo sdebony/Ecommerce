@@ -4,9 +4,11 @@ from django.urls import reverse
 from accounts.models import Account
 from django.db.models import Avg, Count
 
+
 # Create your models here.
 
 class Product(models.Model):
+
     product_name    = models.CharField(max_length=200, unique=True)
     slug            = models.SlugField(max_length=200, unique=True)
     description     = models.TextField(max_length=650, blank=True)
@@ -21,6 +23,8 @@ class Product(models.Model):
     modified_date   = models.DateTimeField(auto_now=True)
     is_popular      = models.BooleanField(default=False)
     peso            = models.FloatField(default=0)
+    costo_prod      = models.FloatField(default=0,blank=True)
+    ubicacion       = models.FloatField(default=0,blank=True)
 
     def get_url(self):
         return reverse('product_detail', args=[self.category.slug, self.slug])
