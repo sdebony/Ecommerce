@@ -1,0 +1,550 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block page_content %}
+
+    <form method="post" id="frmCompras">
+        {% csrf_token %}
+        <div class="col-xl-12 col-md-12 mb-12">
+            {% if encabezado %}
+            <div class="card border-left-warning shadow h-100 py-2">
+            {% else %}
+            <div class="card border-left-success shadow h-100 py-2">
+            {% endif %}
+                <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    {% if encabezado %} Editar {% else %} Nueva {% endif %} Compra
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="row">
+                                    <!-- Inicio Izquierda -->
+                                    <div class="col-5">
+                                        <!-- Inicio Encabezado -->
+                                        <div class="form-group row">
+                                            
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <span class="input-group-text" id="basic-addon1">Proveedor:</span>
+                                                    <select id="proveedor" name="proveedor" class="form-control">
+                                                        <option value="">Seleccione un Proveedor</option>
+                                                        {% for proveedor in proveedores %}
+                                                            <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Fecha:</span>
+                                                        <input type="text" class="form-control" name="fecha" id="fecha" aria-label="Fecha" aria-describedby="basic-addon1">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">SubTotal:   </span>
+                                                        <input type="text" id="enc_subtotal" readonly class="form-control-plaintext" placeholder="" aria-label="Subtotal" aria-describedby="basic-addon1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                           <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Descuentos:</span>
+                                                        <input type="text"  id="enc_descuentos" readonly class="form-control-plaintext" placeholder="" aria-label="Subtotal" aria-describedby="basic-addon1">
+                                                      </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Total:</span>
+                                                        <input type="text" id="enc_total" readonly class="form-control-plaintext font-weight-bold" placeholder="" aria-label="Subtotal" aria-describedby="basic-addon1">
+                                                      </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text">Costo Envio:</span>
+                                                        <input type="number" step="any" id="enc_envio" class="form-control" >
+                                                      </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Observaciones</span>
+                                                        <textarea class="form-control" rows="4" aria-label="With textarea" ></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <!-- Botones -->
+                                                <div class="dropdown-divider"></div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <button type="submit" class="btn btn-primary"><span class="fa fa-save"></span> Grabar Orden Compra</button>
+                                                            <a href="{% url 'oc_list' %}" class="btn btn-secondary"><i class="far fa-hand-point-left"></i> Cancelar</a>
+                                                        
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        <!-- Fin Botones -->
+
+                                        </div>
+                                        <!-- Fin Encabezado -->
+                                    </div>
+                                    <!-- Fin Izquierda -->
+                                    <!-- Inicio Derecha -->
+                                    <div class="col-7">
+                                        <div class="row">
+                                            <div class="col">
+                                                <table id="tabla-productos" class="table table-striped table-hover dt-responsive table-sm nowrap tbl-productos" style="width:100%">
+                                               
+                                                   <thead>
+                                                        <th class="all">Id</th>        
+                                                        <th class="all">Descripción</th>
+                                                        <th class="all">Marca</th>
+                                                        <th class="all">Precio Un</th>
+                                                        <th class="all">Acciones</th>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="5"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="id_id_producto" class="col-sm-3 col-form-label">Producto</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" readonly class="form-control-plaintext font-weight-bold" id="id_descripcion_producto" value="" required>
+                                            </div>
+                                            <input type="text" readonly class="form-control-plaintext" name="id_id_producto" id="id_id_producto" value="" required hidden>
+                                          
+                                            
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="id_cantidad_detalle" class="col-sm-2 col-form-label">Cant.:</label>
+                                            <div class="col-sm-2">
+                                                <input type="number" class="form-control" name="id_cantidad_detalle" id="id_cantidad_detalle" value="0" required>
+                                            </div>
+                                            <label for="id_precio_detalle" class="col-sm-2 col-form-label">Precio:</label>
+                                            <div class="col-sm-2">
+                                                <input type="number" class="form-control" name="id_precio_detalle" id="id_precio_detalle" value="0" required>
+                                            </div>
+                                            <label for="id_descuento_detalle" class="col-sm-2 col-form-label">Desc.:</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" class="form-control" name="id_descuento_detalle" id="id_descuento_detalle" value="00">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="id_sub_total_detalle" class="col-sm-2 col-form-label">S. Total:</label>
+                                            <div class="col-sm-4">
+                                                <input type="text" readonly class="form-control-plaintext" name="id_sub_total_detalle" id="id_sub_total_detalle" value="00">
+                                            </div>
+                                            <label for="id_total_detalle" class="col-sm-2 col-form-label">Total:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" readonly class="form-control-plaintext col-sm-10" name="id_total_detalle" id="id_total_detalle" value="00">
+                                            </div>
+                                            <div class="col-sm-12 text-right">
+                                                <button type="button" class="btn btn-success" onclick="agregarADetalle()"><i class="fa fa-plus-circle" aria-hidden="true"></i></button>
+                                                <button type="button" class="btn btn-danger" onclick="clear_Detail();"><i class="fa fa-minus-circle" aria-hidden="true"></i></button>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <!-- Fin Derecha -->
+                                </div>
+                                <hr>
+                                <!-- Inicio Detalle -->
+                                <div class="row">
+                                    <div class="col">
+                                        <table id="tabla_detalle" style="width:100%">
+                                            <thead>
+                                                <th>Producto</th>        
+                                                <th>Cantidad</th>
+                                                <th>Precio</th>
+                                                <th>Sub Total</th>
+                                                <th>Desc.</th>
+                                                <th>Total</th>
+                                                <th class="all">Acciones</th>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in detalle %}
+                                                <tr>
+                                                <td>{{ item.producto }}</td>
+                                                <td>{{ item.cantidad }}</td>
+                                                <td>{{ item.cantidad }}</td>
+                                                <td>{{ item.sub_total }}</td>
+                                                <td>{{ item.descuento }}</td>
+                                                <td>{{ item.total }}</td>
+                                                <td>
+                                                    <button class="btn btn-danger btn-circle" onclick="return abrir_modal('{% url 'cmp:compras_del' encabezado.pk item.id %}')"><i class="fas fa-trash-alt"></i></button>
+                                                </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- Fin Detalle -->
+                            </div>
+                        </div>
+                </div>
+        </div>
+    </form>
+{% endblock %}
+{% block js_page %}
+<script>
+    
+ $("#fecha, #fecha").datetimepicker({
+        format: 'd/m/Y',
+        timepicker:false
+ });
+
+$("#sidebarToggle").click(); //achica el menu bar
+
+function actualizaTotales() {
+    let subtotal = 0;
+    let descuentos = 0;
+    let total = 0;
+    let envio = 0;
+
+    // Obtener el valor del campo de envío y convertirlo a número
+    envio = parseFloat(document.getElementById('enc_envio').value.replace(/[^0-9.-]+/g, ""));
+    if (isNaN(envio)) envio = 0;  // Asegurarse de que no sea NaN
+
+    
+    
+    $('#tabla_detalle tbody tr').each(function() {
+        const subTotal = parseFloat($(this).find('td:eq(3)').text().replace(/[^0-9.-]+/g, ""));
+        const descuento = parseFloat($(this).find('td:eq(4)').text().replace(/[^0-9.-]+/g, ""));
+        const filaTotal = parseFloat($(this).find('td:eq(5)').text().replace(/[^0-9.-]+/g, ""));
+
+        subtotal += isNaN(subTotal) ? 0 : subTotal;
+        descuentos += isNaN(descuento) ? 0 : descuento;
+        total += isNaN(filaTotal) ? 0 : filaTotal;
+    });
+
+    // Sumar el valor de envío al total
+    total += envio;
+    
+    // Función para formatear los valores como moneda
+    function formatCurrency(value) {
+        return value.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+    }
+
+    
+
+    
+    $('#enc_subtotal').val(formatCurrency(subtotal));
+    $('#enc_descuentos').val(formatCurrency(descuentos));
+    $('#enc_total').val(formatCurrency(total));
+    //$('#enc_envio').val(formatCurrency(envio));
+}
+
+function clear_Detail() {
+
+    
+
+    $("#id_id_producto").val('');
+    $('#id_descripcion_producto').val('');
+    $("#id_cantidad_detalle").val('0');
+    $('#id_precio_detalle').val('0');
+    $('#id_descuento_detalle').val('0');
+    $('#id_sub_total_detalle').val('');
+    $('#id_total_detalle').val('');
+    $("#id_proveedor").focus();
+}
+
+function agregarADetalle() {
+    var id_producto = $("#id_id_producto").val();
+    var descripcion_producto = $('#id_descripcion_producto').val();
+    var cantidad = $("#id_cantidad_detalle").val();
+    var precio = $('#id_precio_detalle').val();
+    var descuento = $('#id_descuento_detalle').val();
+    var sub_total = $('#id_sub_total_detalle').val();
+    var total = $('#id_total_detalle').val();
+
+   
+
+    if (id_producto === "" || cantidad === "0") {
+        alert("Debe seleccionar un producto y agregar una cantidad válida.");
+        return;
+    }
+
+    var tbody = document.querySelector('#tabla_detalle tbody');
+
+    var nuevaFila = `
+        <tr>
+            <td>${descripcion_producto}</td>
+            <td>${cantidad}</td>
+            <td>${precio}</td>
+            <td>${sub_total}</td>
+            <td>${descuento}</td>
+            <td>${total}</td>
+            <td>
+                <button class="btn btn-danger btn-circle" onclick="eliminarFila(this)"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        </tr>
+    `;
+
+    // Agregar la nueva fila
+    tbody.insertAdjacentHTML('beforeend', nuevaFila);
+
+    // Limpiar los campos después de agregar el producto
+    clear_Detail();
+    // Recalcular el subtotal y total
+    actualizaTotales();
+   
+
+}
+
+function eliminarFila(button) {
+    // Eliminar la fila actual al hacer clic en el botón de eliminar
+    var fila = button.closest('tr');
+    fila.remove();
+    // Recalcular el subtotal y total
+   actualizaTotales();
+
+}
+
+function selectProducto(id,descripcion,precio_por_unidad)
+    {
+        
+        
+        $("#id_cantidad_detalle").val(0);
+        $('#id_precio_detalle').val(precio_por_unidad);
+        $('#id_descuento_detalle').val(0);
+
+        $('#id_sub_total_detalle').val(0);
+        $('#id_total_detalle').val(0);
+
+        $("#id_id_producto").val(+id);
+        $('#id_descripcion_producto').val(descripcion);
+        $('#id_cantidad_detalle').focus();
+        $('#id_cantidad_detalle').select();
+
+        //$('.table').DataTable().search('').draw();
+   }
+
+function calcular_detalle()
+    {
+        var cant,prec,desc,stotal,total;
+
+        cant = $("#id_cantidad_detalle").val();
+        cant = cant==="" ? 0 : +cant;
+        cant = cant<0 ? 0 : cant;
+
+        prec =$('#id_precio_detalle').val();
+        prec = prec==="" ? 0 : +prec;
+        prec = prec<0 ? 0 : prec;
+
+        desc = $('#id_descuento_detalle').val();
+        desc = desc==="" ? 0 : +desc;
+        desc = desc<0 ? 0 : desc;
+
+        
+        desc = desc>(cant * prec) ? 0 : desc;
+
+        stotal = cant * prec;
+        total  = stotal - desc;
+
+        var formattedPrice = prec.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+        var formattedstotal = stotal.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+        var formattedtotal = total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+        
+
+        $('#id_cantidad_detalle').val(cant);
+        $('#id_precio_detalle').val(prec);
+        $('#id_descuento_detalle').val(desc);
+
+        $('#id_sub_total_detalle').val(stotal);
+        $('#id_total_detalle').val(total);
+       
+        
+
+    }
+
+
+$('#id_cantidad_detalle,#id_precio_detalle,#id_descuento_detalle').change(function(){
+       calcular_detalle();
+
+});
+
+$('#enc_envio').change(function(){
+       actualizaTotales();  
+       
+});
+
+function obtenerTokenCSRF() {
+    // Obtener el token CSRF desde el DOM
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    return csrfToken;
+}
+
+function enviarDatos() {
+    // Recopilar datos del formulario
+    // Obtener los valores de los campos de entrada (eliminando el formato de moneda)
+    //const subtotal = parseFloat(document.getElementById('enc_subtotal').value.replace(/[^0-9.-]+/g, ""));
+    //const descuentos = parseFloat(document.getElementById('enc_descuentos').value.replace(/[^0-9.-]+/g, ""));
+    //const total = parseFloat(document.getElementById('enc_total').value.replace(/[^0-9.-]+/g, ""));
+    //const envio = parseFloat(document.getElementById('enc_envio').value.replace(/[^0-9.-]+/g, ""));
+
+
+    var encabezado = {
+        proveedor: document.getElementById('proveedor').value,
+        fecha: document.getElementById('fecha').value,
+        subtotal: document.getElementById('enc_subtotal').value,
+        descuentos: document.getElementById('enc_descuentos').value,
+        total: document.getElementById('enc_total').value,
+        observaciones: document.querySelector('textarea').value,
+        envio: document.getElementById('enc_envio').value
+    };
+
+    // Recopilar datos de la tabla
+    var detalles = [];
+    var tablaDetalle = document.getElementById('tabla_detalle').getElementsByTagName('tbody')[0];
+    var filas = tablaDetalle.getElementsByTagName('tr');
+
+    for (var i = 0; i < filas.length; i++) {
+        var celdas = filas[i].getElementsByTagName('td');
+        if (celdas.length > 0) {
+            detalles.push({
+                producto: celdas[0].textContent.trim(),
+                cantidad: celdas[1].textContent.trim(),
+                precio: celdas[2].textContent.trim(),
+                subtotal: celdas[3].textContent.trim(),
+                descuento: celdas[4].textContent.trim(),
+                total: celdas[5].textContent.trim()
+            });
+        }
+    }
+
+    // Preparar los datos para enviar
+    var datos = {
+        encabezado: encabezado,
+        detalles: detalles
+    };
+
+    // Obtener el token CSRF
+    var csrfToken = obtenerTokenCSRF();
+
+    // Enviar los datos con fetch
+    fetch('procesar-datos/', { // Cambia esta URL por la URL de tu servidor
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // Añadir el token CSRF
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Éxito:', data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+/*Validar Envío de Detalle */
+$("#frmCompras").submit(function(e){
+
+    
+    if($("#fecha").val()==""){
+            e.preventDefault()
+            $.alert({
+                    type:'red',
+                    title:'',
+                    content:'Debe Especificar Fecha'
+                    });
+            return false;
+    }
+
+    if($('#enc_total').val()==0 || $('#enc_total').val()=='' ){
+        e.preventDefault();
+        //alert("No ha agregado producto o está sin cantidades");
+        $.alert({
+                type:'red',
+                title:'',
+                content:'No ha agregado producto o está sin cantidades'
+                })
+        }
+    //envio datos 
+    enviarDatos();
+
+
+});
+/*Fin Validar Envío de Detalle */
+
+// Llama a actualizaTotales cuando se agregue un nuevo producto o se elimine uno
+$('#tabla_detalle').on('DOMSubtreeModified', actualizaTotales);
+
+document.getElementById('proveedor').addEventListener('change', function() {
+    var proveedorId = this.value;
+    var tablaProductos = document.getElementById('tabla-productos');
+    var tbody = tablaProductos.querySelector('tbody');
+
+    //console.log("Proveedor seleccionado:", proveedorId); // Verificar si el proveedor fue seleccionado
+
+    if (proveedorId) {
+        var url = `/compras/proveedores/get_productos/${proveedorId}/`;
+        console.log("URL de fetch:", url); // Verificar la URL generada
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Datos recibidos:", data); // Verificar los datos que llegan del servidor
+            tbody.innerHTML = ''; // Limpiar contenido anterior de la tabla
+
+            data.productos.forEach(function(producto) {
+                var fila = `
+                    <tr>
+                        <td>${producto.id}</td>
+                        <td>${producto.nombre_articulo}</td>
+                        <td>${producto.marca}</td>
+                        <td>${producto.precio_por_unidad}</td>
+                        <td>
+                            <button type="button" class="btn btn-warning btn-circle"
+                                onclick="selectProducto(${producto.id}, '${producto.nombre_articulo}', '${producto.precio_por_unidad}')">
+                                <i class="far fa-hand-pointer"></i>
+                            </button>
+                    </tr>
+                `;
+                tbody.innerHTML += fila;
+            });
+        })
+        .catch(error => console.log('Error en fetch:', error));
+    } else {
+        tbody.innerHTML = '<tr><td colspan="3">Seleccione primero un proveedor</td></tr>';
+    }
+
+   
+
+    $("#id_proveedor").focus();
+
+});
+
+</script>
+
+
+{% endblock %}

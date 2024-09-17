@@ -346,8 +346,15 @@
                 {% endif%}
               
               {% endif %}
+           
+              <!--  ORDENES DE COMPRA-->
+              {% if items.modo_ver %}
+                  {% if items.codigo.codigo == 'ORDENES DE COMPRA' %}  <!-- ORDEN_DE_COMPRA-->
+                    <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'oc_list' %}">Ordenes de Compra</a>
+                  {% endif%}
+                
+                {% endif %}
             {% endfor %}
-  
   
           </div>
         </div>

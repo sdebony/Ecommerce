@@ -27,7 +27,8 @@ def meli_get_authorization_code(client_id):
     
     else:
         access_token = authorization_code.access_token
-        
+    
+    
     return  access_token
 
 def meli_list(request):
@@ -408,9 +409,9 @@ def meli_search(request):
                 response_json = json.loads(response.text) #Diccionario
                 
                 articulos = response_json
-                #print("***********************")
+                print("***********************")
                 #print(articulos)
-                #print("**********************")
+                print("**********************")
             else:
                 messages.error(request,"Error de conexion  en Mercado Libre.")
                 print("ERROR DE CONEXION")

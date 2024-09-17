@@ -19,6 +19,7 @@ class ImportTempProduct(models.Model):
     modified_date   = models.DateTimeField(auto_now=True) 
     usuario         = models.CharField(max_length=25) 
     peso            = models.FloatField(default=0)
+    ubicacion       = models.FloatField(default=0,blank=True)
 
     def __str__(self):
         return self.product_name

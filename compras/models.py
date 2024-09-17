@@ -34,7 +34,7 @@ class Proveedores(models.Model):
 
 
     def __str__(self):
-        return self.codigo
+        return self.nombre
 
     class Meta:
         verbose_name = "Proveedor"
@@ -87,7 +87,68 @@ class ProveedorArticulos(models.Model):
         return self.nombre_articulo
 
     class Meta:
-        unique_together = ('proveedor', 'codigo_prod_prov','unidad_medida')
+        unique_together = ('proveedor', 'codigo_prod_prov','unidad_medida','nombre_articulo')
         verbose_name = "ProveedorArticulos"
         verbose_name_plural = "ProveedorArticulos"
         
+class ComprasEnc(models.Model):
+
+    fecha_compra=models.DateField(null=True,blank=True)
+    observacion=models.TextField(blank=True,null=True)
+    sub_total=models.FloatField(default=0)
+    costoenvio=models.FloatField(default=0)
+    descuento=models.FloatField(default=0)
+    total=models.FloatField(default=0)
+    proveedor=models.ForeignKey(Proveedores,on_delete=models.CASCADE)
+    estado=models.IntegerField(default=0)
+    
+    def __str__(self):
+        return '{}'.format(self.observacion)
+
+    def save(self, *args, **kwargs):
+        # Convierte la observación a mayúsculas
+        self.observacion = self.observacion.upper()
+
+        # Asignar valores por defecto si son None
+        if self.sub_total is None:
+            self.sub_total = 0
+        if self.descuento is None:
+            self.descuento = 0
+
+        # Calcular el total
+        self.total = self.sub_total - self.descuento + self.costoenvio
+
+        # Llamar al método original save() con los argumentos y parámetros adicionales
+        super(ComprasEnc, self).save(*args, **kwargs)
+
+
+    class Meta:
+        verbose_name_plural = "Encabezado Compras"
+        verbose_name="Encabezado Compra"
+
+class ComprasDet(models.Model):
+    id_compra_enc = models.ForeignKey(ComprasEnc, on_delete=models.CASCADE)
+    producto=models.ForeignKey(ProveedorArticulos,on_delete=models.CASCADE)
+    cantidad=models.BigIntegerField(default=0)
+    precio_prv=models.FloatField(default=0)
+    sub_total=models.FloatField(default=0)
+    descuento=models.FloatField(default=0)
+    total=models.FloatField(default=0)
+    
+
+    def __str__(self):
+        return '{}'.format(self.producto)
+
+
+     # Ajustar el método save para aceptar los parámetros adicionales
+    def save(self, *args, **kwargs):
+        self.sub_total = float(self.cantidad) * float(self.precio_prv)
+        self.total = self.sub_total - float(self.descuento)
+        # Llamar al método save original con los parámetros adicionales
+        super(ComprasDet, self).save(*args, **kwargs)
+
+    
+    class Mega:
+        verbose_name_plural = "Detalle Compras"
+        verbose_name="Detalle Compra"
+

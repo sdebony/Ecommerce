@@ -71,25 +71,26 @@
       data-toggle="table"
       data-pagination="false"
       data-search="true"
-      data-show-columns="false"
-      data-show-toggle="false"
+      data-show-columns="true"
+      data-show-toggle="true"
       data-show-fullscreen="false"
       data-toolbar=".buttons-toolbar"
       data-locale="es-AR"
     >
       <thead>
-          <th class="all">Nombre</th>
-          <th class="all">Costo</th>
-          <th class="all">Precio Base</th>
-          <th class="all">Precio Regular</th> 
-          <th class="all">Com V R</th>
-          <th class="all">Gan V R</th> 
-          <th class="all">P. T N</th> <!-- Precio con impuestos-->
-          <th class="all">Com T N</th>
-          <th class="all">Gan T N</th> 
-          <th class="all">P. M L</th>
-          <th class="all">Com M L</th>
-          <th class="all">Gan M L</th>
+          <th  data-sortable="true" data-field="product_name">Nombre</th>
+          <th  data-sortable="true" data-field="subcategory">Marca</th>
+          <th  data-sortable="true" data-field="costo_prod">Costo</th>
+          <th  data-sortable="true" data-field="precio_base">Precio Base</th>
+          <th  data-sortable="true" data-field="price">Precio Regular</th> 
+          <th  data-sortable="true" data-field="comision1_calculado">Com V R</th>
+          <th  data-sortable="true" data-field="beneficio1_calculado">Gan V R</th> 
+          <th  data-sortable="true" data-field="precio_tn">P. T N</th> <!-- Precio con impuestos-->
+          <th  data-sortable="true" data-field="comision2_calculado">Com T N</th>
+          <th  data-sortable="true" data-field="beneficio2_calculado">Gan T N</th> 
+          <th  data-sortable="true" data-field="precio_ml">P. M L</th>
+          <th  data-sortable="true" data-field="comision3_calculado">Com M L</th>
+          <th  data-sortable="true" data-field="beneficio3_calculado">Gan M L</th>
     
       </thead>
       <tbody>
@@ -97,6 +98,7 @@
         <tr>
           
           <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
+          <td>{{ item.subcategory.subcategory_name }}</td> 
           <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
           <!-- Venta Regular-->
           <td>{{ item.precio_base|format_currency }}</td> <!-- Base minima de venta -->

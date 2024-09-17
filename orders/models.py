@@ -80,6 +80,12 @@ class Order(models.Model):
         return sum([Order.order_total for Orders in cls.objects.all()])
             
 
+    class Meta:
+        
+        verbose_name = "Order"
+        verbose_name_plural = "Ordenes"
+        ordering = ['order_number',]
+
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)

@@ -590,7 +590,7 @@ def panel_pedidos_list(request,status=None):
        
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         #ordenes = Order.objects.filter(status=status).order_by('-created_at')
-        ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('-created_at')
+        ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('created_at')
 
         cantidad = ordenes.count()
         cantidad_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).count()
@@ -1379,7 +1379,7 @@ def panel_producto_import_del_all(request):
 
     if validar_permisos(request,'PRODUCTO'):
 
-      
+            print("panel_producto_import_del_all")
             producto = Product.objects.filter()
             for product in producto:
                 if product:
@@ -1459,13 +1459,11 @@ def panel_product_crud(request):
             except ValueError:
                 stock_entero = 0  # O cualquier valor por defecto
             
-            
-
-            print("peso,costo_prod,ubicacion,stock",peso,costo_prod,ubicacion,stock_entero)
-            #peso = peso.replace(",", ".")
-            #stock = stock.replace(",", ".") 
-            #price = price.replace(",", ".") 
-            #images = images.replace("%20", " ") 
+            if not costo_prod:
+                costo_prod=0
+            if not ubicacion:
+                ubicacion=0
+ 
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
@@ -1597,26 +1595,21 @@ def panel_producto_habilitar(request,product_id=None,estado=None):
                     producto = Product.objects.filter(id=product_id).first()
                     #UPDATE SATUS
                     print("***  UPDATE STATUS ***")
-                    producto = Product(
-                            id=product_id,
-                            is_available=habilitado,
-                            images=producto.images,
-                            imgfile = producto.imgfile,
-                            modified_date=datetime.today(),
-                            product_name=producto.product_name,
-                            slug=slugify(producto.product_name).lower(),
-                            description=producto.description,
-                            price=producto.price,
-                            peso=producto.peso,
-                            stock=producto.stock,
-                            category=producto.category,
-                            created_date =producto.created_date, 
-                            )
+
+                    # Actualiza el producto existente
+                    producto.is_available = habilitado
+                    producto.modified_date = datetime.today()
+                    producto.slug = slugify(producto.product_name).lower()
+
+                    # Guarda los cambios
                     producto.save()
 
-                    return redirect('panel_catalogo')
+                    
             except:
-                print("Error: ", producto.product_name)        
+                print("Error: ", producto.product_name)
+                
+
+            return redirect('panel_catalogo')    
     else:
         return render (request,"panel/login.html")
 
@@ -2602,7 +2595,7 @@ def export_xls(request,modelo=None):
             row_num=0
             font_style= xlwt.Style.XFStyle()
             font_style.font.bold = True
-            columns = ['Producto','Costo','Precio Regular','Precio Base','Com Venta R','Gan Venta R','Precio Tienda Nube','Com Venta TN','Gan Venta TN','Precio ML','Com Venta ML','Gan Venta ML']
+            columns = ['Producto','Marca','Costo','Precio Regular','Precio Base','Com Venta R','Gan Venta R','Precio Tienda Nube','Com Venta TN','Gan Venta TN','Precio ML','Com Venta ML','Gan Venta ML']
             for col_num in range(len(columns)):
                 ws.write(row_num,col_num,columns[col_num],font_style)
             font_style = xlwt.Style.XFStyle()
@@ -2630,8 +2623,8 @@ def export_xls(request,modelo=None):
 
             try:
                 # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
-                 # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
-                    rows = Product.objects.filter().values_list('product_name','costo_prod','price').annotate(
+
+                    rows = Product.objects.filter().values_list('product_name','subcategory__subcategory_name','costo_prod','price').annotate(
                         # Cálculo del margen1 (costo + (costo * margen1 / 100))
                         precio_base=ExpressionWrapper(
                             F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
@@ -2672,13 +2665,13 @@ def export_xls(request,modelo=None):
                 
             except ConfiguracionParametros.DoesNotExist:
                 # En caso de que no exista alguno de los márgenes, manejar la excepción.
-                rows = Product.objects.all().values_list('product_name','costo_prod','price').order_by('product_name')
+                rows = Product.objects.all().values_list('product_name','subcategory__subcategory_name','costo_prod','price').order_by('product_name')
             #rows = Costo.objects.all().values_list('producto__product_name','costo','fecha_actualizacion','usuario__email').order_by('-fecha_actualizacion','producto__product_name')
     
             for row in rows:
                 row_num += 1
                 for col_num in range(len(row)):
-                    if col_num==0:
+                    if col_num==0 or col_num==1:
                         ws.write(row_num,col_num, str(row[col_num]),font_style)
                     else:
                         #ws.write(row_num,col_num, str(row[col_num]),font_style)
@@ -2877,9 +2870,9 @@ def import_productos_xls(request):
 
                                 sub_cat = SubCategory.objects.filter(category=cat,sub_category_slug=slug_subcat).first()
                                 if cat:
-                                    print("Tengo cat",cat.id)
+                                    #print("Tengo cat",cat.id)
                                     if not sub_cat:
-                                        print("No teng subcat",slug_cat)
+                                        #print("No teng subcat",slug_cat)
                                        
                                         sub_cat = SubCategory(
                                             category=cat,
@@ -2888,13 +2881,18 @@ def import_productos_xls(request):
                                             sub_category_description=""
                                             )
                                         sub_cat.save()
-                                        print("sub Categoria .Save:",slug_subcat)
+                                        #print("sub Categoria .Save:",slug_subcat)
                                         sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
                                     if sub_cat:
                                         int_peso = sheet1.cell_value(rowNumber, 8)
                                         float_peso = float("{0:.2f}".format((float)(int_peso)))
-                                        print("float_peso",float_peso)
-                                        
+                                        #print("float_peso",float_peso)
+
+                                        int_ubicacion = sheet1.cell_value(rowNumber, 9)
+                                        f_ubicacion = float("{0:.2f}".format((float)(int_ubicacion)))
+                                        print("f_ubicacion",f_ubicacion)
+
+
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(product_name).lower(),
@@ -2910,7 +2908,8 @@ def import_productos_xls(request):
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
-                                            peso = float_peso
+                                            peso = float_peso,
+                                            ubicacion= f_ubicacion
 
 
                                             #is_popular = False,
@@ -3013,12 +3012,11 @@ def import_precios(request):
                         if dato.lower() != "producto": # Saco la primera file
                             producto = sheet1.cell_value(rowNumber, 0)
                             precio = sheet1.cell_value(rowNumber, 1)
-
-                            print(producto,precio)
+                            
                             try:
-                                print(precio)
+                                
                                 precio = float(precio)
-                                print(precio)
+                                
                             except ValueError:
                                 cant_error += 1
                                 error_str+="<br> El precio del articulo "+ str(producto)+" no es valido."
@@ -3041,7 +3039,8 @@ def import_precios(request):
                                         created_date=tmp_producto.created_date,
                                         modified_date=datetime.today() ,
                                         is_popular = False, 
-                                        peso = tmp_producto.peso,                                      
+                                        peso = tmp_producto.peso, 
+                                        ubicacion = tmp_producto.ubicacion,                                     
                                             )
                                     tmp_producto.save()
                                     if tmp_producto:
@@ -3211,13 +3210,12 @@ def guardar_tmp_productos(request):
             try:
                 producto = Product.objects.filter(product_name=a.product_name)
                 category = Category.objects.get(category_name=a.category)
-                print(category)
                 if not producto:
                     if not a.images:
                       imagen = "photos/products/none.jpg" #default      
                     else:
                         imagen = a.images
-
+                    print("Guardar_tmp_productos",a.product_name,a.ubicacion)
                     producto = Product(
                         product_name = a.product_name,
                         slug=slugify(a.product_name).lower(),
@@ -3232,6 +3230,7 @@ def guardar_tmp_productos(request):
                         created_date= datetime.today(),
                         modified_date=datetime.today(),
                         peso = a.peso, 
+                        ubicacion= a.ubicacion,
                     )
                     producto.save()
             except ObjectDoesNotExist:

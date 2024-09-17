@@ -1,23 +1,24 @@
 {% extends 'panel/base.html' %}
-
+{% load static %}
+{% load custom_filters %}
 {% block page_content %}
 
 
 <div class="card shadow mb-4">
   <!-- Card Header - Dropdown -->
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary " >Compra Dolar</h6>
+    <h6 class="m-2 font-weight-bold text-primary " >Ordenes de Compra</h6>
     </div>
     
      
   <div class="buttons-toolbar">
-      <a class="btn btn-primary" href="{% url 'compras' %}"><i class="fa fa-plus"></i> Nuevo</a>
+      <a class="btn btn-primary" href="{% url 'generar_orden_compra' %}"><i class="fa fa-plus"></i> Nuevo</a>
   </div>
 
   <!-- Card Body -->
   <div class="card-body">
-    {% if not sol_compras %}
-        <div class="alert alert-info">No se encontraron solicitudes de compra</div>
+    {% if not oc_compras %}
+        <div class="alert alert-info">No se encontraron ordenes de compra</div>
     {% endif %}
         
 
@@ -34,18 +35,22 @@
     >
       <thead>
           <th data-sortable="true" data-field="fecha">Fecha</th>
-          <th data-sortable="true" data-field="nombre">Nombre</th>
-          <th data-sortable="true" data-field="monto">Monto</th>   
+          <th data-sortable="true" data-field="proveedor">Proveedor</th>
+          <th data-sortable="true" data-field="total">Monto Total</th>
+          <th data-sortable="true" data-field="costoenvio">Envio</th>
+          <th data-sortable="true" data-field="descuento">Desc Total</th>   
           <th data-sortable="true" data-field="estado">Estado</th>
           <th data-sortable="false" data-field="">Borrar</th>
          
       </thead>
       <tbody>
-        {% for item in sol_compras %}
+        {% for item in oc_compras %}
           <tr>
-            <td>{{ item.fecha | date:'d/m/Y' }}</td>
-            <td>{{ item.cuenta.nombre }}</td> 
-            <td>USD {{ item.monto }}</td>
+            <td>{{ item.fecha_compra | date:'d/m/Y' }}</td>
+            <td>{{ item.proveedor.nombre }}</td> 
+            <td>{{ item.total|format_currency }}</td>
+            <td>{{ item.costoenvio|format_currency }}</td>
+            <td>{{ item.descuento|format_currency }}</td>
             {% if item.estado == 0 %}
               <td><span class="badge bg-success text-white">Abierto</span></td>
             {% else %}

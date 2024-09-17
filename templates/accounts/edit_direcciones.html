@@ -77,14 +77,14 @@
 									<label>Tipo de Envío</label>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
-										{% if dir_sucursal.dir_tipoenvio == 1 %} checked {% endif %}>
+										{% if dir_sucursal.dir_tipoenvio == 1 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioClasico">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
 										</label>
 									</div>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
-										{% if dir_sucursal.dir_tipoenvio == 2 %} checked {% endif %}>
+										{% if dir_sucursal.dir_tipoenvio == 2 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioExpresso">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
 										</label>
@@ -154,14 +154,14 @@
 									<label>Tipo de Envío</label>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
-										{% if dir_envios.dir_tipoenvio == 1 %} checked {% endif %}>
+										{% if dir_envios.dir_tipoenvio == 1 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioClasico">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
 										</label>
 									</div>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioExpresso" value="2"
-										{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %}>
+										{% if dir_envios.dir_tipoenvio == 2 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioExpresso">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
 										</label>

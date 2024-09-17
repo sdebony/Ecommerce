@@ -92,7 +92,24 @@
         <div class="order-info">
             <p><strong>Nombre del Cliente:</strong> {{order.full_name}}</p>
             <p><strong>Nro de Pedido:</strong> {{order_number}}</p>
-            <p><strong>Fecha:</strong>{{order.created_at}}</p>
+            <p><strong>Fecha:</strong>{{order.created_at|date:'d/m/Y'}}</p>
+        
+            {% if order.dir_tipocorreo == 1 %}
+            <p class="card-text mb-0 fw-bold">Retiro en Sucursal - <strong>{{ order.dir_nombre }}</strong></p>
+            {% endif %}
+            {% if order.dir_tipocorreo == 2 %}
+            <p class="card-text mb-0 fw-bold">Envio a Domicilio - <strong> {{ order.dir_nombre }}</strong></p>
+            {% endif %}
+            {% if order.dir_tipocorreo == 3 %}
+            <p class="card-text mb-0 fw-bold">Retira Cliente - <strong>{{ order.dir_nombre }}</strong></p>
+            {% endif %}
+            {% if order.dir_tipoenvio == 1 %}
+            <p class="card-text mb-0 fw-bold">Tipo envio: <strong>Clàsico</strong></p>
+            {% endif %}
+            {% if order.dir_tipoenvio == 2 %}
+            <p class="card-text mb-0 fw-bold">Tipo envio: <strong>Expreso</strong></p>
+            {% endif %}
+
             <p><strong>Dirección de Entrega:</strong> {{order.full_address}} - {{order.dir_localidad}}, {{order.dir_provincia}} ({{order.dir_cp}})</p>
         </div>
 

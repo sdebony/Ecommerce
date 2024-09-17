@@ -28,20 +28,28 @@
     <div class="card-body">
         {% if articulos %}
 
+        <table 
+      id="dataTable"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="true"
+      data-show-toggle="true"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    > 
        
-        
-        
-        <table class="table table-striped table-bordered " id="dataTable">  
             <thead class="bg-primary text-white">
                 <tr>
-                    <th scope="col">Código</th>
-                    <th scope="col">Articulo</th>
-                    <th scope="col">Precio Original</th>
-                    <th scope="col">Precio Actual</th>
-                    <th scope="col">category_id</th>
-                    <th scope="col">Marca</th>
-                    <th scope="col">Cuotas</th>
-                    <th scope="col">% Interes</th>
+                    <th data-sortable="true" scope="col">Código</th>
+                    <th data-sortable="true" scope="col">Articulo</th>
+                    <th data-sortable="true" scope="col">Precio Original</th>
+                    <th data-sortable="true" scope="col">Precio Actual</th>
+                    <th data-sortable="true" scope="col">category_id</th>
+                    <th data-sortable="true" scope="col">Marca</th>
+                    <th data-sortable="true" scope="col">Cuotas</th>
+                    <th data-sortable="true" scope="col">% Interes</th>
                 </tr>
             </thead>
             <tbody>

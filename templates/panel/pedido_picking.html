@@ -28,6 +28,19 @@
         }
 </style>
 <div class="card shadow mb-4">
+
+    <div class="row invoice-info">
+        <div class="col-sm-4 invoice-col">
+          <address>
+            <strong>Para: {{ ordenes.full_name}}</strong><br>
+           {{ ordenes.dir_calle }} {{ ordenes.dir_nro }} <br>
+           {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}} ({{ ordenes.dir_cp}})<br>
+            Phone: {{ ordenes.dir_telefono}}<br>
+            Email: {{ordenes.email }}
+          </address>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <p class="lead"><strong>Fecha Pedido:</strong> {{ordenes.created_at | date:"d/m/Y" }}</p>
@@ -35,6 +48,7 @@
             <p class="lead"><strong>Nombre</strong> {{ordenes.full_name}}</p>
 
         </div>
+        
 
         <h3 class="card-header">Productos</h3>
         <div class="card-body">

@@ -6,16 +6,17 @@ from panel.models import ImportDolar
 from contabilidad.models import Cuentas,Movimientos
 from store.models import Costo
 from category.models import Category,SubCategory
-from compras.models import CompraDolar,Proveedores,ProveedorArticulos,Marcas,UnidadMedida
+from compras.models import CompraDolar,Proveedores,ProveedorArticulos,Marcas,UnidadMedida,ComprasEnc,ComprasDet
 from panel.views import validar_permisos
 from slugify import slugify
-from django.http import JsonResponse
+
 from orders.models import Order
 from store.models import Product
 from django.db.models import Subquery, OuterRef, ExpressionWrapper, F, FloatField,Value,CharField
 from django.db.models.functions import Coalesce,Round
+from django.http import JsonResponse, HttpResponseBadRequest
+import json
 
-from django.db.models import Sum,Q
 
 from django.conf import settings
 
@@ -495,7 +496,8 @@ def proveedor_check_articulos(request):
 
             # Subquery para obtener el proveedor con el menor precio_por_unidad
             subquery_proveedor_articulos = ProveedorArticulos.objects.filter(
-                id_product=OuterRef('pk')
+                id_product=OuterRef('pk'),
+                precio_por_unidad__gt=1  # Condición para que el precio por unidad sea mayor a 1
             ).order_by('precio_por_unidad')
 
             # Hacer la consulta principal con los datos del proveedor y el precio por unidad
@@ -528,7 +530,8 @@ def proveedor_check_articulos(request):
 
             # Subquery para obtener el proveedor con el menor precio_por_unidad
             subquery_proveedor_articulos = ProveedorArticulos.objects.filter(
-                id_product=OuterRef('pk')
+                id_product=OuterRef('pk'),
+                precio_por_unidad__gt=1  # Condición para que el precio por unidad sea mayor a 1
             ).order_by('precio_por_unidad')
 
             # Hacer la consulta principal con los datos del proveedor y el precio por unidad
@@ -576,8 +579,7 @@ def proveedor_check_articulos(request):
 def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
 
     if validar_permisos(request,'PROVEEDORES'):
-        #Maestro de articulos
-      
+
         id_nuevo_prod = 0
 
         if request.method == 'GET':
@@ -610,7 +612,7 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
             action = request.POST.get('action') 
 
             idprod= request.POST["idprod"]
-            idprov= request.POST["idprov"]
+            prov_id= request.POST["idprov"]
             codigo_prod_prov= request.POST["codigo_prod_prov"]
             nombre_articulo= request.POST["nombre_articulo"]
             marca= request.POST["marca"]
@@ -626,7 +628,7 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
            
             obj_marca = Marcas.objects.filter(marca=marca).first()
             obj_unidad_medida = UnidadMedida.objects.filter(codigo=unidad_medida).first()
-            obj_proveedor = Proveedores.objects.filter(id=idprov).first()
+            obj_proveedor = Proveedores.objects.filter(id=prov_id).first()
 
             if not imagen:
                 imagen = "3fb9e34af7fc5e657276aa22f57cdac0/none.gif"
@@ -690,7 +692,6 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
                 articulo.id_product = Product.objects.filter(slug=product_slug_name).first()
                 articulo.save()
                 id_nuevo_prod = articulo.id
-
                
 
             else:
@@ -712,26 +713,28 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
                     id_product = Product.objects.filter(slug=product_slug_name).first()
                     )
                 articulo.save()
-                id_nuevo_prod = articulo.id           
- 
-                return redirect('panel_producto_detalle',id_nuevo_prod)
+                id_nuevo_prod = articulo.id  
+                         
+            if prov_id:
+                articulos = ProveedorArticulos.objects.filter(proveedor_id=prov_id).order_by('nombre_articulo')
+                proveedor = Proveedores.objects.filter(id=prov_id).first()
+                if proveedor:
+                    proveedor_nombre = proveedor.nombre
+            else:
+                articulos = [] 
+                proveedor_nombre=""               
 
-            producto = ProveedorArticulos.objects.filter(codigo_prod_prov=codigo_prod_prov,proveedor=prov_id).first()
-           
             context = {
-                'producto': producto,
-                'proveedor_nombre':"proveedor_nombre",
-                'marcas':marcas,
-                'unidades':unidades,
+                'articulos': articulos,
+                'proveedor_nombre':proveedor_nombre,
+                'proveedor_id':prov_id,
                 'permisousuario': permisousuario,
             }
-            #return render(request,'compras/lista_precios_proveedor.html',context)
-            return redirect('proveedor_list_articulos',idprov)
+            return render(request,'compras/lista_precios_proveedor.html',context)
 
             
     else:
         return render(request,'panel/login.html',)
-
 
 # Vista para renderizar el formulario y manejar el POST
 def vincular_articulo(request):
@@ -766,12 +769,150 @@ def vincular_articulo(request):
 
 # Vista para devolver productos del proveedor seleccionado (usada por AJAX)
 def get_productos(request, proveedor_id):
-
+    
     if validar_permisos(request,'PROVEEDORES'):
         productos = ProveedorArticulos.objects.filter(proveedor_id=proveedor_id)
-        productos_data = [{'id': prod.id, 'nombre_articulo': prod.nombre_articulo} for prod in productos]
+        productos_data = [{'id': prod.id, 'nombre_articulo': prod.nombre_articulo, 'precio_por_unidad': prod.precio_por_unidad, 'marca': prod.marca.marca} for prod in productos]
         return JsonResponse({'productos': productos_data})
     else:
         productos = []
         productos_data = []
         return JsonResponse({'productos': productos_data})
+
+#Ordenes de Compra
+def generar_orden_compra(request):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        proveedores = Proveedores.objects.all()
+
+        return render(request, 'compras/orden_de_compra.html', {
+            'permisousuario': permisousuario,
+            'proveedores':proveedores,
+        })
+
+    else:
+        return render(request,'panel/login.html',)
+
+#Graba los datos de las Ordenes de compra
+def procesar_datos(request):
+    if request.method == 'POST':
+        try:
+            # Cargar datos JSON del cuerpo de la solicitud
+            datos = json.loads(request.body)
+
+            # Obtener los datos del encabezado
+            encabezado = datos.get('encabezado', {})
+            detalles = datos.get('detalles', [])
+
+            # Aquí puedes procesar los datos, por ejemplo, guardar en la base de datos
+            # Ejemplo: print(encabezado) y print(detalles) en consola
+            print("Encabezado:", encabezado)
+            print("Detalles:", detalles)
+            
+
+            
+            if encabezado:
+                id_prov = encabezado['proveedor']
+                proveedor = Proveedores.objects.filter(id=id_prov).first()
+                print("proveedor",proveedor)
+                
+                monto=encabezado['subtotal']
+                subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                print("subtotal",subtotal)
+                
+                monto=encabezado['envio']
+                costoenvio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                print("envio",costoenvio)
+
+                monto=encabezado['descuentos']
+                descuentos = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                print("descuentos",descuentos)
+
+                monto=encabezado['total']
+                total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                print("total",total)
+
+                fecha_str = encabezado['fecha']
+                fecha_compra = datetime.strptime(fecha_str, '%d/%m/%Y').date()
+                print("fecha",fecha_compra)
+
+                observaciones = encabezado['observaciones']
+
+                if proveedor:
+                    try:
+                        orden_compra = ComprasEnc.objects.create(
+                            fecha_compra=fecha_compra,
+                            observacion=observaciones,
+                            sub_total=subtotal,
+                            costoenvio=costoenvio,
+                            descuento=descuentos,
+                            total=total,
+                            estado=0, #Nuevo
+                            proveedor=proveedor,
+                        )
+                        print("Compra creada:", orden_compra.id)
+                    except Exception as e:
+                        print("Error al crear la compra:", e)
+                        
+                    if orden_compra:
+                        for detalle in detalles:
+                            articulo_prov = detalle['producto']
+                            producto = ProveedorArticulos.objects.filter(proveedor=id_prov,nombre_articulo=articulo_prov).first()
+
+                            cant=detalle['cantidad']
+                            cantidad = float(cant.replace('$', '').replace('.', '').replace(',', '.'))
+                            print("cantidad",cantidad)
+
+                            monto=detalle['precio']
+                            precio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                            print("precio",precio)
+
+                            monto=detalle['subtotal']
+                            subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                            print("subtotal",subtotal)
+
+                            monto=detalle['descuento']
+                            descuento = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                            print("descuento",descuento)
+
+                            monto=detalle['total']
+                            total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
+                            print("total",total)
+
+
+                            detalle_compra = ComprasDet.objects.create(
+                                id_compra_enc=orden_compra,
+                                producto=producto,
+                                cantidad=cantidad,
+                                precio_prv=precio,
+                                sub_total=subtotal,
+                                descuento=descuento,
+                                total=total,
+                                )
+                            detalle_compra.save()
+                            
+      
+            # Responder con éxito
+            return JsonResponse({'status': 'success'})
+
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest('Error al decodificar JSON')
+
+    return HttpResponseBadRequest('Método no permitido')
+
+def oc_list(request):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        oc_compras = ComprasEnc.objects.all()
+
+        return render(request, 'compras/lista_ordenes_compra_prov.html', {
+            'permisousuario': permisousuario,
+            'oc_compras':oc_compras,
+        })
+
+    else:
+        return render(request,'panel/login.html',)

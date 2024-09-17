@@ -22,4 +22,10 @@ urlpatterns = [
   path('proveedores/get_productos/<int:proveedor_id>/', views.get_productos, name='get_productos'),
   path('proveedores/check/', views.proveedor_check_articulos, name='proveedor_check_articulos'),
 
+  #Ordenes de Compra
+  path('oc/', views.generar_orden_compra, name='generar_orden_compra'),
+  path('oc/procesar-datos/', views.procesar_datos, name='procesar_datos'),
+  path('oc/list/', views.oc_list, name='oc_list'),
+
+
 ]
