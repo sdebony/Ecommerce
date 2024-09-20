@@ -20,6 +20,7 @@ class ImportTempProduct(models.Model):
     usuario         = models.CharField(max_length=25) 
     peso            = models.FloatField(default=0)
     ubicacion       = models.FloatField(default=0,blank=True)
+    costo_prod      = models.FloatField(default=0,blank=True)
 
     def __str__(self):
         return self.product_name

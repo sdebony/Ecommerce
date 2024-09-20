@@ -53,13 +53,24 @@
             <td>{{ item.descuento|format_currency }}</td>
             {% if item.estado == 0 %}
               <td><span class="badge bg-success text-white">Abierto</span></td>
-            {% else %}
+              <td >         
+                <a href="{% url 'oc_registrar_pago' item.id %}" class="btn btn-success btn-circle" title="Pagar"><i class="fas fa-dollar-sign" aria-hidden="true"></i></a>
+                <a href="{% url 'oc_detalle' item.id %}" class="btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                <a href="{% url 'oc_delete' item.id %}" class="btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
+              </td>
+            {% elif item.estado == 1 %}
+              <td><span class="badge bg-warning text-white">Pagado</span></td>
+              <td >
+                <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  
+                <a href="{% url 'oc_recibir' item.id %}" class="btn btn-secondary btn-circle" title="Recibir"><i class="fas fa-box-open" aria-hidden="true"></i></a>
+              </td>
+              {% elif item.estado == 2 %}
               <td><span class="badge bg-warning text-white">Finalizado</span></td>
+              <td >
+                <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  
+              </td>
             {% endif %}
-            <td >         
-              <a href="{% url 'compras_usd_delete' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
-              
-          </td>
+           
           </tr>
         {% endfor %}
       </tbody>

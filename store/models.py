@@ -25,6 +25,8 @@ class Product(models.Model):
     peso            = models.FloatField(default=0)
     costo_prod      = models.FloatField(default=0,blank=True)
     ubicacion       = models.FloatField(default=0,blank=True)
+    precio_TN       = models.FloatField(default=0,blank=True)
+    precio_ML       = models.FloatField(default=0,blank=True)
 
     def get_url(self):
         return reverse('product_detail', args=[self.category.slug, self.slug])
@@ -51,7 +53,7 @@ class Product(models.Model):
         # Versión Mobile caracteres por linea: 22  --> 44 caracteres
         #return  self.product_name[iniciar:tamano].lower().rstrip()  +" \xa0" * (70 - tamano)
 
-        descripcion =self.product_name.rstrip().lower()
+        descripcion =self.product_name.rstrip()
         tamano = len(descripcion)
         largo = 47
         #print("INICIO:",descripcion,tamano)
@@ -63,7 +65,7 @@ class Product(models.Model):
             #print("Recorto -->",descripcion,iniciar,tamano)
         else:
             descripcion = descripcion + " " + "\xa0" * (largo - tamano)
-            tamano = len(descripcion.lower())
+            tamano = len(descripcion)
             #print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion
@@ -73,7 +75,7 @@ class Product(models.Model):
         # Versión Mobile caracteres por linea: 22  --> 44 caracteres
         #return  self.product_name[iniciar:tamano].lower().rstrip()  +" \xa0" * (70 - tamano)
 
-        descripcion =self.product_name.rstrip().lower()
+        descripcion =self.product_name.rstrip()
         tamano = len(descripcion)
         largo = 68
         #print("INICIO:",descripcion,tamano)
@@ -85,7 +87,7 @@ class Product(models.Model):
             #print("Recorto -->",descripcion,iniciar,tamano)
         else:
             descripcion = descripcion + " " + "\xa0" * (largo - tamano)
-            tamano = len(descripcion.lower())
+            tamano = len(descripcion)
             #print("Espacios-->",descripcion,iniciar,tamano)
         
         return descripcion

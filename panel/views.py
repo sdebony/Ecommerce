@@ -256,6 +256,7 @@ def dashboard_cuentas(request):
                 Subquery(
                     Movimientos.objects.filter(
                         cuenta=OuterRef('pk'),
+                        movimiento__codigo = 'ING',
                         fecha__month=current_month,
                         fecha__year=current_year
                     ).values('cuenta').annotate(total_monto=Sum('monto')).values('total_monto')[:1]
@@ -556,12 +557,21 @@ def panel_product_detalle(request,product_id=None):
             variantes = []
             subcategoria=[]
 
+        habilitar_precios_externos = AccountPermition.objects.filter(user=request.user, codigo__codigo ="PRECIOS EXTERNOS",modo_ver=True).first() 
+        
+        if habilitar_precios_externos:
+            habilitar_precios_externos = 1
+        else:
+            habilitar_precios_externos = 0
+            
+
         context = {
             'producto':producto,
             'permisousuario':permisousuario,
             'categorias': categorias,
             'subcategoria':subcategoria,
             'variantes':variantes,
+            'precios_externos':habilitar_precios_externos,
         }
     
         return render(request,'panel/productos_detalle.html',context) 
@@ -590,7 +600,7 @@ def panel_pedidos_list(request,status=None):
        
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         #ordenes = Order.objects.filter(status=status).order_by('-created_at')
-        ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('created_at')
+        ordenes = Order.objects.filter(status=status,fecha__range=[fecha_desde,fecha_hasta]).order_by('-created_at')
 
         cantidad = ordenes.count()
         cantidad_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).count()
@@ -1425,12 +1435,22 @@ def panel_product_crud(request):
             permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
             producto = []
             variantes = []
+            habilitar_precios_externos=0
+
+            habilitar_precios_externos = AccountPermition.objects.filter(user=request.user,codigo="PRECIOS EXTERNOS").first()
+            if habilitar_precios_externos:
+                habilitar_precios_externos = 1
+            else:
+                habilitar_precios_externos = 0
+            
+            print("Habilitar precios TN",habilitar_precios_externos)
 
             context = {
                 'producto':producto,
                 'permisousuario':permisousuario,
                 'categorias': categorias,
                 'variantes':variantes,
+                'precios_externos':habilitar_precios_externos, #1 Muestra para ingresar precios TN y ML
             }
         
             return render(request,'panel/productos_detalle.html',context) 
@@ -1470,7 +1490,12 @@ def panel_product_crud(request):
             #print("subcat_id",subcat_id)
             if product_id:
                 producto = Product.objects.filter(id=product_id).first()
-                created_date = producto.created_date
+                if producto:
+                    created_date = producto.created_date
+                    precio_tn =producto.precio_TN
+                    precio_ml = producto.precio_ML
+
+                    print("producto",precio_tn,precio_ml,product_id)
                 
                 if not images:
                     images = "none.jpg" #default      
@@ -1487,29 +1512,30 @@ def panel_product_crud(request):
                 else:
                     popular = False
 
-                if producto:
-                    print("POST --> UPDATE")
-                    # UPDATE 
-                    producto = Product(
-                        id=product_id ,
-                        product_name=product_name,
-                        slug=slugify(product_name).lower(),
-                        description=description,
-                        price=price,
-                        images=images,
-                        imgfile = images,
-                        stock=stock_entero,
-                        is_available=habilitado,
-                        category=category,
-                        subcategory = subcategory,
-                        created_date =created_date, 
-                        modified_date=datetime.today(),
-                        is_popular=popular,
-                        peso=peso,
-                        costo_prod=costo_prod,
-                        ubicacion=ubicacion
-                    )
-                    producto.save()
+                product_udp = Product.objects.get(id=product_id)
+                print("product_udp",precio_tn,precio_ml)
+                if product_udp:
+                    product_udp.product_name = product_name
+                    product_udp.slug = slugify(product_name).lower()
+                    product_udp.description = description
+                    product_udp.price = price
+                    product_udp.images = images
+                    product_udp.imgfile = images
+                    product_udp.stock = stock_entero
+                    product_udp.is_available = habilitado
+                    product_udp.category = category
+                    product_udp.subcategory = subcategory
+                    product_udp.created_date = created_date
+                    product_udp.modified_date = datetime.today()
+                    product_udp.is_popular = popular
+                    product_udp.peso = peso
+                    product_udp.costo_prod = costo_prod
+                    product_udp.ubicacion = ubicacion
+                    product_udp.precio_ml = precio_ml
+                    product_udp.precio_tn = precio_tn
+
+                    product_udp.save()
+                    print("Save tabla Product")
                 else:
                     print("Producto no encontrado")
             else:
@@ -1533,6 +1559,8 @@ def panel_product_crud(request):
                         peso=peso,
                         costo_prod=costo_prod,
                         ubicacion=ubicacion,
+                        precio_tn=producto.precio_TN,
+                        precio_ml=producto.precio_ML
                         )
                 if producto:
                     producto.save()
@@ -1541,6 +1569,28 @@ def panel_product_crud(request):
             return redirect('panel_catalogo')
     else:
         return render (request,"panel/login.html")
+
+def panel_producto_precio_ext(request):
+
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        precio_tn = request.POST.get('precio_TN')
+        precio_ml = request.POST.get('precio_ML')
+
+        if not precio_tn:
+            precio_tn=0
+        if not precio_ml:
+            precio_ml=0
+
+
+        producto = Product.objects.get(id=product_id)
+        if producto:
+            producto.precio_TN = precio_tn
+            producto.precio_ML = precio_ml
+            producto.save()
+    
+    return redirect('panel_catalogo')
 
 def panel_producto_img(request):
 
@@ -2478,17 +2528,17 @@ def export_xls(request,modelo=None):
                 row_num=0
                 font_style= xlwt.Style.XFStyle()
                 font_style.font.bold = True
-                columns = ['Nombre','Description','Precio','images','stock','Habilitado','Category','Sub Category','peso']
+                columns = ['Nombre','slug','Description','Precio','images','stock','Habilitado','Category','Sub Category','peso','ubicacion','Costo']
                 for col_num in range(len(columns)):
                     ws.write(row_num,col_num,columns[col_num],font_style)
                 font_style = xlwt.Style.XFStyle()
 
-                rows = Product.objects.filter().values_list('product_name','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name','peso').order_by('product_name')
+                rows = Product.objects.filter().values_list('product_name','slug','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name','peso','ubicacion','costo_prod').order_by('product_name')
                 
                 for row in rows:
                     row_num += 1      
                     for col_num in range(len(row)):              
-                        if col_num==2 or col_num==4 or col_num==8: #Numericos
+                        if col_num==3 or col_num==5 or col_num==9 or col_num==10 or col_num==11: #Numericos
                             monto = float("{0:.2f}".format((float)(row[col_num])))
                             ws.write(row_num,col_num,int(round(monto)))
                         else:
@@ -2595,7 +2645,14 @@ def export_xls(request,modelo=None):
             row_num=0
             font_style= xlwt.Style.XFStyle()
             font_style.font.bold = True
-            columns = ['Producto','Marca','Costo','Precio Regular','Precio Base','Com Venta R','Gan Venta R','Precio Tienda Nube','Com Venta TN','Gan Venta TN','Precio ML','Com Venta ML','Gan Venta ML']
+            #columns = ['Producto','Marca','Costo','Precio Base','Precio Web (Regular)','Com 1 WEB','Gan Venta Web','Precio Estimado Tienda Nube','Precio Tienda Nube','Com 2 Tienda Nube','Gan Tienda Nube','Precio Estimado Mercado LibreL','Precio Mercado Libre','Com 3 ML','Gan Mercado Libre']
+            columns = [
+                'Producto', 'Marca', 'Costo', 'Stock', 'Precio Base', 'Precio Web (Regular)', 
+                'Com 1 WEB', 'Gan Venta Web', 'Precio Estimado Tienda Nube', 
+                'Precio Tienda Nube', 'Com 2 Tienda Nube', 'Gan Tienda Nube', 
+                'Precio Estimado Mercado Libre', 'Precio Mercado Libre', 
+                'Com 3 ML', 'Gan Mercado Libre'
+                ]
             for col_num in range(len(columns)):
                 ws.write(row_num,col_num,columns[col_num],font_style)
             font_style = xlwt.Style.XFStyle()
@@ -2623,60 +2680,79 @@ def export_xls(request,modelo=None):
 
             try:
                 # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
-
-                    rows = Product.objects.filter().values_list('product_name','subcategory__subcategory_name','costo_prod','price').annotate(
-                        # Cálculo del margen1 (costo + (costo * margen1 / 100))
-                        precio_base=ExpressionWrapper(
-                            F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
-                            output_field=FloatField()
+                rows = Product.objects.filter().values_list('product_name','subcategory__subcategory_name','costo_prod','stock','price','precio_TN','precio_ML').annotate(
+                    # Cálculo del margen1 (costo + (costo * margen1 / 100))
+                    precio_base=ExpressionWrapper(
+                        F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
+                        output_field=FloatField()
+                        ),
+                    comision1_calculado=ExpressionWrapper(
+                        F('price') * (float(comision1.valor) / 100),  # Precio de Venta Regular * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio1_calculado=ExpressionWrapper(
+                        F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
+                        ),
+                    # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
+                    precio_cal_tn=ExpressionWrapper(
+                        F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
+                        output_field=FloatField()
+                        ),
+                    comision2_calculado=ExpressionWrapper(
+                        F('precio_TN') * (float(comision2.valor) / 100),  # Precio de Venta Tienda Nube * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio2_calculado=ExpressionWrapper(
+                        F('precio_TN') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
+                        ),
+                    # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
+                    precio_cal_ml=ExpressionWrapper(
+                        F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
+                        output_field=FloatField()
                             ),
-                        comision1_calculado=ExpressionWrapper(
-                            F('price') * (float(comision1.valor) / 100),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio1_calculado=ExpressionWrapper(
-                            F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
-                            ),
-                        # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
-                        precio_tn=ExpressionWrapper(
-                            F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
-                            output_field=FloatField()
-                            ),
-                        comision2_calculado=ExpressionWrapper(
-                            F('precio_tn') * (float(comision2.valor) / 100),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio2_calculado=ExpressionWrapper(
-                            F('precio_tn') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
-                            ),
-                        # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
-                        precio_ml=ExpressionWrapper(
-                            F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
-                            output_field=FloatField()
-                              ),
-                        comision3_calculado=ExpressionWrapper(
-                            F('precio_ml') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio3_calculado=ExpressionWrapper(
-                            F('precio_ml') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
-                            )
-                        ).order_by('product_name')
-                
+                    comision3_calculado=ExpressionWrapper(
+                        F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio3_calculado=ExpressionWrapper(
+                        F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
+                        )
+                    ).order_by('product_name')
+            
             except ConfiguracionParametros.DoesNotExist:
                 # En caso de que no exista alguno de los márgenes, manejar la excepción.
-                rows = Product.objects.all().values_list('product_name','subcategory__subcategory_name','costo_prod','price').order_by('product_name')
+                rows = Product.objects.all().values_list('product_name','subcategory__subcategory_name','costo_prod','price','precio_TN','precio_ML').order_by('product_name')
             #rows = Costo.objects.all().values_list('producto__product_name','costo','fecha_actualizacion','usuario__email').order_by('-fecha_actualizacion','producto__product_name')
-    
             for row in rows:
                 row_num += 1
-                for col_num in range(len(row)):
-                    if col_num==0 or col_num==1:
-                        ws.write(row_num,col_num, str(row[col_num]),font_style)
+                # Reorganiza los campos del queryset según el orden que deseas en el Excel
+                data_row = [
+                    row[0],  # Producto (product_name)
+                    row[1],  # Marca (subcategory__subcategory_name)
+                    row[2],  # Costo (costo_prod)
+                    row[3],  # Precio de Venta Regular (price)
+                    row[7],  # Precio Base (precio_cal_tn)
+                    row[4],  # Precio Web (Regular) (price)
+                    row[8],  # Com 1 WEB (comision1_calculado)
+                    row[9], # Gan Venta Web (beneficio1_calculado)
+                    row[10],  # Precio Estimado Tienda Nube (precio_cal_tn)
+                    row[5],  # Precio Tienda Nube (precio_TN) (4)
+                    row[11],  # Com 2 Tienda Nube (comision2_calculado)
+                    row[12], # Gan Tienda Nube (beneficio2_calculado)
+                    row[13], # Precio Estimado Mercado Libre (precio_cal_ml)
+                    row[6],  # Precio Mercado Libre (precio_ML)
+                    row[14], # Com 3 ML (comision3_calculado)
+                    row[15]  # Gan Mercado Libre (beneficio3_calculado)
+                ]
+                # Escribir la fila en el archivo Excel
+                for col_num, value in enumerate(data_row):
+                    if row_num == 4:
+                        print(row_num, col_num, str(value))
+                    if col_num == 0 or col_num == 1:
+                        ws.write(row_num, col_num, str(value), font_style)
                     else:
-                        #ws.write(row_num,col_num, str(row[col_num]),font_style)
-                        monto = float("{0:.2f}".format((float)(row[col_num])))
-                        ws.write(row_num,col_num,monto)
+                        monto = float("{0:.2f}".format((float)(value)))
+                        ws.write(row_num, col_num, monto)
                     
             wb.save(response)
             return response
@@ -2816,7 +2892,7 @@ def import_productos_xls(request):
             
                 print("*********--->", archivo, "<------******************")
                 workbook = xlrd.open_workbook(archivo)
-                
+                print("*****IMPORTAR PRODUCTOS*************")
                 #Get the first sheet in the workbook by index
                 sheet1 = workbook.sheet_by_index(0)
 
@@ -2824,21 +2900,37 @@ def import_productos_xls(request):
                 tmp_producto = ImportTempProduct.objects.filter(usuario = request.user)
                 if tmp_producto:
                     tmp_producto.delete()
-
+                print("tabla temporal borrada")
                 #Get each row in the sheet as a list and print the list
                 for rowNumber in range(sheet1.nrows):
                     try:
-                        row = sheet1.row_values(rowNumber)
+                        #row = sheet1.row_values(rowNumber)
                         dato = sheet1.cell_value(rowNumber, 0)
-                        if dato.lower() != "producto": # Saco la primera file
-                            product_id=0
+                        print( "dato.lower()", dato.lower())
+                        if dato.lower().strip() != 'producto' and dato.lower().strip() != 'nombre':    
+                            
                             product_name = sheet1.cell_value(rowNumber, 0)
+                            
+                            #print(sheet1.cell_value(rowNumber, 0)) # Nombre
+                            #print(sheet1.cell_value(rowNumber, 1)) # slug
+                            #print(sheet1.cell_value(rowNumber, 2)) # Description
+                            #print(sheet1.cell_value(rowNumber, 3)) # Precio
+                            #print(sheet1.cell_value(rowNumber, 4)) # images
+                            #print(sheet1.cell_value(rowNumber, 5)) # stock
+                            #print(sheet1.cell_value(rowNumber, 6)) # Habilitado
+                            #print(sheet1.cell_value(rowNumber, 7)) # Category
+                            #print(sheet1.cell_value(rowNumber, 8)) # Sub Category
+                            #print(sheet1.cell_value(rowNumber, 9)) # peso
+                            #print(sheet1.cell_value(rowNumber, 10)) #ubicacion
+                            #print(sheet1.cell_value(rowNumber, 11)) # Costo
+
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
                             if not tmp_producto:
+                                print("Producto no existe en temp, ...:")
                                 #Valido que exista la categoria
-                                cat_name = sheet1.cell_value(rowNumber, 6)
-                                sub_cat_name = sheet1.cell_value(rowNumber, 7)
-                                img_name = sheet1.cell_value(rowNumber, 3)
+                                cat_name = sheet1.cell_value(rowNumber, 7)
+                                sub_cat_name = sheet1.cell_value(rowNumber, 8)
+                                img_name = sheet1.cell_value(rowNumber, 4)
                                 if not img_name:
                                     img_name = 'none.jpg'
                                 else:
@@ -2884,32 +2976,37 @@ def import_productos_xls(request):
                                         #print("sub Categoria .Save:",slug_subcat)
                                         sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
                                     if sub_cat:
-                                        int_peso = sheet1.cell_value(rowNumber, 8)
+                                        int_peso = sheet1.cell_value(rowNumber, 9)
                                         float_peso = float("{0:.2f}".format((float)(int_peso)))
                                         #print("float_peso",float_peso)
 
-                                        int_ubicacion = sheet1.cell_value(rowNumber, 9)
+                                        int_ubicacion = sheet1.cell_value(rowNumber, 10)
                                         f_ubicacion = float("{0:.2f}".format((float)(int_ubicacion)))
                                         print("f_ubicacion",f_ubicacion)
+
+                                        int_costo = sheet1.cell_value(rowNumber, 11)
+                                        f_costo = float("{0:.2f}".format((float)(int_costo)))
+                                        print("f_costo",f_costo)
 
 
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(product_name).lower(),
-                                            description= sheet1.cell_value(rowNumber, 1),
+                                            description= sheet1.cell_value(rowNumber, 2),
                                             variation_category = "", #sheet1.cell_value(rowNumber, 2),
                                             variation_value = "", #sheet1.cell_value(rowNumber, 3),
-                                            price=sheet1.cell_value(rowNumber, 2),
+                                            price=sheet1.cell_value(rowNumber, 3),
                                             images=img_name,
-                                            stock=sheet1.cell_value(rowNumber, 4),
-                                            is_available=sheet1.cell_value(rowNumber, 5),
+                                            stock=sheet1.cell_value(rowNumber, 5),
+                                            is_available=sheet1.cell_value(rowNumber, 6),
                                             category=cat.category_name, #  sheet1.cell_value(rowNumber, 8),
                                             subcategory=sub_cat.subcategory_name,# sheet1.cell_value(rowNumber, 9),
                                             created_date= datetime.today(),
                                             modified_date=datetime.today(),
                                             usuario = request.user,
                                             peso = float_peso,
-                                            ubicacion= f_ubicacion
+                                            ubicacion= f_ubicacion,
+                                            costo_prod=f_costo
 
 
                                             #is_popular = False,
@@ -2928,7 +3025,7 @@ def import_productos_xls(request):
                                     print("Categoria no encontrada:", cat_name)
                                     error_str = error_str + " (CATEGORIA NO ENCONTRADA:" + cat_name + ") "
                         #print("OK",cant_ok,"Error",cant_error)
-                        
+                            print("Fin proceso linea..")
                     except OSError as err:
                         print("OS error:", err)
                         error_str = error_str + err + " ROW: " + str(rowNumber)
@@ -3204,12 +3301,15 @@ def import_stock(request):
 def guardar_tmp_productos(request): 
    
     articulos_tmp = ImportTempProduct.objects.filter(usuario=request.user)
+    cant_art_nuevos = 0
+    cant_art_actualizados = 0
 
     if articulos_tmp:
         for a in articulos_tmp:
             try:
                 producto = Product.objects.filter(product_name=a.product_name)
                 category = Category.objects.get(category_name=a.category)
+                #Agrego
                 if not producto:
                     if not a.images:
                       imagen = "photos/products/none.jpg" #default      
@@ -3233,12 +3333,31 @@ def guardar_tmp_productos(request):
                         ubicacion= a.ubicacion,
                     )
                     producto.save()
+                    cant_art_nuevos = cant_art_nuevos +  1
+                else:
+                    #Actualizo
+                    producto = Product.objects.get(product_name=a.product_name)
+                    producto.category = category
+                    producto.subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory)
+                    producto.images = a.images
+                    producto.stock = float(a.stock)
+                    producto.price = float(a.price)
+                    producto.is_available = a.is_available
+                    producto.peso = float(a.peso)
+                    producto.ubicacion = a.ubicacion
+                    producto.costo_prod = float(a.costo_prod)
+                    producto.save()
+                    cant_art_actualizados = cant_art_actualizados + 1
+
+                    
             except ObjectDoesNotExist:
-                print ("articulo ya existente ", a.product_name )
+                print ("Error en Tmp_articulos ", a.product_name )
                 
             except Exception as err:
                 print(a.product_name, f"guardar_tmp_productos {err=}, {type(err)=}")
 
+
+        messages.success(request, f'Articulos importados con éxito! Nuevos: ' + str(cant_art_nuevos) + ' Actualizados: ' + str(cant_art_actualizados))
 
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
     catalogo = Product.objects.filter().all()
@@ -5259,6 +5378,7 @@ def panel_lista_precios(request):
    
     if validar_permisos(request,'LISTA PRECIOS'):
        
+        
         # Obtener los valores de los márgenes con código MG1, MG2 y MG3
         margen1 = ConfiguracionParametros.objects.get(codigo='MG1')
         margen2 = ConfiguracionParametros.objects.get(codigo='MG2')
@@ -5286,6 +5406,7 @@ def panel_lista_precios(request):
         if category:
             if category=='0':
                 try:
+                    print("panel_lista_precios 1111")
                     # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
                     productos = Product.objects.annotate(
                         # Cálculo del margen1 (costo + (costo * margen1 / 100))
@@ -5301,39 +5422,42 @@ def panel_lista_precios(request):
                             F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
                             ),
                         # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
-                        precio_tn=ExpressionWrapper(
+                        precio_cal_tn=ExpressionWrapper(
                             F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                             ),
                         comision2_calculado=ExpressionWrapper(
-                            F('precio_tn') * (float(comision2.valor) / 100),  # Precio de Venta Regular * Comision
+                            F('precio_TN') * (float(comision2.valor) / 100),  # Precio de Venta Tienda Nube * Comision
                             output_field=FloatField()
                             ),
                         beneficio2_calculado=ExpressionWrapper(
-                            F('precio_tn') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
+                            F('precio_TN') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
                             ),
                         # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
-                        precio_ml=ExpressionWrapper(
+                        precio_cal_ml=ExpressionWrapper(
                             F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                               ),
                         comision3_calculado=ExpressionWrapper(
-                            F('precio_ml') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
+                            F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
                             output_field=FloatField()
                             ),
                         beneficio3_calculado=ExpressionWrapper(
-                            F('precio_ml') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
+                            F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                             )
                         ).order_by('product_name')
 
                 except ConfiguracionParametros.DoesNotExist:
                     # En caso de que no exista alguno de los márgenes, manejar la excepción.
+                    print("panel_lista_precios 2222")
                     productos = Product.objects.all().order_by('product_name')
             else:
                 
                 try:
+                    print("panel_lista_precios 3333")
                     # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
-                    productos = Product.objects.filter(category=category).annotate(
+                    # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
+                    productos = Product.objects.annotate(
                         # Cálculo del margen1 (costo + (costo * margen1 / 100))
                         precio_base=ExpressionWrapper(
                             F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
@@ -5347,78 +5471,84 @@ def panel_lista_precios(request):
                             F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
                             ),
                         # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
-                        precio_tn=ExpressionWrapper(
+                        precio_cal_tn=ExpressionWrapper(
                             F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                             ),
                         comision2_calculado=ExpressionWrapper(
-                            F('precio_tn') * (float(comision2.valor) / 100),  # Precio de Venta Regular * Comision
+                            F('precio_TN') * (float(comision2.valor) / 100),  # Precio de Venta Tienda Nube * Comision
                             output_field=FloatField()
                             ),
                         beneficio2_calculado=ExpressionWrapper(
-                            F('precio_tn') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
+                            F('precio_TN') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
                             ),
                         # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
-                        precio_ml=ExpressionWrapper(
+                        precio_cal_ml=ExpressionWrapper(
                             F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                               ),
                         comision3_calculado=ExpressionWrapper(
-                            F('precio_ml') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
+                            F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
                             output_field=FloatField()
                             ),
                         beneficio3_calculado=ExpressionWrapper(
-                            F('precio_ml') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
+                            F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                             )
                         ).order_by('product_name')
 
+
                 except ConfiguracionParametros.DoesNotExist:
                     # En caso de que no exista alguno de los márgenes, manejar la excepción.
+                    print("panel_lista_precios 4444")
                     productos = Product.objects.all().order_by('product_name')
         else:
             try:
                 # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
+                print("panel_lista_precios 5555")
+                # Verificar si los valores son porcentaje o valor monetario y anotarlos en el queryset
                 productos = Product.objects.annotate(
-                         # Cálculo del margen1 (costo + (costo * margen1 / 100))
-                        precio_base=ExpressionWrapper(
-                            F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
-                            output_field=FloatField()
+                    # Cálculo del margen1 (costo + (costo * margen1 / 100))
+                    precio_base=ExpressionWrapper(
+                        F('costo_prod') * (float(margen1.valor) / 100) + F('costo_prod'),
+                        output_field=FloatField()
+                        ),
+                    comision1_calculado=ExpressionWrapper(
+                        F('price') * (float(comision1.valor) / 100),  # Precio de Venta Regular * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio1_calculado=ExpressionWrapper(
+                        F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
+                        ),
+                    # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
+                    precio_cal_tn=ExpressionWrapper(
+                        F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
+                        output_field=FloatField()
+                        ),
+                    comision2_calculado=ExpressionWrapper(
+                        F('precio_TN') * (float(comision2.valor) / 100),  # Precio de Venta Tienda Nube * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio2_calculado=ExpressionWrapper(
+                        F('precio_TN') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
+                        ),
+                    # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
+                    precio_cal_ml=ExpressionWrapper(
+                        F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
+                        output_field=FloatField()
                             ),
-                        comision1_calculado=ExpressionWrapper(
-                            F('price') * (float(comision1.valor) / 100),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio1_calculado=ExpressionWrapper(
-                            F('price') - F('costo_prod') -F('comision1_calculado'),output_field=FloatField()
-                            ),
-                        # Cálculo del margen2 (precio_base + (precio_base * margen2 / 100))
-                        precio_tn=ExpressionWrapper(
-                            F('precio_base') * (float(margen2.valor) / 100) + F('precio_base'),
-                            output_field=FloatField()
-                            ),
-                        comision2_calculado=ExpressionWrapper(
-                            F('precio_tn') * (float(comision2.valor) / 100),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio2_calculado=ExpressionWrapper(
-                            F('precio_tn') - F('costo_prod') -F('comision2_calculado'),output_field=FloatField()
-                            ),
-                        # Cálculo del margen3 (precio_tn + (precio_tn * margen3 / 100))
-                        precio_ml=ExpressionWrapper(
-                            F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
-                            output_field=FloatField()
-                              ),
-                        comision3_calculado=ExpressionWrapper(
-                            F('precio_ml') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
-                            ),
-                        beneficio3_calculado=ExpressionWrapper(
-                            F('precio_ml') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
-                            )
-                        ).order_by('product_name')
+                    comision3_calculado=ExpressionWrapper(
+                        F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
+                        output_field=FloatField()
+                        ),
+                    beneficio3_calculado=ExpressionWrapper(
+                        F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
+                        )
+                    ).order_by('product_name')
+
 
             except ConfiguracionParametros.DoesNotExist:
                 # En caso de que no exista alguno de los márgenes, manejar la excepción.
+                print("panel_lista_precios 6666")
                 productos = Product.objects.all().order_by('product_name')
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')

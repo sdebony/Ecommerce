@@ -14,6 +14,17 @@
   .bg-info{
       background-color: #6172f7 !important; /* Fondo verde */
   }
+
+  .table-container {
+      overflow-x: auto; /* Permite el desplazamiento horizontal si es necesario */
+  }
+
+  .table {
+      width: 100%; /* Hace que la tabla ocupe el 100% del ancho disponible */
+      max-width: 100%; /* Asegura que la tabla no exceda el tamaño de la pantalla */
+      table-layout: auto; /* Ajusta el ancho de las columnas automáticamente */
+  }
+ 
 </style>
 
 
@@ -66,70 +77,72 @@
     </div>
 
   </form>
-    <table 
-      id="table"
-      data-toggle="table"
-      data-pagination="false"
-      data-search="true"
-      data-show-columns="true"
-      data-show-toggle="true"
-      data-show-fullscreen="false"
-      data-toolbar=".buttons-toolbar"
-      data-locale="es-AR"
-    >
-      <thead>
-          <th  data-sortable="true" data-field="product_name">Nombre</th>
-          <th  data-sortable="true" data-field="subcategory">Marca</th>
-          <th  data-sortable="true" data-field="costo_prod">Costo</th>
-          <th  data-sortable="true" data-field="precio_base">Precio Base</th>
-          <th  data-sortable="true" data-field="price">Precio Regular</th> 
-          <th  data-sortable="true" data-field="comision1_calculado">Com V R</th>
-          <th  data-sortable="true" data-field="beneficio1_calculado">Gan V R</th> 
-          <th  data-sortable="true" data-field="precio_tn">P. T N</th> <!-- Precio con impuestos-->
-          <th  data-sortable="true" data-field="comision2_calculado">Com T N</th>
-          <th  data-sortable="true" data-field="beneficio2_calculado">Gan T N</th> 
-          <th  data-sortable="true" data-field="precio_ml">P. M L</th>
-          <th  data-sortable="true" data-field="comision3_calculado">Com M L</th>
-          <th  data-sortable="true" data-field="beneficio3_calculado">Gan M L</th>
-    
-      </thead>
-      <tbody>
-        {% for item in productos %}
-        <tr>
-          
-          <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
-          <td>{{ item.subcategory.subcategory_name }}</td> 
-          <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
-          <!-- Venta Regular-->
-          <td>{{ item.precio_base|format_currency }}</td> <!-- Base minima de venta -->
-          <td>{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
-          <td>{{ item.comision1_calculado|format_currency }} </td> <!-- Margen 1 minimo-->
-          {% if item.beneficio1_calculado > 0 %}
-            <td class="bg-success">{{ item.beneficio1_calculado|format_currency }}</td> <!-- Beneficio Regular de venta-->
-          {% else %}
-            <td class="bg-warning">{{ item.beneficio1_calculado|format_currency }}</td>
-          {% endif %}
-          <!-- Venta Tienda Nube-->
-          <td>{{ item.precio_tn|format_currency }}</td> <!-- Precio Tienda Nube utilizando margen 1 + margen 2-->
-          <td>{{ item.comision2_calculado|format_currency }} </td> <!-- comision x venta tienda nube-->
-          {% if item.beneficio2_calculado > 0 %}
-          <td class="bg-success">{{ item.beneficio2_calculado|format_currency }}</td> <!-- Beneficio de venta tienda nube-->
-          {% else %}
-          <td class="bg-warning">{{ item.beneficio2_calculado|format_currency }}</td>
-          {% endif %}
-          <!-- Precio Venta ML -->
-          <td>{{ item.precio_ml|format_currency }}</td> <!-- Precio Mercado Libre utilizando margen 1 + margen 2-->
-          <td>{{ item.comision3_calculado|format_currency }} </td> <!-- comision x venta Mercado Libre-->
-          {% if item.beneficio3_calculado > 0 %}
-          <td  class="bg-success">{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
-          {% else %}
-          <td class="bg-warning">{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
+    <div id="table-container">
+      <div class="table-responsive">
+        <table 
+          id="table" class="table"
+          data-toggle="table"
+          data-pagination="false"
+          data-search="true"
+          data-show-columns="true"
+          data-show-toggle="true"
+          data-show-fullscreen="true"
+          data-toolbar=".buttons-toolbar"
+          data-locale="es-AR" >
+          <thead>
+              <th  data-sortable="true" data-field="product_name">Nombre</th>
+              <th  data-sortable="true" data-field="subcategory">Marca</th>
+              <th  data-sortable="true" data-field="costo_prod">Costo</th>
+              <th  data-sortable="true" data-field="Stock">Stock</th>
 
-    </table>
+              <th  data-sortable="true" data-field="precio_base">Precio Base</th>
+              <th  data-sortable="true" data-field="price">Precio Web</th> 
+              <th  data-sortable="true" data-field="comision1_calculado">Com 1 Web</th>
+              <th  data-sortable="true" data-field="beneficio1_calculado">Gan V R</th>
+              
+              <th  data-sortable="true" data-field="precio_cal_tn">P. Estim T N</th> <!-- Precio con impuestos-->
+              <th  data-sortable="true" data-field="precio_TN">Precio TN</th>
+              <th  data-sortable="true" data-field="comision2_calculado">Com T N</th>
+              <th  data-sortable="true" data-field="beneficio2_calculado">Gan T N</th> 
+
+              <th  data-sortable="true" data-field="precio_cal_ml">P. Estm M L</th>
+              <th  data-sortable="true" data-field="precio_ML">Precio ML</th>
+              <th  data-sortable="true" data-field="comision3_calculado">Com M L</th>
+              <th  data-sortable="true" data-field="beneficio3_calculado">Gan M L</th>
+        
+          </thead>
+          <tbody>
+            {% for item in productos %}
+            <tr>
+              
+              <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
+              <td>{{ item.subcategory.subcategory_name }}</td> 
+              <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
+              <td>{{ item.stock|default:0|format_integer_def }}</td> <!-- STOCK -->
+              <td>{{ item.precio_base|format_currency }}</td> <!-- Precio Estimado WEB -->
+              <td>{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
+              <td>{{ item.comision1_calculado|format_currency }} </td> <!-- comision 1 venta web / Regular-->
+              <td>{{ item.beneficio1_calculado|format_currency }}</td> <!-- Beneficio Regular de venta-->
+              
+              <!-- Venta Tienda Nube-->
+              <td>{{ item.precio_cal_tn|format_currency }}</td> <!-- Precio Tienda Nube utilizando margen 1 + margen 2-->
+              <td>{{ item.precio_TN|format_currency }} </td> <!-- Precio Tienda Nube-->
+              <td>{{ item.comision2_calculado|format_currency }} </td> <!-- comision x venta tienda nube-->
+              <td>{{ item.beneficio2_calculado|format_currency }}</td>
+              
+              <!-- Precio Venta ML -->
+              <td>{{ item.precio_cal_ml|format_currency }}</td> <!-- Precio Estimado Mercado Libre utilizando margen 1 + margen 2-->
+              <td>{{ item.precio_ML|format_currency }}</td> <!-- Precio Real Mercado Libre--> 
+              <td>{{ item.comision3_calculado|format_currency }} </td> <!-- comision x venta Mercado Libre-->
+              <td >{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
+            
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

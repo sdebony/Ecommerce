@@ -26,6 +26,14 @@ urlpatterns = [
   path('oc/', views.generar_orden_compra, name='generar_orden_compra'),
   path('oc/procesar-datos/', views.procesar_datos, name='procesar_datos'),
   path('oc/list/', views.oc_list, name='oc_list'),
+  path('oc/list/<int:id_oc>', views.oc_delete, name='oc_delete'),
+  path('oc/<int:id_oc>', views.oc_detalle, name='oc_detalle'),
+  path('oc/ver/<int:id_oc>', views.oc_detalle_ver, name='oc_detalle_ver'),
+  path('oc/recibir/<int:id_oc>', views.oc_recibir, name='oc_recibir'),
+  
+
+  path('oc/pago/<int:id_oc>', views.oc_registrar_pago, name='oc_registrar_pago'), 
+  
 
 
 ]

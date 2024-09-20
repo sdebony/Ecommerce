@@ -26,6 +26,7 @@ urlpatterns = [
     path('producto/import/del/<int:product_id>', views.panel_importar_productos_del, name='panel_importar_productos_del'),
     path('producto/search/<str:keyword>/<str:order_number>', views.search_lookup, name='search_lookup'),
     path('producto/precios', views.panel_lista_precios, name='panel_lista_de_precios'),
+    path('producto/precios/ext/', views.panel_producto_precio_ext,name='panel_producto_precio_ext'),
     
     
     #CATEGORIAS

@@ -1,5 +1,5 @@
 from django.db import models
-from contabilidad.models import Cuentas
+from contabilidad.models import Cuentas,Movimientos
 from store.models import Product
 
 # Create your models here.
@@ -101,6 +101,7 @@ class ComprasEnc(models.Model):
     total=models.FloatField(default=0)
     proveedor=models.ForeignKey(Proveedores,on_delete=models.CASCADE)
     estado=models.IntegerField(default=0)
+    id_pago = models.IntegerField(default=0,blank=True,null=True)
     
     def __str__(self):
         return '{}'.format(self.observacion)

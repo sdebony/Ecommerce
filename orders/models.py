@@ -84,7 +84,7 @@ class Order(models.Model):
         
         verbose_name = "Order"
         verbose_name_plural = "Ordenes"
-        ordering = ['order_number',]
+        ordering = ['-order_number',]
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

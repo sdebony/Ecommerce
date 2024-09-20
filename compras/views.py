@@ -3,12 +3,13 @@ from django.shortcuts import render,  get_object_or_404,redirect
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import AccountPermition
 from panel.models import ImportDolar
-from contabilidad.models import Cuentas,Movimientos
+from contabilidad.models import Cuentas,Movimientos,Operaciones
 from store.models import Costo
 from category.models import Category,SubCategory
 from compras.models import CompraDolar,Proveedores,ProveedorArticulos,Marcas,UnidadMedida,ComprasEnc,ComprasDet
 from panel.views import validar_permisos
 from slugify import slugify
+from django.contrib import messages
 
 from orders.models import Order
 from store.models import Product
@@ -26,7 +27,7 @@ from django.conf import settings
 from datetime import datetime
 
 from urllib.parse import unquote
-# Create your views here.
+# DOLARES
 def compras_home(request):
 
     try:
@@ -797,6 +798,7 @@ def generar_orden_compra(request):
 
 #Graba los datos de las Ordenes de compra
 def procesar_datos(request):
+  
     if request.method == 'POST':
         try:
             # Cargar datos JSON del cuerpo de la solicitud
@@ -808,79 +810,112 @@ def procesar_datos(request):
 
             # Aquí puedes procesar los datos, por ejemplo, guardar en la base de datos
             # Ejemplo: print(encabezado) y print(detalles) en consola
-            print("Encabezado:", encabezado)
-            print("Detalles:", detalles)
+            #print("Encabezado:", encabezado)
+            #print("Detalles:", detalles)
             
 
-            
             if encabezado:
-                id_prov = encabezado['proveedor']
-                proveedor = Proveedores.objects.filter(id=id_prov).first()
-                print("proveedor",proveedor)
+                id_prov = encabezado['id_proveedor'] #Para Update del txt
+
+                if id_prov == '0':
+                    id_prov = encabezado['proveedor'] #Para New del Select
                 
+                
+
+                proveedor = Proveedores.objects.filter(id=id_prov).first()
+                #print("proveedor",proveedor)
+                    
                 monto=encabezado['subtotal']
                 subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                print("subtotal",subtotal)
+                #print("subtotal",subtotal)
                 
                 monto=encabezado['envio']
                 costoenvio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                print("envio",costoenvio)
+                #print("envio",costoenvio)
 
                 monto=encabezado['descuentos']
                 descuentos = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                print("descuentos",descuentos)
+                #print("descuentos",descuentos)
 
                 monto=encabezado['total']
                 total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                print("total",total)
+                #print("total",total)
 
                 fecha_str = encabezado['fecha']
-                fecha_compra = datetime.strptime(fecha_str, '%d/%m/%Y').date()
-                print("fecha",fecha_compra)
+                fecha_compra = datetime.strptime(fecha_str, '%d/%m/%Y')
+                #print("fecha",fecha_compra)
 
                 observaciones = encabezado['observaciones']
 
+                id_oc = encabezado['id_oc']
+                print(str(id_oc))
+
                 if proveedor:
                     try:
-                        orden_compra = ComprasEnc.objects.create(
-                            fecha_compra=fecha_compra,
-                            observacion=observaciones,
-                            sub_total=subtotal,
-                            costoenvio=costoenvio,
-                            descuento=descuentos,
-                            total=total,
-                            estado=0, #Nuevo
-                            proveedor=proveedor,
-                        )
-                        print("Compra creada:", orden_compra.id)
+                        if int(id_oc) > 0:
+                            # Actualizar la orden de compra
+                            proveedor_rs = Proveedores.objects.filter(id=id_prov).first()
+
+                            orden_compra = ComprasEnc.objects.filter(id=id_oc).first()
+                            orden_compra.proveedor = proveedor_rs
+                            orden_compra.sub_total = subtotal
+                            orden_compra.costoenvio = costoenvio
+                            orden_compra.descuento = descuentos
+                            orden_compra.total = total
+                            orden_compra.fecha_compra = fecha_compra
+                            orden_compra.observacion = observaciones
+                            orden_compra.save()
+                            print("orden de compra actualizada", orden_compra.id)
+
+                        else:
+                            orden_compra = ComprasEnc.objects.create(
+                                fecha_compra=fecha_compra,
+                                observacion=observaciones,
+                                sub_total=subtotal,
+                                costoenvio=costoenvio,
+                                descuento=descuentos,
+                                total=total,
+                                estado=0, #Nuevo
+                                proveedor=proveedor,
+                            )
+                            orden_compra.save()
+                            #print("Compra creada:", orden_compra.id)
                     except Exception as e:
                         print("Error al crear la compra:", e)
                         
                     if orden_compra:
+                        #Elimino el detalle de la compra para agregar nuevamente
+                        detalle_oc = ComprasDet.objects.filter(id_compra_enc=id_oc)
+                        if detalle_oc.exists():
+                            for det in detalle_oc:
+                                det.delete()
+                           
+
                         for detalle in detalles:
                             articulo_prov = detalle['producto']
                             producto = ProveedorArticulos.objects.filter(proveedor=id_prov,nombre_articulo=articulo_prov).first()
 
                             cant=detalle['cantidad']
                             cantidad = float(cant.replace('$', '').replace('.', '').replace(',', '.'))
-                            print("cantidad",cantidad)
+                            #print("cantidad",cantidad)
 
                             monto=detalle['precio']
                             precio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            print("precio",precio)
+                            #print("precio",precio)
 
                             monto=detalle['subtotal']
                             subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            print("subtotal",subtotal)
+                            #print("subtotal",subtotal)
 
                             monto=detalle['descuento']
                             descuento = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            print("descuento",descuento)
+                            #print("descuento",descuento)
 
                             monto=detalle['total']
                             total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            print("total",total)
+                            #print("total",total)
 
+                           
 
                             detalle_compra = ComprasDet.objects.create(
                                 id_compra_enc=orden_compra,
@@ -892,8 +927,10 @@ def procesar_datos(request):
                                 total=total,
                                 )
                             detalle_compra.save()
+                            #print("detalle de compra creado:", detalle_compra.id)
+
                             
-      
+            
             # Responder con éxito
             return JsonResponse({'status': 'success'})
 
@@ -901,7 +938,7 @@ def procesar_datos(request):
             return HttpResponseBadRequest('Error al decodificar JSON')
 
     return HttpResponseBadRequest('Método no permitido')
-
+#Lista de Ordenes de Compra a Proveedores
 def oc_list(request):
 
     if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
@@ -916,3 +953,208 @@ def oc_list(request):
 
     else:
         return render(request,'panel/login.html',)
+
+def oc_detalle(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        oc_enc_compras = ComprasEnc.objects.filter(id=id_oc).first()
+        if oc_enc_compras:
+            proveedor_id = oc_enc_compras.proveedor.id
+            oc_detalle_compras = ComprasDet.objects.filter(id_compra_enc=id_oc)
+            productos_prov = ProveedorArticulos.objects.filter(proveedor_id=proveedor_id)
+        else:
+            oc_detalle_compras = None
+            oc_enc_compras=None
+            productos_prov=None
+
+
+        return render(request, 'compras/orden_de_compra.html', {
+            'permisousuario': permisousuario,
+            'productos_prov':productos_prov,
+            'oc_enc_compras': oc_enc_compras,
+            'oc_detalle_compras':oc_detalle_compras,
+        })
+
+    else:
+        return render(request,'panel/login.html',)
+
+def oc_detalle_ver(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        print("Ver orden de Compra")
+        oc_enc_compras = ComprasEnc.objects.filter(id=id_oc).first()
+        if oc_enc_compras:
+            proveedor_id = oc_enc_compras.proveedor.id
+            oc_detalle_compras = ComprasDet.objects.filter(id_compra_enc=id_oc)
+            productos_prov = ProveedorArticulos.objects.filter(proveedor_id=proveedor_id)
+        else:
+            oc_detalle_compras = None
+            oc_enc_compras=None
+            productos_prov=None
+
+
+        return render(request, 'compras/orden_de_compra_ver.html', {
+            'permisousuario': permisousuario,
+            'productos_prov':productos_prov,
+            'oc_enc_compras': oc_enc_compras,
+            'oc_detalle_compras':oc_detalle_compras,
+        })
+
+    else:
+        return render(request,'panel/login.html',)
+
+def oc_delete(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        
+        oc_enc_compras = ComprasEnc.objects.filter(id=id_oc).first()
+        if oc_enc_compras:   
+            oc_detalle_compras = ComprasDet.objects.filter(id_compra_enc=id_oc)
+            if oc_detalle_compras.exists():
+                for det in oc_detalle_compras:
+                    det.delete()
+            oc_enc_compras.delete()
+            messages.success(request, 'Se ha eliminado la orden de compra del proveedor.')
+        return redirect('oc_list')
+
+    else:
+        return render(request,'panel/login.html',)
+
+def oc_registrar_pago(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        if request.method == 'GET':
+
+            permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+            oc_enc_compras = ComprasEnc.objects.filter(id=id_oc).first()
+            cuentas = Cuentas.objects.all()
+            
+            fecha_actual = datetime.now()
+            if oc_enc_compras:
+                proveedor = oc_enc_compras.proveedor
+
+            return render(request, 'compras/registrar_pago_orden_compra.html', {
+                'permisousuario': permisousuario,
+                'oc_enc_compras': oc_enc_compras,
+                'cuentas': cuentas,
+                'fecha_actual': fecha_actual,
+                'proveedor': proveedor,
+            })
+
+        if request.method == 'POST':
+
+            id_oc = request.POST.get('id_oc')
+            fecha_pago = request.POST.get('fecha')
+            cuenta_pago = request.POST.get('cuenta')
+            cliente = request.POST.get('cliente')
+            total = request.POST.get('total')
+
+            print(id_oc,fecha_pago,cuenta_pago,cliente,total)
+            # GRABAR TRX EN MOVIMIENTOS
+            current_date = fecha_pago
+            oper = Operaciones.objects.filter(codigo="EGR").first() #Ingresos
+            cuentas= Cuentas.objects.get(id=cuenta_pago)
+        
+            if float(total)>0:
+                total = float(total) * -1
+
+            
+            cliente = "Proveedor:" + str(cliente)
+            trx = Movimientos(
+                    fecha =current_date,
+                    cliente = cliente,
+                    movimiento = oper,
+                    cuenta = cuentas,
+                    monto=total,
+                    observaciones = "Pago Orden Compra: " + str(id_oc),
+                    idtransferencia = 0,
+                    ordernumber = None,
+            )
+            trx.save()
+            id_trx = trx.id
+            print("id_trx",id_trx)
+
+
+            if id_trx > 0:
+                oc_enc_compras = ComprasEnc.objects.get(id=id_oc)
+                if oc_enc_compras:
+                    oc_enc_compras.id_pago = id_trx
+                    oc_enc_compras.estado = 1 # 0-Nuevo  1-Pagado 2-Entregado
+                    oc_enc_compras.save()
+
+
+            return redirect('oc_list')
+           
+    
+    else:
+        return render(request,'panel/login.html',)
+
+def oc_recibir(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+
+        if request.method == 'GET':
+
+            permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+            print("Ver orden de Compra")
+            oc_enc_compras = ComprasEnc.objects.filter(id=id_oc).first()
+            if oc_enc_compras:
+                proveedor_id = oc_enc_compras.proveedor.id
+                oc_detalle_compras = ComprasDet.objects.filter(id_compra_enc=id_oc)
+                productos_prov = ProveedorArticulos.objects.filter(proveedor_id=proveedor_id)
+            else:
+                oc_detalle_compras = None
+                oc_enc_compras=None
+                productos_prov=None
+
+
+            return render(request, 'compras/orden_de_compra_recibir.html', {
+                'permisousuario': permisousuario,
+                'productos_prov':productos_prov,
+                'oc_enc_compras': oc_enc_compras,
+                'oc_detalle_compras':oc_detalle_compras,
+            })
+        
+        if request.method == 'POST':
+            # Obtén los datos del formulario
+            
+            idproductos = request.POST.getlist('idproducto[]')
+            costos = request.POST.getlist('costo[]')
+            cantidades_recibidas = request.POST.getlist('cantidad_recibida[]')
+
+            # Puedes procesar los datos como necesites
+            for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
+                 #Actualiza Stock de productos 
+                print(f'idproducto:', {idproducto},)
+                print(f'costo:', {costo},)
+                print(f'stock:', {cantidad_recibida},)
+                product = Product.objects.get(id=idproducto)
+                if product:
+                        product.id = idproducto
+                        product.stock += float(cantidad_recibida)
+                        product.costo_prod = float(costo)
+                        product.save()
+
+            #Cambia a estado Finalizada OC_ENC
+            oc_enc_compras = ComprasEnc.objects.get(id=id_oc)
+            if oc_enc_compras:
+                oc_enc_compras.id = id_oc
+                oc_enc_compras.estado = 2 #Finalizado
+                oc_enc_compras.save()
+                      
+
+            return redirect('oc_list')
+    
+ 
+    else:
+        return render(request,'panel/login.html',)
+
+
