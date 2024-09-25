@@ -11,7 +11,7 @@ from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias,CierreMes,ConfiguracionParametros
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
-from compras.models import CompraDolar
+from compras.models import CompraDolar,ProveedorArticulos
 from accounts.forms import UserForm, UserProfileForm
 
 from django.db.models.functions import TruncMonth
@@ -2394,6 +2394,7 @@ def export_xls(request,modelo=None):
     #4 - Pedidos Temp 
     #5 - Costos
     #6 - Lista de Precios
+    #7 - Lista de precios Proveedor
 
         print("Export to Excel",modelo)
         response = HttpResponse(content_type='application/ms-excel')
@@ -2409,6 +2410,8 @@ def export_xls(request,modelo=None):
             response['Content-Disposition']='attachment; filename=Costos_'+ str(datetime.now()) + '.xls'
         elif modelo==6:
             response['Content-Disposition']='attachment; filename=Precios_'+ str(datetime.now()) + '.xls'
+        elif modelo==7:
+            response['Content-Disposition']='attachment; filename=Precios_proveedores_'+ str(datetime.now()) + '.xls'
         else:
             response['Content-Disposition']='attachment; filename=Export_'+ str(datetime.now()) + '.xls'
         
@@ -2756,7 +2759,46 @@ def export_xls(request,modelo=None):
                     
             wb.save(response)
             return response
-            
+
+        if modelo==7: #LISTA DE PRECIOS PROVEEDORES 
+            if validar_permisos(request,'PROVEEDORES'):
+                sheet = "Proveedores"
+                ws = wb.add_sheet(sheet)
+                
+                row_num=0
+                font_style= xlwt.Style.XFStyle()
+                font_style.font.bold = True
+                columns = ['Proveedor','Articulo','Marca','Precio','Producto Qualities','Stock Actual']
+                for col_num in range(len(columns)):
+                    ws.write(row_num,col_num,columns[col_num],font_style)
+                font_style = xlwt.Style.XFStyle()
+
+               
+                rows = ProveedorArticulos.objects.all().values_list('proveedor__nombre','nombre_articulo','marca__marca','precio_por_unidad','id_product__product_name','id_product__stock').order_by('nombre_articulo','precio_por_unidad')
+          
+                for row in rows:
+                    row_num += 1      
+                    for col_num in range(len(row)):
+                        if col_num==100:
+                            format_string = '%Y-%m-%d %H:%M:%S.%f'
+                            str_fecha = str(row[col_num])
+                            str_fecha = datetime.strptime(str_fecha, format_string)
+                            ws.write(row_num,col_num,str(str_fecha),font_style)
+                        elif col_num==3 or col_num ==5:
+                            if row[col_num] is None:
+                                monto = float("{0:.2f}".format((float)(0)))
+                                ws.write(row_num,col_num,monto)
+                            else:
+                                monto = float("{0:.2f}".format((float)(row[col_num])))
+                                ws.write(row_num,col_num,monto)
+                        else:
+                            ws.write(row_num,col_num,str(row[col_num]),font_style)
+                        
+                wb.save(response)
+                return response
+            else:
+                return render (request,"panel/login.html") 
+                   
 def articulos_vendidos_export_xls(request):
     
         fecha_1 = request.POST.get("fechadesde")

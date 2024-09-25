@@ -515,7 +515,7 @@ def proveedor_check_articulos(request):
                     Subquery(subquery_proveedor_articulos.values('precio_por_unidad')[:1]), 
                     Value(0, output_field=FloatField())
                 )
-            ).values('product_name', 'costo_prod', 'proveedor', 'nombre_articulo', 'precio_por_unidad')
+            ).values('product_name', 'stock','costo_prod', 'proveedor', 'nombre_articulo', 'precio_por_unidad')
 
             
 
@@ -580,7 +580,7 @@ def proveedor_check_articulos(request):
 def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
 
     if validar_permisos(request,'PROVEEDORES'):
-
+        print("Edit articulo")
         id_nuevo_prod = 0
 
         if request.method == 'GET':
@@ -594,7 +594,7 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
             else:
                 proveedor_nombre = "Proveedor no encontrado"
             
-
+            print(marcas)
             context = {
                 'producto': producto,
                 'proveedor_nombre':proveedor_nombre,
@@ -607,8 +607,8 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
         
         if request.method == 'POST':
             permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-            marcas = Marcas.objects.filter().all()
-            unidades = UnidadMedida.objects.filter().all()
+            marcas = Marcas.objects.all()
+            unidades = UnidadMedida.objects.all()
 
             action = request.POST.get('action') 
 
@@ -1133,14 +1133,21 @@ def oc_recibir(request,id_oc=None):
             # Puedes procesar los datos como necesites
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
                  #Actualiza Stock de productos 
+                #$7,500.00
+                print("Recibo:",costo)
+                costo = costo.replace('$', '').replace(',', '')
+                #costo = costo.replace(',', '.')
+                print("Transformo:",costo)
+                costo_float = float(costo)
+
                 print(f'idproducto:', {idproducto},)
-                print(f'costo:', {costo},)
+                print(f'costo:', {costo_float},)
                 print(f'stock:', {cantidad_recibida},)
                 product = Product.objects.get(id=idproducto)
                 if product:
                         product.id = idproducto
                         product.stock += float(cantidad_recibida)
-                        product.costo_prod = float(costo)
+                        product.costo_prod = float(costo_float)
                         product.save()
 
             #Cambia a estado Finalizada OC_ENC
@@ -1150,6 +1157,34 @@ def oc_recibir(request,id_oc=None):
                 oc_enc_compras.estado = 2 #Finalizado
                 oc_enc_compras.save()
                       
+
+            return redirect('oc_list')
+    
+ 
+    else:
+        return render(request,'panel/login.html',)
+
+def oc_anula_recepcion(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+            # Obtén los datos del formulario
+            
+        if id_oc:   
+
+            oc_enc_compras = ComprasEnc.objects.get(id=id_oc)
+            if oc_enc_compras:
+                oc_enc_compras.id = id_oc
+                oc_enc_compras.estado = 1 #Pagado
+                oc_enc_compras.save()
+                #print("OC:",id_oc)
+                oc_det_compras = ComprasDet.objects.filter(id_compra_enc=id_oc)
+                if oc_det_compras:
+                    for item in oc_det_compras:
+                        producto = Product.objects.get(id=item.producto.id_product.id)
+                        print ("descontar del producto (", producto.id , ") - ", producto.product_name , ' stock:', item.cantidad)
+                        producto.stock = producto.stock - item.cantidad
+                        producto.save()
 
             return redirect('oc_list')
     

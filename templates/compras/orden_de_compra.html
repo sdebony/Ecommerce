@@ -34,7 +34,7 @@
                                                         <input type="text" class="form-control" name="id_proveedor" id="id_proveedor" aria-label="id_oc" aria-describedby="basic-addon1" value="{{ oc_enc_compras.proveedor.id }}" hidden>
                                                     {% else %}
                                                     <input type="text" class="form-control" name="id_oc" id="id_oc" aria-label="id_oc" aria-describedby="basic-addon1" value="0" hidden>
-                                                    <input type="text" class="form-control" name="id_proveedor" id="id_proveedor" aria-label="Fecha" aria-describedby="basic-addon1" value="0" disabled>
+                                                    <input type="text" class="form-control" name="id_proveedor" id="id_proveedor" aria-label="Fecha" aria-describedby="basic-addon1" value="0" disabled hidden>
 
                                                     <select id="proveedor" name="proveedor" class="form-control">
                                                         <option value="">Seleccione un Proveedor</option>
@@ -246,7 +246,7 @@
                                                 <tr>
                                                 <td>{{ item.producto }}</td>
                                                 <td>{{ item.cantidad }}</td>
-                                                <td>{{ item.cantidad }}</td>
+                                                <td>{{ item.precio_prv }}</td>
                                                 <td>{{ item.sub_total }}</td>
                                                 <td>{{ item.descuento }}</td>
                                                 <td>{{ item.total }}</td>

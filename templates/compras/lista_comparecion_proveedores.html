@@ -16,6 +16,7 @@
             <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
             </a>
+            <a href="{% url 'mov_export_xls' 7 %}" class="btn btn-secondary">Exportar xls</a>
             <button type="submit" class="btn btn-success">Importar Costos Proveedor</button>
           </div>
         </form>
@@ -43,6 +44,7 @@
       <thead>
         
         <th data-sortable="true" data-field="product_name">Articulo</th>
+        <th data-sortable="true" data-field="stock">Stock</th>
         <th data-sortable="true" data-field="costo_prod">Costo Actual</th>   
         <th data-sortable="true" data-field="Proveedor">Proveedor</th>
         <th data-sortable="true" data-field="nombre_articulo">Articulo</th>
@@ -55,6 +57,7 @@
           <tr>
            
             <td>{{ item.product_name }}</td> 
+            <td>{{ item.stock }}</td> 
             <td>{{ item.costo_prod|format_currency }} </td> 
             <td>{{ item.proveedor }}</td> 
             <td>{{ item.nombre_articulo }}</td> 

@@ -90,6 +90,8 @@ class ProveedorArticulos(models.Model):
         unique_together = ('proveedor', 'codigo_prod_prov','unidad_medida','nombre_articulo')
         verbose_name = "ProveedorArticulos"
         verbose_name_plural = "ProveedorArticulos"
+        ordering = ['nombre_articulo']
+
         
 class ComprasEnc(models.Model):
 
