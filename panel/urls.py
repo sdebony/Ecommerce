@@ -117,7 +117,8 @@ urlpatterns = [
     path('margen/', views.panel_config_margen, name='panel_config_margen'),
     path('margen/<int:id_param>', views.panel_margen_edit, name='panel_margen_edit'),
     
-
+    #SERVICIOS OCA
+     path('consultar-costo-envio/', views.costo_envio_view, name='consultar_costo_envio'),
     
     
     

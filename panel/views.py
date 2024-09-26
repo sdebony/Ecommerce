@@ -27,6 +27,11 @@ from django.db.models import OuterRef, Subquery
 from django.db.models import Sum, F, Q, Count, DecimalField
 from django.db.models.functions import TruncDate
 
+
+
+from .utils import consultar_costo_envio  # Asegúrate de que esta función esté disponible
+
+
 import json
 import calendar
 
@@ -5664,3 +5669,28 @@ def panel_margen_edit(request,id_param=None):
             return render(request,'panel/lista_parametros.html',context) 
     else:
         return render (request,"panel/login.html")
+
+# INI SERVICIOS SOAP OCA ******************
+def costo_envio_view(request):
+    resultado = None
+    if request.method == 'POST':
+        peso_total = request.POST.get('peso_total')
+        volumen_total = request.POST.get('volumen_total')
+        cp_origen = request.POST.get('cp_origen')
+        cp_destino = request.POST.get('cp_destino')
+        cant_paquetes = request.POST.get('cant_paquetes')
+        valor_declarado = request.POST.get('valor_declarado')
+        cuit = request.POST.get('cuit')
+        operativa = request.POST.get('operativa')
+
+        # Llamar a la función consultar_costo_envio
+        try:
+            resultado = consultar_costo_envio(peso_total, volumen_total, cp_origen, cp_destino, cant_paquetes, valor_declarado, cuit, operativa)
+        except Exception as e:
+            resultado = {'error': str(e)}
+
+    return render(request, 'panel/consulta_costo_envio.html', {'resultado': resultado})
+
+
+
+# FIN SERVICIOS SOAP OCA ******************

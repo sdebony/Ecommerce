@@ -17,6 +17,7 @@ from django.db.models import Subquery, OuterRef, ExpressionWrapper, F, FloatFiel
 from django.db.models.functions import Coalesce,Round
 from django.http import JsonResponse, HttpResponseBadRequest
 import json
+import math
 
 
 from django.conf import settings
@@ -1129,20 +1130,28 @@ def oc_recibir(request,id_oc=None):
             idproductos = request.POST.getlist('idproducto[]')
             costos = request.POST.getlist('costo[]')
             cantidades_recibidas = request.POST.getlist('cantidad_recibida[]')
+            envio = request.POST.get('envio')
+            descuento = request.POST.get('descuento')
+            total_recibido=0
+
+            otros_costo = float(envio) - float(descuento)
+            for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
+                total_recibido = total_recibido + float(cantidad_recibida)
+            
+            otros_costo = float(otros_costo) / float(total_recibido)
+            otros_costo = math.ceil(otros_costo)
 
             # Puedes procesar los datos como necesites
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
-                 #Actualiza Stock de productos 
-                #$7,500.00
-                print("Recibo:",costo)
+                
+                
                 costo = costo.replace('$', '').replace(',', '')
-                #costo = costo.replace(',', '.')
-                print("Transformo:",costo)
-                costo_float = float(costo)
-
-                print(f'idproducto:', {idproducto},)
-                print(f'costo:', {costo_float},)
-                print(f'stock:', {cantidad_recibida},)
+                
+                costo_float = float(costo) + float(otros_costo) #Agrego costo Flete
+                costo_float = math.ceil(costo_float)
+                #print(f'idproducto:', {idproducto},)
+                #print(f'costo:', {costo_float},)
+                #print(f'stock:', {cantidad_recibida},)
                 product = Product.objects.get(id=idproducto)
                 if product:
                         product.id = idproducto

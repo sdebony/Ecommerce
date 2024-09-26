@@ -28,6 +28,9 @@
         <h2>Recepción de Productos - OC: {{ oc_enc_compras.id }} -  {{ oc_enc_compras.proveedor.nombre}}</h2>
         <form action="{% url 'oc_recibir' id_oc=oc_enc_compras.id %}" method="POST">
             {% csrf_token %}
+            <input type="text" name="envio" class="form-control" value="{{oc_enc_compras.costoenvio }}" readonly hidden>
+            <input type="text" name="descuento" class="form-control" value="{{oc_enc_compras.descuento }}" readonly hidden>
+   
             <table class="table table-bordered">
                 <thead>
                     <tr>
