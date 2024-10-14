@@ -338,8 +338,8 @@ def costo_producto(product_id):
 
         product = Product.objects.get(id=product_id)
         if product:
-            costo = Costo.objects.filter(producto=product).order_by('-fecha_actualizacion').first()
-            if costo:
-                return costo.costo
-            else:
-                return 0
+            #costo = Costo.objects.filter(producto=product).order_by('-fecha_actualizacion').first()
+            #if costo:
+            return product.costo_prod
+        else:
+             return 0
