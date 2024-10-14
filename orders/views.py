@@ -135,6 +135,7 @@ def place_order(request, total=0, quantity=0,):
             data.dir_cp = form.cleaned_data['dir_cp']
             data.dir_tipocorreo =  form.cleaned_data['dir_tipocorreo']
             data.dir_tipoenvio =  form.cleaned_data['dir_tipoenvio']
+            data.dir_correo =  form.cleaned_data['dir_correo']
             data.dir_nombre =  form.cleaned_data['dir_nombre']
             
             data.order_note = form.cleaned_data['dir_obs']
@@ -142,9 +143,10 @@ def place_order(request, total=0, quantity=0,):
             data.envio = envio
             data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.ip = request.META.get('REMOTE_ADDR')
+            
             data.save()
 
-            print("Data Save")
+           
             # Generate order number
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))

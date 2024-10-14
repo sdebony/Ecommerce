@@ -144,13 +144,13 @@
         <div class="form-group col-md-8" id="div_chk_tipoenvio">
             <label>Tipo de Envío</label>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioClasico" value="1">
+                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioClasico" value="1" required>
                 <label class="form-check-label" for="envioClasico">
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioExpresso" value="2">
+                <input class="form-check-input" type="radio" name="chktipoEnvio" id="envioExpresso" value="2" required>
                 <label class="form-check-label" for="envioExpresso">
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
                 </label>
@@ -327,8 +327,9 @@ function buscardireccion(dir_id)     {
                 $("#dir_nombre").val(r.dir_nombre);
                 $("#dir_correo").val(r.dir_correo);
                 $("#dir_tipoenvio").val(r.dir_tipoenvio);
-                
-                dir_tipoenvio = r.dir_tipoenvio;
+
+                alert(r.dir_tipoenvio);
+                //dir_tipoenvio = r.dir_tipoenvio;
                 dir_correo = r.dir_correo;
 
                 // ENVIO CLASICO - CORREO ARGENTINO
@@ -464,12 +465,16 @@ function buscardireccion_seleccion(correo_tipo)     {
                     $("#dir_tipoenvio").val(2);
                   }
                 }
+                else {
+                  $("#dir_tipoenvio").val(1); // Default no importa
+                }
+
+
                 
                
             },
         });
     }
-
 
 function mostrarOpcionEnvio() {
 
@@ -529,6 +534,7 @@ function mostrarOpcionEnvio() {
             $("#dir_tipoenvio").val(0); // OCA
 
         }
+                
 
         // Opción 2: Segunda parte (es, ed, cliente)
         let segundaParte = partes[1].toUpperCase(); // Convertir a mayúsculas
@@ -552,7 +558,7 @@ function mostrarOpcionEnvio() {
             document.getElementById("div_entrega_dom").style.display = "block";
             document.getElementById("div_provincia").style.display = "block";
             document.getElementById("div_cp").style.display = "block";
-            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            
             document.getElementById('dir_calle').readOnly = false;
             document.getElementById('dir_nro').readOnly = false;
             document.getElementById('dir_localidad').readOnly = false;
@@ -598,10 +604,13 @@ function mostrarOpcionEnvio() {
           document.getElementById("div_chk_tipoenvio").style.display = "none";
           if (primeraParte === 'CA') //Correo Argentino
           {
-           
             document.getElementById("div_chk_tipoenvio").style.display = "block";
-            
           }
+          else{
+            document.getElementById('envioClasico').checked  = true;  //PARA OCA O RETIRA CLIENTE SETEO UNO 
+          }
+         
+          
 
           document.getElementById('email').readOnly = true;
 
@@ -628,7 +637,9 @@ function validarFormulario(event) {
     //document.getElementById('error').textContent = "";
     // Obtener el valor del campo como número
     var dir_id = document.getElementById('dir_id').value;
+    var dir_tipo_envio = document.getElementById('chktipoEnvio').value;
    
+    
     // Validar que sea mayor a 0 y distinto de una cadena vacía
     if (dir_id.split() == '' || parseInt(dir_id) <= 0) {
         // Mostrar un mensaje de error
@@ -668,8 +679,6 @@ function validarFormulario(event) {
         document.getElementById("div_chk_tipoenvio").style.display = "none";
     
         $("#direccion").val({{direccion.dir_id }}).change();
-
-        
             
     });
 
@@ -681,6 +690,8 @@ function validarFormulario(event) {
         // Obtener el valor del radio button seleccionado
         const selectedValue = event.target.value;
         $("#dir_tipoEnvio").val(selectedValue);
+      
+
     }
 
 // Asignar la función al evento 'change' de cada radio button
