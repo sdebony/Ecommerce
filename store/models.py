@@ -24,7 +24,7 @@ class Product(models.Model):
     is_popular      = models.BooleanField(default=False)
     peso            = models.FloatField(default=0)
     costo_prod      = models.FloatField(default=0,blank=True)
-    ubicacion       = models.FloatField(default=0,blank=True)
+    ubicacion       = models.CharField(max_length=10,blank=True)
     precio_TN       = models.FloatField(default=0,blank=True)
     precio_ML       = models.FloatField(default=0,blank=True)
 

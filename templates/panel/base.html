@@ -115,7 +115,14 @@
                   <a class="collapse-item" href="{% url 'dashboard_resultados' 0 %}" >Saldo Cuentas</a>
               {% endif %}
             {% endif %}
-        {% endfor %}
+            {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD CONTROL' %}
+                  <a class="collapse-item" href="{% url 'dashboard_control' %}" >Panel de Control</a>
+              {% endif %}
+            {% endif %}
+            {% endfor %}
           </div>
         </div>
       </li>

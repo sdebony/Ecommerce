@@ -207,12 +207,30 @@ MONTO_MINIMO=100
 DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
 DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
 
+#DEF_CATEGORY='esferas'  #Eesferas (Slug)
+#DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
+
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
 
 DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
 DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
+#DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+#DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
+
+#DEF_CEL = '54111565184759'
+DEF_CEL =  '54111558679809'
+#DEF_CC_MAIL = 'lifche.argentina@gmail.com'
+DEF_CC_MAIL = 'qualitiesarg@gmail.com'
 #MELI
 CLIENTE_ID="1279208844446512"                           #"5374552499309003"
 REDIRECT_URI="https://lifche.qualities.com.ar/panel/"    #"https://lifche.qualities.com.ar/panel/"
 CLIENT_SECRET="GimLKbcpxGBStJd56R38iJAzCXqxqWJR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
+
+OCA_CP_ORIGEN='1643'
+OCA_OPERATIVA_ED='421906'  #Oca entrega a domicilio
+OCA_OPERATIVA_ES='421907'  #Oca entrega en Sucursal
+OCA_CUIT='23-24695274-4'
+OCA_VALOR_DECLARADO='10000'
+OCA_VOLUMETRIA_TOTAL='1'
+

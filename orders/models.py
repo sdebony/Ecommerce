@@ -16,7 +16,6 @@ class Payment(models.Model):
     def __str__(self):
         return self.payment_id
 
-
 class Order(models.Model):
     STATUS = (
         ('New', 'New'),
@@ -36,7 +35,7 @@ class Order(models.Model):
     email = models.EmailField(max_length=50)
     fecha = models.DateField(blank=True)
 
-    dir_nombre = models.CharField(max_length=25,blank=True)
+    dir_nombre = models.CharField(max_length=50,blank=True)
     dir_telefono = models.CharField(max_length=25)
     dir_calle = models.CharField(max_length=100,blank=True)
     dir_nro = models.CharField(max_length=25,blank=True)
@@ -44,8 +43,9 @@ class Order(models.Model):
     dir_provincia = models.CharField(max_length=50,blank=True)
     dir_cp = models.CharField(max_length=10,blank=True)
     dir_obs = models.CharField(max_length=255,blank=True)
-    dir_tipocorreo = models.BigIntegerField(default=0) #1 Sucursal Correo  #2 Envio a Domicilio #3 Retiro en Tienda
+    dir_tipocorreo = models.BigIntegerField(default=0) #1 Sucursal Correo  #2 Envio a Domicilio 
     dir_tipoenvio = models.BigIntegerField(default=0,blank=True)  #1-Clasico  #2-Expresso
+    dir_correo = models.BigIntegerField(default=0,blank=True)   #1 OCA  2 Correo Argentino 3 Retira Cliente
 
     order_note = models.CharField(max_length=250, blank=True)
     order_total = models.FloatField()
@@ -105,7 +105,6 @@ class OrderProduct(models.Model):
     
     def subtotal(self):
         return self.quantity*self.product_price
-
 
 class OrderShipping(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

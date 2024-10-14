@@ -32,7 +32,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
-    
+    print("Store....")
     if 'Mobile' in user_agent:
         resolucion=settings.STORE_TEMPLATE_MOBILE
     else:
@@ -77,6 +77,9 @@ def store(request, category_slug=None,subcategory_slug=None):
         category_slug=settings.DEF_CATEGORY
         subcategory_slug=settings.DEF_SUBCATEGORY
 
+        print("Categoria Default:", category_slug)
+        print("Subcategoria Default:", subcategory_slug)
+        
         categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
         subcat = get_object_or_404(SubCategory, category=categories,sub_category_slug=subcategory_slug)
         subcategories = SubCategory.objects.filter(category=categories)

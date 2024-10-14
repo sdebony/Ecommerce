@@ -52,7 +52,7 @@
             <td>{{ item.costoenvio|format_currency }}</td>
             <td>{{ item.descuento|format_currency }}</td>
             {% if item.estado == 0 %}
-              <td><span class="badge bg-success text-white">Abierto</span></td>
+              <td><span class="badge bg-primary text-white">Abierto</span></td>
               <td >         
                 <a href="{% url 'oc_registrar_pago' item.id %}" class="btn btn-success btn-circle" title="Pagar"><i class="fas fa-dollar-sign" aria-hidden="true"></i></a>
                 <a href="{% url 'oc_detalle' item.id %}" class="btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
@@ -65,7 +65,7 @@
                 <a href="{% url 'oc_recibir' item.id %}" class="btn btn-secondary btn-circle" title="Recibir"><i class="fas fa-box-open" aria-hidden="true"></i></a>
               </td>
               {% elif item.estado == 2 %}
-              <td><span class="badge bg-warning text-white">Finalizado</span></td>
+              <td><span class="badge bg-success text-white">Finalizado</span></td>
               <td >
                 <a href="{% url 'oc_anula_recepcion' item.id %}" class="btn btn-secondary btn-circle" title="Anular Recepcion"><i class="fa fa-box"></i></i></a>
                 <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  

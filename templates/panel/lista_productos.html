@@ -1,5 +1,6 @@
 {% extends 'panel/base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block page_content %}
 
 
@@ -67,7 +68,7 @@
     >
       <thead>
           <th data-sortable="true" data-field="product_name">Nombre</th>
-<!--      <th data-sortable="true" data-field="description">Descripcion</th>   -->
+          <th data-sortable="true" data-field="costo_prod">Costo</th>   
           <th data-sortable="true" data-field="price">Precio</th>
 <!--      <th data-sortable="true" data-field="images">Imagen</th>
 -->       <th data-sortable="true" data-field="stock">Stock</th>
@@ -83,7 +84,8 @@
         <tr>
           
           <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
-          <td>$ {{ item.price }}</td>
+          <td>{{ item.costo_prod|format_currency }}</td>
+          <td>{{ item.price|format_currency }}</td>
           <td>{{ item.stock }}</td>
           {% if item.is_available %}
               <td> 

@@ -72,6 +72,14 @@
             </div>
           </div>
           <div class="col-md-3" >
+            <div class="form-check">
+              {% if activos %}
+              <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1" checked>
+              {% else %}
+              <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0">
+              {% endif %}
+              <label class="form-check-label" if=is_available for="flexCheckChecked">Solo Activos</label>
+          </div>
           </div>
       </div>
     </div>
@@ -113,7 +121,11 @@
           </thead>
           <tbody>
             {% for item in productos %}
-            <tr>
+            {% if item.beneficio1_calculado > 1 %}
+              <tr>
+            {% else %}
+              <tr class="bg-warning" >
+            {% endif %}
               
               <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
               <td>{{ item.subcategory.subcategory_name }}</td> 

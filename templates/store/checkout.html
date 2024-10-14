@@ -12,12 +12,13 @@
   </h1>
 <!-- ============================ COMPONENT 1 ================================= -->
 
+
 <div class="row">
 	<aside class="col-lg-6">
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title mb-4">Cliente</h4>
-    <form action="{% url 'place_order' %}" method="POST">
+    <h3 class="card-title mb-4">Cliente</h3>
+    <form action="{% url 'place_order' %}" method="POST" onsubmit="validarFormulario(event)">
       {% csrf_token %}
       <div class="form-row">
         <div class="col form-group">
@@ -29,26 +30,117 @@
           <input type="text" name="last_name" class="form-control" value="{{user.last_name}}" required>
         </div>
       </div>
-      
-        
-      
-      <center><h4 class="card-title mb-4">Dirección de Entrega</h4></center>
-      <a href="{% url 'edit_dir_entrega' %}"> Agregar direccion </a>
-      <div class="form-row">
-          <div class="col form-group">
-            <label for="">Direcciones disponibles:</label>
-            <select name="direccion" id="direccion" class="form-control" required>
-              <option value="0" selected disabled >Seleccione una direccion</option> 
-              {% for item in direccion %}
-                <option value="{{item.dir_id}}" >{{ item.dir_nombre}}</option>
-              {% endfor %}
-            </select>
-            <p id="tipo_envio" class="h1 text-center"> {{ tipo_envio }}</p>
 
-   </div>
+      <hr>
+      <!-- <h3 class="card-title mb-6">Entrega en:</h3>  -->
+      <div class="form-group">
+        <label for="cp_search">Código Postal:</label>
+        <div class="input-group">
+          <div class="input-group-append">
+            <input type="text" name="cp_search" id="cp_search" placeholder="Seleccione el còdigo postal "  class="form-control" required>
+            <button class="btn btn-primary" type="button" onclick="mostrarOpcionEnvio()">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
       </div>
       <hr>
-      <div class="form-row">
+      <!--  OPCIONES DE ENVIO A DOMICILIO  -->   
+      <div id="opcion_envio_ed" class="form-group">
+        <h3><i class="fa fa-truck"></i> Envio a domicilio</h3>   
+          <!--  TIPOS DE ENVIOS -->  
+          <div class="border p-2">
+            <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+              <div>
+                <input type="radio" id="ca_ed" name="envio" value="ca_ed">
+                <label for="ca_ed">Correo Argentino - Entrega a Domicilio</label>
+                <span></span>
+              </div>
+              <div>
+                <span id="ca_price_ed" style="font-weight: bold;"></span>
+              </div>
+            </div>
+          
+            <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+              <div>
+                <input type="radio" id="oca_ed" name="envio" value="oca_ed">
+                <label for="oca_ed">OCA - Entrega a Domicilio</label>
+                <!-- <br> Plazo de Entrega:
+                <span id="oca_plazo_ed" style="font-weight: bold;"></span>
+                -->
+              </div>
+              <div>
+                <span id="oca_price_ed" style="font-weight: bold;"></span>
+              </div>
+            </div>
+          </div>
+      </div>
+      <!--  OPCIONES DE RETIRA EN SUCURSAL  -->    
+      <div id="opcion_envio_rs" class="form-group">
+        <h3><i class="fas fa-thumbtack"></i> Retira en sucursal</h3>  
+        <!--  TIPOS DE ENVIOS -->  
+        <div class="border p-2">
+          <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+            <div>
+              <input type="radio" id="ca_es" name="envio" value="ca_es">
+              <label for="ca_es">Correo Argentno - Entrega en Sucursal</label>
+            </div>
+            <div>
+              <span id="ca_price_es" style="font-weight: bold;"></span>
+            </div>
+          </div>
+        
+          <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+            <div>
+              <input type="radio" id="oca_es" name="envio" value="oca_es">
+              <label for="oca_es">OCA - Entrega en Sucursal</label>
+            </div>
+            <div>
+              <span id="oca_price_es" style="font-weight: bold;"></span>
+            </div>
+          </div>
+        
+          
+        </div>
+      </div>
+       <!--  OPCIONES DE RETIRA CLIENTE  -->       
+       <div id="opcion_envio_rc" class="form-group">
+        <h3><i class="fas fa-user-clock"></i> Retira Cliente</h3>  
+         <!--  TIPOS DE ENVIOS -->  
+         <div class="border p-2">
+           <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+             <div>
+              <input type="radio" id="ret_cliente" name="envio" value="ret_cliente">
+               <label for="ret_cliente">Retiro en persona</label>
+             </div>
+             <div>
+               <span style="font-weight: bold;">Gratis</span>
+             </div>
+           </div>
+         
+         
+         
+          
+         </div>
+       </div>
+
+
+
+      <p id="tipo_envio" class="h1 text-center"> {{ tipo_envio }}</p>
+      <div id="detalle" class="col form-group">
+        <a href="{% url 'edit_dir_entrega' %}"> Agregar direccion </a>
+        <div class="form-row">
+          <div class="col form-group">
+            <label for="">Direcciones disponibles:</label>
+            <select name="direccion" id="direccion" class="form-control" >
+              <option value="0" selected disabled >Seleccione una direccion</option> 
+                <option value=""></option>
+            </select>
+           
+          </div>
+        </div>
+        <hr>
+        <div class="form-row">
         <div class="form-group col-md-8" id="div_chk_tipoenvio">
             <label>Tipo de Envío</label>
             <div class="form-check">
@@ -64,58 +156,60 @@
                 </label>
             </div>
         </div>  
-    </div>
-      <div class="form-row" id="div_datos">
-        <div class="col form-group">
-          <label for="">Email</label>
-          <input type="email" name="email" class="form-control" value="{{user.email}}" required>
         </div>
-        <div class="col form-group">
-          <label for="">Telefono</label>
-          <input type="text" name="dir_telefono" id="dir_telefono" class="form-control" value="" required>
+        <div class="form-row" id="div_datos_suc">
+          <div class="col form-group">
+            <label for="">Email</label>
+            <input type="email" name="email" class="form-control" value="{{user.email}}" required>
+          </div>
+          <div id="div_nombre_suc"class="col form-group">
+            <label for="dir_nombre">Nombre</label>
+            <input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="">
+          </div>
+          <div class="col form-group">
+            <label for="">Telefono</label>
+            <input type="text" name="dir_telefono" id="dir_telefono" class="form-control" value="" required>
+          </div>
         </div>
-      </div>
-      <div id="div_sucursal">  
-          <div class="form-row">
-            <div class="col form-group">
-              <label for="">Calle</label>
-              <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="">
+        <div id="div_entrega_dom">  
+            <div class="form-row">
+              <div class="col form-group">
+                <label for="">Calle</label>
+                <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="" required>
+              </div>
+              <div class="col form-group">
+                <label for="">Nro</label>
+                <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="" required>
+              </div>
             </div>
-            <div class="col form-group">
-              <label for="">Nro</label>
-              <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="">
+            <div class="form-row">
+              <div class="col form-group">
+                <label for="">Localidad</label>
+                <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="" required>
+              </div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="col form-group">
-              <label for="">Localidad</label>
-              <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="">
-            </div>
-          </div>
-      </div>
-      <div class="form-row">
+        </div>
+        <div class="form-row">
           <div class="col form-group" id="div_provincia">
-          <label for="">Provincia</label>
-          <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="">
+          <label for="dir_provincia">Provincia</label>
+          <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="" required>
         </div>
         <div class="col form-group" id="div_cp">
           <label for="">Codigo Postal</label>
-          <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" >
+          <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" maxlength="10" required>
         </div>
-          <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden>
+          <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden >
           <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden>
-          <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" required hidden>
-          <input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="" hidden>
-        
+          <input type="number" name="dir_correo" id="dir_correo" class="form-control" value="0" required hidden >
+          <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" hidden >
+          
         </div>
         <div class="form-row">
           <label for="">Observaciones</label>
           <textarea name="dir_obs" id="dir_obs" rows="2" class="form-control"></textarea>
         </div>
-        
-       
-
-
+      </div>
+ 
   </div>
 
 </div> <!-- card.// -->
@@ -191,31 +285,25 @@
 
 
 
-
 <script>
+  window.onload = function() {
 
-    window.onload = function() {
-        document.getElementById("div_chk_tipoenvio").style.display = "none";
-        document.getElementById("div_sucursal").style.display = "none";
-        document.getElementById("div_provincia").style.display = "none";
-        document.getElementById("div_cp").style.display = "none";
-        document.getElementById("div_chk_tipoenvio").style.display = "none";
-        document.getElementById("div_datos").style.display = "none";
+    document.getElementById("opcion_envio_ed").style.display = "none";
+    document.getElementById("opcion_envio_rs").style.display = "none";
+    document.getElementById("opcion_envio_rc").style.display = "none";
+    document.getElementById("detalle").style.display = "none";
 
-        
+    
 
-          };
+    document.getElementById("div_chk_tipoenvio").style.display = "none";
+    document.getElementById("div_entrega_dom").style.display = "none";
+    document.getElementById("div_provincia").style.display = "none";
+    document.getElementById("div_cp").style.display = "none";
+    document.getElementById("div_datos_suc").style.display = "none";
 
-    document.querySelectorAll('input[name="chktipoEnvio"]').forEach((radio) => {
-        radio.addEventListener('change', function() {
-            const tipoEnvio = document.getElementById('dir_tipoenvio');
-            tipoEnvio.value = this.value;
-        });
-    });
+  };
 
- const tipoEnvio = document.getElementById('tipoEnvio');
-        
- function buscardireccion(dir_id)     {
+function buscardireccion(dir_id)     {
        
        if (dir_id==0){
             return false;
@@ -237,7 +325,11 @@
                 $("#dir_provincia").val(r.dir_provincia);
                 $("#dir_obs").val(r.dir_obs);
                 $("#dir_nombre").val(r.dir_nombre);
+                $("#dir_correo").val(r.dir_correo);
+                $("#dir_tipoenvio").val(r.dir_tipoenvio);
+                
                 dir_tipoenvio = r.dir_tipoenvio;
+                dir_correo = r.dir_correo;
 
                 // ENVIO CLASICO - CORREO ARGENTINO
                 if (dir_tipoenvio=='1'){
@@ -252,45 +344,319 @@
                 }
                 
                 // Entrega en Sucursal Correo
-                if (r.dir_tipocorreo==1){
+                if (r.dir_tipocorreo==2){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
                   document.getElementById("div_chk_tipoenvio").style.display = "block";
-                  document.getElementById("div_datos").style.display = "block";
-                  document.getElementById('dir_calle').readOnly = true;
-                  document.getElementById('dir_nro').readOnly = true;
-                  document.getElementById('dir_localidad').readOnly = true;
-                  document.getElementById('dir_provincia').readOnly = true;
-                  document.getElementById('dir_cp').readOnly = true; 
-                  $("#dir_localidad").val(r.dir_localidad); 
-                } // ENVIO A DOMICILIO
-                if (r.dir_tipocorreo==2){
-                  document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
-                  document.getElementById("div_chk_tipoenvio").style.display = "block";
-                  document.getElementById("div_datos").style.display = "block";
-                  document.getElementById("div_sucursal").style.display = "block";
+                  document.getElementById("div_datos_suc").style.display = "block";
+                  document.getElementById("div_entrega_dom").style.display = "block";
                   document.getElementById("div_provincia").style.display = "block";
                   document.getElementById("div_cp").style.display = "block";
-                  document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  document.getElementById('dir_calle').readOnly = false;
+                  document.getElementById('dir_nro').readOnly = false;
+                  document.getElementById('dir_localidad').readOnly = false;
+                  document.getElementById('dir_provincia').readOnly = false;
+                  document.getElementById('dir_cp').readOnly = false; 
+                  document.getElementById('dir_nombre').readOnly = false; 
+                  document.getElementById('email').readOnly = true;
+
+
+                  $("#dir_localidad").val(r.dir_localidad); 
+     
+                } // ENVIO A DOMICILIO
+                if (r.dir_tipocorreo==1){
+                  document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
+                  
+                  document.getElementById("div_datos_suc").style.display = "block";
+                  document.getElementById("div_entrega_dom").style.display = "block";
+                  document.getElementById("div_provincia").style.display = "block";
+                  document.getElementById("div_cp").style.display = "block";
                   document.getElementById('dir_calle').readOnly = false;
                   document.getElementById('dir_nro').readOnly = false;
                   document.getElementById('dir_localidad').readOnly = false;
                   document.getElementById('dir_provincia').readOnly = false;
                   document.getElementById('dir_cp').readOnly = false;  
-
+                  document.getElementById('dir_nombre').readOnly = false; 
+                  
                 }// RETIRA CLIENTE
-                if (r.dir_tipocorreo==3){
+                if (r.dir_correo==3){
                   document.getElementById("tipo_envio").innerText = "Retira Cliente"
                   document.getElementById("div_chk_tipoenvio").style.display = "none";
-                  document.getElementById("div_sucursal").style.display = "none";
+                  document.getElementById("div_entrega_dom").style.display = "none";
                   document.getElementById("div_provincia").style.display = "none";
                   document.getElementById("div_cp").style.display = "none";
-                  document.getElementById("div_chk_tipoenvio").style.display = "none";
-                  document.getElementById("div_datos").style.display = "none";
-
+                  document.getElementById("div_datos_suc").style.display = "none";
+                  
                 }
+                
+                document.getElementById("div_chk_tipoenvio").style.display = "none";
+                if (r.dir_correo==2) //Correo Argentino
+                {
+                  document.getElementById("div_chk_tipoenvio").style.display = "block";
+                }
+                
             },
         });
     }
+
+function limpiarDatosDireccion() {
+    $("#dir_id").val('');
+    $("#dir_calle").val('');
+    $("#dir_tipocorreo").val('');
+    $("#dir_nro").val('');
+    $("#dir_cp").val('');
+    $("#dir_telefono").val('');
+    $("#dir_localidad").val('');
+    $("#dir_provincia").val('');
+    $("#dir_obs").val('');
+    $("#dir_nombre").val('');
+    $("#dir_correo").val('');
+    $("#dir_tipocorreo").val('0');
+    $("#dir_tipoenvio").val('0');
+    $("#dir_nombre").val('');
+    
+    document.getElementById('dir_calle').readOnly = false;
+    document.getElementById('dir_nro').readOnly = false;
+    document.getElementById('dir_localidad').readOnly = false;
+    document.getElementById('dir_provincia').readOnly = false;
+    document.getElementById('dir_cp').readOnly = false; 
+}
+
+function buscardireccion_seleccion(correo_tipo)     {
+       
+       if (correo_tipo==''){
+            return false;
+        }
+
+        // Limpiar el select antes de agregar nuevas opciones
+        var select = $("#direccion");
+        select.empty();
+        select.append('<option value="0" selected disabled>Seleccione una dirección</option>');
+
+        var path = "{% url 'api:api_buscardireccion_seleccion' %}" + correo_tipo;
+       
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+             
+              if (r.length > 0) {  // Verifica que la lista no esté vacía
+                  //alert(r[0].dir_nombre);  // Accede al primer elemento de la lista y luego a 'dir_nombre'
+                  $.each(r, function(index, item) {
+                      select.append('<option value="' + item.dir_id + '">' + item.dir_nombre + '</option>');
+                  });
+              } 
+
+           
+                dir_tipoenvio = r[0].dir_tipoenvio;
+                dir_correo = r[0].dir_correo;  //1- OCA // 2-Correo Arg  // 3-Retira Cliente
+
+
+                // ENVIO CLASICO - CORREO ARGENTINO
+                if (dir_correo == 2) {
+                  if (dir_tipoenvio=='1'){
+                    document.getElementById('envioClasico').checked  = true;
+                    $("#dir_tipoenvio").val(1);
+
+                  }
+                  // ENVIO Expreso  - CORREO ARGENTINO
+                  if (dir_tipoenvio=='2'){
+                    document.getElementById('envioExpresso').checked  = true;
+                    $("#dir_tipoenvio").val(2);
+                  }
+                }
+                
+               
+            },
+        });
+    }
+
+
+function mostrarOpcionEnvio() {
+
+      document.getElementById("opcion_envio_ed").style.display = "block";
+      document.getElementById("opcion_envio_rs").style.display = "block";
+      document.getElementById("opcion_envio_rc").style.display = "block";
+      //costo_envio_by_cart
+      var cp_destino = document.getElementById("cp_search").value;
+
+      var path = "{% url 'costo_envio_by_cart' %}" + cp_destino;
+   
+      $.ajax({
+            type: "GET",
+            url: path,
+            dataType: "json",  // Asegura que la respuesta sea tratada como JSON
+            success: function(r) {
+                console.log(r); // Verifica que r tenga las propiedades correctas
+             ;
+
+                // OCA Envio a domicilio
+                $("#oca_price_ed").text("$ " + r.Total_ed);
+                //$("#oca_plazo_ed").text(r.Plazo_ed);
+                // OCA Envio a Sucursal
+                $("#oca_price_es").text("$ " + r.Total_rs);
+                //$("#oca_plazo_es").text(r.Plazo_rs);
+            },
+            error: function(xhr, status, error) {
+                console.log("Error:", error);
+                console.log("Detalles:", xhr.responseText);
+            }
+        });
+  } 
+  // Obtiene el valor seleccionado de la opcion 
+  document.querySelectorAll('input[name="envio"]').forEach((radio) => {
+    radio.addEventListener('change', function() {
+        //alert("Valor seleccionado: " + this.value);
+
+        buscardireccion_seleccion( this.value)
+        document.getElementById("detalle").style.display = "block";
+
+        limpiarDatosDireccion();
+
+        // Separar la cadena en dos partes
+        let partes =  this.value.split('_'); // Dividir por el guion bajo '_'
+
+        // Opción 1: Convertir la primera parte (oca, ca, ret) a OCA, CA, RET
+        let primeraParte = partes[0].toUpperCase(); // Convertir a mayúsculas
+
+        if (primeraParte === 'OCA') {
+            $("#dir_correo").val(1); // OCA
+            $("#dir_tipoenvio").val(0); // OCA
+        } else if (primeraParte === 'CA') {
+            $("#dir_correo").val(2); // Correo Argentino
+            $("#dir_tipoenvio").val(0); // OCA  
+        } else if (primeraParte === 'RET') {   
+            $("#dir_correo").val(3); // Retira Cliente
+            $("#dir_tipoenvio").val(0); // OCA
+
+        }
+
+        // Opción 2: Segunda parte (es, ed, cliente)
+        let segundaParte = partes[1].toUpperCase(); // Convertir a mayúsculas
+
+        if (segundaParte === 'ED') {
+            $("#dir_tipocorreo").val(1); // Entrega en Domicilio
+        } else if (segundaParte === 'ES') {
+            $("#dir_tipocorreo").val(2); // Entrega Sucursal  
+        } else if (segundaParte === 'CLIENTE') {   
+            $("#dir_tipocorreo").val(0); // Retira Cliente
+        }
+
+        const textInput = document.getElementById("dir_nombre");
+
+         // 2-  Entrega en Sucursal Correo
+         if (this.value=='oca_es' || this.value=='ca_es'){
+            document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
+            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            document.getElementById("div_datos_suc").style.display = "block";
+            document.getElementById("div_nombre_suc").style.display = "block";
+            document.getElementById("div_entrega_dom").style.display = "block";
+            document.getElementById("div_provincia").style.display = "block";
+            document.getElementById("div_cp").style.display = "block";
+            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            document.getElementById('dir_calle').readOnly = false;
+            document.getElementById('dir_nro').readOnly = false;
+            document.getElementById('dir_localidad').readOnly = false;
+            document.getElementById('dir_provincia').readOnly = false;
+            document.getElementById('dir_cp').readOnly = false; 
+            document.getElementById('dir_nombre').readOnly = false;
+           
+            textInput.required = true;
+            
+        
+          } // ENVIO A DOMICILIO
+          if (this.value == 'oca_ed' || this.value == 'ca_ed') {
+            document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
+            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            document.getElementById("div_datos_suc").style.display = "block";
+            document.getElementById("div_nombre_suc").style.display = "none";
+            document.getElementById("div_entrega_dom").style.display = "block";
+            document.getElementById("div_provincia").style.display = "block";
+            document.getElementById("div_cp").style.display = "block";
+            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            document.getElementById('dir_calle').readOnly = false;
+            document.getElementById('dir_nro').readOnly = false;
+            document.getElementById('dir_localidad').readOnly = false;
+            document.getElementById('dir_provincia').readOnly = false;
+            document.getElementById('dir_cp').readOnly = false; 
+            document.getElementById('div_nombre_suc').readOnly = false; 
+           
+            //textInput.required = false;
+            
+
+          }// RETIRA CLIENTE
+          if (this.value == 'ret_cliente' ) {
+            document.getElementById("tipo_envio").innerText = "Retira Cliente"
+            document.getElementById("div_chk_tipoenvio").style.display = "none";
+            document.getElementById("div_entrega_dom").style.display = "block";
+            document.getElementById("div_provincia").style.display = "block";
+            document.getElementById("div_cp").style.display = "block";
+            document.getElementById("div_chk_tipoenvio").style.display = "none";
+            document.getElementById("div_datos_suc").style.display = "block";
+            document.getElementById("dir_nombre").style.display = "block";
+            //textInput.required = false;
+          }
+          document.getElementById("div_chk_tipoenvio").style.display = "none";
+          if (primeraParte === 'CA') //Correo Argentino
+          {
+           
+            document.getElementById("div_chk_tipoenvio").style.display = "block";
+            
+          }
+
+          document.getElementById('email').readOnly = true;
+
+    });
+});
+
+// Función para cargar las opciones en el select
+function cargarDirecciones() {
+    const select = document.getElementById('direccion');
+    
+    direcciones.forEach(function(item) {
+        const option = document.createElement('option');
+        option.value = item.dir_id;
+        option.text = item.dir_nombre;
+        select.appendChild(option);
+    });
+}
+
+
+function validarFormulario(event) {
+    // Obtener el valor del campo
+   
+    // Limpiar cualquier mensaje de error previo
+    //document.getElementById('error').textContent = "";
+    // Obtener el valor del campo como número
+    var dir_id = document.getElementById('dir_id').value;
+   
+    // Validar que sea mayor a 0 y distinto de una cadena vacía
+    if (dir_id.split() == '' || parseInt(dir_id) <= 0) {
+        // Mostrar un mensaje de error
+        document.getElementById('error').textContent = "Seleccione una opcion del combo direcciones";
+
+        alert("Seleccione una opcion del combo direcciones");
+        // Prevenir el envío del formulario
+        event.preventDefault();
+        return false;
+    }
+    return true;
+}
+
+</script>
+
+<script>
+
+   
+    document.querySelectorAll('input[name="chktipoEnvio"]').forEach((radio) => {
+        radio.addEventListener('change', function() {
+            const tipoEnvio = document.getElementById('dir_tipoenvio');
+            tipoEnvio.value = this.value;
+        });
+    });
+
+ const tipoEnvio = document.getElementById('tipoEnvio');
+        
+ 
     
    
 

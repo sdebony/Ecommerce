@@ -169,6 +169,39 @@ class DireccionesList(APIView):
         data = DireccionesSerializer(direccion,many=True).data
         return Response(data)
 
+class DireccionesbyTipo(APIView):
+          
+    def get(self,request,correo_tipo):
+        print("Direcciones By Tipo: - ",correo_tipo)
+        dir_correo=0
+        dir_tipocorreo=0
+
+        if correo_tipo == "oca_ed":  #OCA EN DOMICILIO
+            dir_correo = 1 #Oca
+            dir_tipocorreo = 1
+        if correo_tipo == "oca_es":  #OCA ENTREGA EN SUCURSAL
+            dir_correo = 1 #Oca
+            dir_tipocorreo = 2
+        if correo_tipo == "ca_ed":  #CORREO ARGENTINO ENTREGA EN DOMICILIO
+            dir_correo = 2 #Correo Argentino
+            dir_tipocorreo = 1
+        if correo_tipo == "ca_es":  #CORREO ARGENTINO ENTREGA EN SUCURSAL
+            dir_correo = 2 #Correo Argentino
+            dir_tipocorreo = 2
+        if correo_tipo == "ret_cliente":  #RETIRA CLIENTE
+            dir_correo = 3 #
+            dir_tipocorreo = 0
+        
+        #dir_correo:   1-OCA  #2 Correo Argentino #3 Retira Cliente
+        #dir_tipocorreo: #1 Envio a Domicilio  #2 Sucursal Correo 
+
+        print("correo:", dir_correo,"tipoCorreo:",dir_tipocorreo)
+
+        direcciones = AccountDirecciones.objects.filter(user=request.user,dir_correo=dir_correo, dir_tipocorreo=dir_tipocorreo)
+        data = DireccionesSerializer(direcciones,many=True).data
+        print(data)
+        return Response(data)
+
 class CuentasList(APIView):
           
     def get(self,request,cuenta):

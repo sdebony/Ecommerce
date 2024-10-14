@@ -7,13 +7,19 @@ import time
 from .models import Order, Payment, OrderProduct
 from accounts.models import AccountDirecciones, Account
 
+
 import json
 from store.models import Product,Costo
 
-from django.core.mail import EmailMessage
+
 from django.template.loader import render_to_string
 
 from api.views import enviar_whatsapp
+
+from django.conf import settings
+import smtplib
+#from email.message import EmailMessage
+from django.core.mail import EmailMessage
 
 #import pywhatkit  #Kit de envio de whatsapp
 
@@ -90,7 +96,7 @@ def payments(request):
 def place_order(request, total=0, quantity=0,):
     current_user = request.user
     
-    
+    print("place_order:")
     # If the cart count is less than or equal to 0, then redirect back to shop
     cart_items = CartItem.objects.filter(user=current_user)
     cart_count = cart_items.count()
@@ -138,7 +144,7 @@ def place_order(request, total=0, quantity=0,):
             data.ip = request.META.get('REMOTE_ADDR')
             data.save()
 
-         
+            print("Data Save")
             # Generate order number
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))
@@ -161,6 +167,8 @@ def place_order(request, total=0, quantity=0,):
             print("order",order)
             return render(request, 'orders/payments.html', context)
         else:
+            print("Form is not valid")
+            #'first_name', 'last_name', 'dir_telefono', 'email', 'dir_calle', 'dir_nro', 'dir_localidad', 'dir_provincia', 'dir_cp','dir_obs','dir_tipocorreo','dir_tipoenvio','dir_nombre','dir_correo
             print(form)
             return redirect('store')
     else:
@@ -245,16 +253,16 @@ def order_cash(request):
                 order.is_ordered = True  #Confirmo la orden de compa
                 order.total_peso = pesoarticulos
                 user = Account.objects.filter(email=order.user).first()
-                sucursal = AccountDirecciones.objects.get(user=user,dir_tipocorreo = order.dir_tipocorreo)
-                print(sucursal)
+                #sucursal = AccountDirecciones.objects.get(user=user,dir_tipocorreo = order.dir_tipocorreo)
+                #print(sucursal)
 
-                if sucursal:
-                    dir_nombre =sucursal.dir_nombre 
-                else:
-                    dir_nombre = ""
+                #if sucursal:
+                #    dir_nombre =sucursal.dir_nombre 
+                #else:
+                #    dir_nombre = ""
                 
-                print(dir_nombre)
-                order.dir_nombre = dir_nombre
+                #print(dir_nombre)
+                order.dir_nombre = ""
                 order.save()
 
             print("order status", order.is_ordered)
@@ -288,18 +296,25 @@ def order_cash(request):
                 'subtotal': subtotal,
                 })
             to_email =  request.user.email
-            cc_email = 'lifche.argentina@gmail.com' #santidebony@hotmail.com
+            cc_email =  settings.DEF_CC_MAIL  #'lifche.argentina@gmail.com' #santidebony@hotmail.com
             
+            print(to_email,cc_email)
             send_email = EmailMessage(mail_subject, message, to=[to_email],cc=[cc_email])
             send_email.content_subtype = "html"
             #send_email.attach_file('static/images/logo.png')
             send_email.send()
 
+
+
+
+
+
             #************************
             #Send Whatsapp
             #*************************
-            
-            enviar_whatsapp (request,order.order_number,'54111565184759')
+            celular=settings.DEF_CEL
+
+            enviar_whatsapp (request,order.order_number,celular)
             print("enviar whatsapp")
             
             context = {
@@ -312,7 +327,7 @@ def order_cash(request):
             }
             print("Order Complete")
             return render(request, 'orders/order_complete.html', context)
-        #except (Payment.DoesNotExist, Order.DoesNotExist):
+    
         except (Order.DoesNotExist):
             print("Except")
             return redirect('home')

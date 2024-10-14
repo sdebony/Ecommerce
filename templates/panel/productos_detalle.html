@@ -47,7 +47,7 @@
                     <div class="form-row">
                         <div class="col form-group">
                             <label for="">Ubicacion</label>
-                            <input type="number" step="any" name="ubicacion" id="ubicacion" class="form-control" value="{{producto.ubicacion|format_integer_def }}" >
+                            <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{producto.ubicacion }}" >
                         </div>
 
                         <div class="col form-group">
@@ -121,7 +121,7 @@
                     <div class="form-row">
                         <div class="col form-group">
                             <label for="">Descripcion</label>
-                            <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
+                            <textarea type="textarea" name="description" rows="8" class="form-control">{{producto.description}}</textarea>
                         </div>
                     </div>
                     <div class="form-row">

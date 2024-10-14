@@ -40,18 +40,18 @@
                 <div class="col-12">
               
 
-                 {% if ordenes.dir_tipocorreo == 1 %} 
-                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
+                 {% if ordenes.dir_tipocorreo == 2 %} 
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %} - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}
-                  {% if ordenes.dir_tipocorreo == 2 %}
-                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
+                  {% if ordenes.dir_tipocorreo == 1 %}
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio -  {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %}  Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}
-                  {% if ordenes.dir_tipocorreo == 3 %}
+                  {% if ordenes.dir_correo == 3 %}
                   <h4><i class="fas fa-user"></i> Retira Cliente
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
@@ -60,7 +60,7 @@
                 <!-- /.col -->
               </div>
               <!-- info row -->
-              {% if ordenes.dir_tipocorreo == 1 %} 
+              {% if ordenes.dir_tipocorreo == 2 %} 
               <div class="row invoice-info">
                 <div class="col-sm-4 invoice-col">
                     <span class="float-left">Sucursal: <strong>{{ ordenes.dir_nombre }}</strong></span>

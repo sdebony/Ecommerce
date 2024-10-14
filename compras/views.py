@@ -827,24 +827,27 @@ def procesar_datos(request):
                 #print("proveedor",proveedor)
                     
                 monto=encabezado['subtotal']
-                subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                #print("subtotal",subtotal)
+                #Sub Total: $ 7.331,00 1ra vez
+               
+                print("Sub Total:", monto)
+                subtotal = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                print("subtotal",subtotal)
                 
                 monto=encabezado['envio']
-                costoenvio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                #print("envio",costoenvio)
+                costoenvio = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                print("envio",costoenvio)
 
                 monto=encabezado['descuentos']
-                descuentos = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                #print("descuentos",descuentos)
+                descuentos = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                print("descuentos",descuentos)
 
                 monto=encabezado['total']
-                total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                #print("total",total)
+                total = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                print("total",total)
 
                 fecha_str = encabezado['fecha']
                 fecha_compra = datetime.strptime(fecha_str, '%d/%m/%Y')
-                #print("fecha",fecha_compra)
+                print("fecha",fecha_compra)
 
                 observaciones = encabezado['observaciones']
 
@@ -893,28 +896,30 @@ def procesar_datos(request):
                            
 
                         for detalle in detalles:
-                            articulo_prov = detalle['producto']
-                            producto = ProveedorArticulos.objects.filter(proveedor=id_prov,nombre_articulo=articulo_prov).first()
+                            #articulo_prov = detalle['producto']
+                            idproducto = detalle['idproducto']
+                            print(idproducto)
+                            producto = ProveedorArticulos.objects.filter(id=idproducto).first()
 
                             cant=detalle['cantidad']
-                            cantidad = float(cant.replace('$', '').replace('.', '').replace(',', '.'))
-                            #print("cantidad",cantidad)
+                            cantidad = float(cant.replace('$', '').replace(',', '').replace(',', '.'))
+                            print("cantidad",cantidad)
 
                             monto=detalle['precio']
-                            precio = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            #print("precio",precio)
+                            precio = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                            print("precio",precio)
 
                             monto=detalle['subtotal']
-                            subtotal = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            #print("subtotal",subtotal)
+                            subtotal = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                            print("subtotal",subtotal)
 
                             monto=detalle['descuento']
-                            descuento = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            #print("descuento",descuento)
+                            descuento = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                            print("descuento",descuento)
 
                             monto=detalle['total']
-                            total = float(monto.replace('$', '').replace('.', '').replace(',', '.'))
-                            #print("total",total)
+                            total = float(monto.replace('$', '').replace(',', '').replace(',', '.'))
+                           #print("total",total)
 
                            
 

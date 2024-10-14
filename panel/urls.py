@@ -7,6 +7,7 @@ urlpatterns = [
     path('dashboard/ventas', views.dashboard_ventas, name='dashboard_ventas'),
     path('dashboard/cuentas', views.dashboard_cuentas, name='dashboard_cuentas'),
     path('dashboard/resultados/<int:cuenta_id>', views.dashboard_resultados, name='dashboard_resultados'),
+    path('dashboard/control', views.dashboard_control, name='dashboard_control'),
     #PRODUCTOS
     path('productos/list', views.panel_product_list_category, name="producto_list_category"),
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
@@ -118,7 +119,11 @@ urlpatterns = [
     path('margen/<int:id_param>', views.panel_margen_edit, name='panel_margen_edit'),
     
     #SERVICIOS OCA
-     path('consultar-costo-envio/', views.costo_envio_view, name='consultar_costo_envio'),
+    #pruebas: http://localhost:8000/panel/consultar-costo-envio/
+    path('consultar-costo-envio/', views.costo_envio_view, name='consultar_costo_envio'),
+    path('costo_envio_by_cart/<str:cp_destino>', views.costo_envio_by_cart, name='costo_envio_by_cart'),
+    path('costo_envio_by_cart/', views.costo_envio_by_cart, name='costo_envio_by_cart'),
+    path('edit_dir_entrega/', views.consultar_suc_by_cp, name='consultar_suc_by_cp'),
     
     
     

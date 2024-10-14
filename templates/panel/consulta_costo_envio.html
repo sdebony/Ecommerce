@@ -47,5 +47,57 @@
             <p>Plazo de Entrega: {{ resultado.PlazoEntrega }} días</p>
         {% endif %}
     {% endif %}
+
+<!--   CONSULTAR SUCURSALES POR CODIGO POSTAL-->
+    <form action="{% url 'consultar_suc_by_cp' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+
+        <label for="cp_destino">Código Postal :</label>
+        <input type="text" id="cp_destino" name="cp_destino" required><br>
+
+        <button type="submit">Consultar CP</button>
+    </form>
+    
+    {% if centros_info.centro_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID Centro</th>
+                <th>Sucursal</th>
+                <th>Calle</th>
+                <th>Número</th>
+                <th>Localidad</th>
+                <th>Provincia</th>
+                <th>Teléfono</th>
+                <th>Servicios</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for centro in centros_info.centro_data %}
+                <tr>
+                    <td>{{ centro.IdCentroImposicion }}</td>
+                    <td>{{ centro.Sucursal }}</td>
+                    <td>{{ centro.Calle }} {{ centro.Numero }} - {{ centro.Localidad }} </td>
+                    <td>{{ centro.Numero }}</td>
+                    <td>{{ centro.Localidad }}</td>
+                    <td>{{ centro.Provincia }}</td>
+                    <td>{{ centro.Telefono }}</td>
+                    <td>
+                        <ul>
+                            {% for servicio in centro.Servicios %}
+                                <li>{{ servicio.ServicioDesc }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No se encontraron centros de imposición para el código postal proporcionado.</p>
+    {% endif %}
+
+
 </body>
 </html>

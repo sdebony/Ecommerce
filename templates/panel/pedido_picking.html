@@ -33,6 +33,18 @@
         <div class="col-sm-4 invoice-col">
           <address>
             <strong>Para: {{ ordenes.full_name}}</strong><br>
+            {% if ordenes.dir_tipocorreo == 2 %} 
+                <strong>Retira en Sucursal</strong> 
+                {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %}
+            {% elif ordenes.dir_tipocorreo == 1 %}
+                <strong>Envío a Domicilio :</strong> 
+                {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %}
+            {% endif %}
+            {% if ordenes.dir_correo == 3 %}
+                <strong>Retira Cliente :</strong>  <strong> 
+            {% endif %}
+           
+           {{ ordenes.dir_direccion }} <br>
            {{ ordenes.dir_calle }} {{ ordenes.dir_nro }} <br>
            {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}} ({{ ordenes.dir_cp}})<br>
             Phone: {{ ordenes.dir_telefono}}<br>
