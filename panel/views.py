@@ -1403,11 +1403,14 @@ def panel_pedidos_save_enc(request):
                     dir_obs = order.dir_obs,
                     dir_tipocorreo= order.dir_tipocorreo,
                     order_total = order.order_total,
+                    dir_correo= order.dir_correo,
+                    dir_tipoenvio = order.dir_tipoenvio,
                     envio = 0,
                     status = "New",
                     is_ordered=True,
                     ip = request.META.get('REMOTE_ADDR'),
-                    total_peso=0
+                    total_peso=order.total_peso,
+                    
                         ) 
                 Order_New.save()
                 messages.success(request,"Pedido guardado con exito.")
@@ -5801,7 +5804,7 @@ def costo_envio_by_cart(request,cp_destino):
             total += (cart_item.product.peso * cart_item.quantity)
             
 
-        peso = total
+        peso = total/1000
        
         correo = 1         #OCA
         # Llamar a la función consultar_costo_envio

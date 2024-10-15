@@ -131,20 +131,20 @@
               <td>{{ item.subcategory.subcategory_name }}</td> 
               <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
               <td>{{ item.stock|default:0|format_integer_def }}</td> <!-- STOCK -->
-              <td>{{ item.precio_base|format_currency }}</td> <!-- Precio Estimado WEB -->
-              <td>{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
+              <td class="bg-warning text-dark">{{ item.precio_base|format_currency }}</td> <!-- Precio Estimado WEB -->
+              <td class="bg-success text-dark">{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
               <td>{{ item.comision1_calculado|format_currency }} </td> <!-- comision 1 venta web / Regular-->
               <td>{{ item.beneficio1_calculado|format_currency }}</td> <!-- Beneficio Regular de venta-->
               
               <!-- Venta Tienda Nube-->
               <td>{{ item.precio_cal_tn|format_currency }}</td> <!-- Precio Tienda Nube utilizando margen 1 + margen 2-->
-              <td>{{ item.precio_TN|format_currency }} </td> <!-- Precio Tienda Nube-->
+              <td class="bg-success text-dark">{{ item.precio_TN|format_currency }} </td> <!-- Precio Tienda Nube-->
               <td>{{ item.comision2_calculado|format_currency }} </td> <!-- comision x venta tienda nube-->
               <td>{{ item.beneficio2_calculado|format_currency }}</td>
               
               <!-- Precio Venta ML -->
               <td>{{ item.precio_cal_ml|format_currency }}</td> <!-- Precio Estimado Mercado Libre utilizando margen 1 + margen 2-->
-              <td>{{ item.precio_ML|format_currency }}</td> <!-- Precio Real Mercado Libre--> 
+              <td class="bg-success text-dark">{{ item.precio_ML|format_currency }}</td> <!-- Precio Real Mercado Libre--> 
               <td>{{ item.comision3_calculado|format_currency }} </td> <!-- comision x venta Mercado Libre-->
               <td >{{ item.beneficio3_calculado|format_currency }}</td> <!-- Beneficio de venta Mercado Libre-->
             

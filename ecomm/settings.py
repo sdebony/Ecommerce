@@ -227,7 +227,7 @@ CLIENTE_ID="1279208844446512"                           #"5374552499309003"
 REDIRECT_URI="https://lifche.qualities.com.ar/panel/"    #"https://lifche.qualities.com.ar/panel/"
 CLIENT_SECRET="GimLKbcpxGBStJd56R38iJAzCXqxqWJR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
 
-OCA_CP_ORIGEN='1643'
+OCA_CP_ORIGEN='1617'
 OCA_OPERATIVA_ED='421906'  #Oca entrega a domicilio
 OCA_OPERATIVA_ES='421907'  #Oca entrega en Sucursal
 OCA_CUIT='23-24695274-4'
