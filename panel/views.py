@@ -493,18 +493,16 @@ def dashboard_control(request):
         total_ventas = orders_validas.count()
         total_articulos_vendidos = margen_utilidad['total_articulos_vendidos']
 
-        
-
+    
 
         print("Cantidad de ventas:",total_ventas,total_articulos_vendidos)
         
-     
-        
-
-        if total_product_cost > 0:
-            margen_bruto_total = round(((total_product_price / total_product_cost) - 1) * 100, 2)  # Redondear a 2 decimales
-        else:
-            margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
+        margen_bruto_total = None
+        if total_product_cost:
+            if  total_product_cost > 0:
+                margen_bruto_total = round(((total_product_price / total_product_cost) - 1) * 100, 2)  # Redondear a 2 decimales
+            else:
+                margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
 
         context = {
             'permisousuario':permisousuario,
