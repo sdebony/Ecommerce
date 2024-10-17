@@ -404,12 +404,15 @@ def edit_dir_entrega(request):
                     dir_cp_1 = request.POST['dir_cp_1']                 #Codigo Postal
                     dir_calle_1= request.POST["dir_calle_1"]            # Calle de envio a domicilio
                     dir_nro_1= request.POST["dir_nro_1"]                #Nro Calle de envio a domicilio
+                    dir_piso_1= request.POST["dir_piso_1"]              #Piso
+                    dir_depto_1= request.POST["dir_depto_1"]            #Depto
+                    dir_localidad_1= request.POST["dir_localidad_1"]    #Localidad
                     dir_provincia_1= request.POST["dir_provincia_1"]    #Provincia envio a domicilio
                     dir_area_tel_1= request.POST["dir_area_tel_1"]
                     dir_telefono_1= request.POST["dir_telefono_1"]
                     dir_obs_1= request.POST["dir_obs_1"]
                     dir_tipocorreo_1 = request.POST['dir_tipocorreo_1'] # Envio a Domicilio / Retira Sucursal 
-                    dir_localidad_1 = ""
+                   
 
                     if dir_id_1 == "" or dir_id_1 == "0":
                         #ADD NEW
@@ -421,6 +424,8 @@ def edit_dir_entrega(request):
                                 dir_cp=dir_cp_1,
                                 dir_calle=dir_calle_1,
                                 dir_nro=dir_nro_1,
+                                dir_piso=dir_piso_1,
+                                dir_depto=dir_depto_1,
                                 dir_localidad=dir_localidad_1,
                                 dir_provincia=dir_provincia_1,
                                 dir_area_tel=dir_area_tel_1,
@@ -443,6 +448,8 @@ def edit_dir_entrega(request):
                         direcciones.dir_calle = dir_calle_1
                         direcciones.dir_cp = dir_cp_1
                         direcciones.dir_nro = dir_nro_1
+                        direcciones.dir_piso = dir_piso_1
+                        direcciones.dir_depto = dir_depto_1
                         direcciones.dir_provincia = dir_provincia_1
                         direcciones.dir_localidad = dir_localidad_1
                         direcciones.dir_area_tel = dir_area_tel_1
@@ -535,6 +542,8 @@ def edit_dir_entrega(request):
             dir_cp = request.POST.get('dir_cp', '')             #Código Postal
             dir_calle = request.POST.get('dir_calle', '')       #Calle
             dir_nro = request.POST.get('dir_nro', '')           #Número 
+            dir_piso= request.POST.get('dir_piso', '')          #Piso
+            dir_depto= request.POST.get('dir_depto', '')        #Departamento
             dir_localidad = request.POST.get('dir_localidad', '')  #Localidad
             dir_provincia = request.POST.get('dir_provincia', '')  #Provincia
             dir_area_tel = request.POST.get('dir_area_tel', '')  #Área de Tel
@@ -552,6 +561,8 @@ def edit_dir_entrega(request):
                             dir_cp=dir_cp,
                             dir_calle=dir_calle,
                             dir_nro=dir_nro,
+                            dir_piso=dir_piso,
+                            dir_depto=dir_depto,
                             dir_localidad=dir_localidad,
                             dir_provincia=dir_provincia,
                             dir_area_tel=dir_area_tel,
@@ -574,6 +585,8 @@ def edit_dir_entrega(request):
                     direcciones.dir_calle = dir_calle
                     direcciones.dir_cp = dir_cp
                     direcciones.dir_nro = dir_nro
+                    direcciones.dir_piso = dir_piso
+                    direcciones.dir_depto = dir_depto
                     direcciones.dir_provincia = dir_provincia
                     direcciones.dir_localidad = dir_localidad
                     direcciones.dir_area_tel = dir_area_tel
@@ -753,6 +766,8 @@ def edit_dir_entrega(request):
 @login_required(login_url='login')
 def edit_dir_entrega_correo(request,dir_id=None,dir_tipocorreo=None):
 
+
+    print("edit_dir_entrega_correo")
     if dir_id ==0:
         messages.warning(request, 'Complete los datos')
         direccion = AccountDirecciones.objects.filter(user=request.user).first()

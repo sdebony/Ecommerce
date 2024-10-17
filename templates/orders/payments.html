@@ -15,10 +15,10 @@
 				<div class="card">
 					<h5 class="card-header">Datos de la Entrega - #{{ order.order_number }}</h5>
 					<div class="card-body">
-						{% if order.dir_tipocorreo == 1 %}
+						{% if order.dir_tipocorreo == 2 %}
 						<p class="card-text mb-0 fw-bold">Retiro en Sucursal - <strong>{{ order.dir_nombre }}</strong></p>
 						{% endif %}
-						{% if order.dir_tipocorreo == 2 %}
+						{% if order.dir_tipocorreo == 1 %}
 						<p class="card-text mb-0 fw-bold">Envio a Domicilio - <strong> {{ order.dir_nombre }}</strong></p>
 						{% endif %}
 						{% if order.dir_tipocorreo == 3 %}

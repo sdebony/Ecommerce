@@ -130,6 +130,8 @@ def place_order(request, total=0, quantity=0,):
             data.email = form.cleaned_data['email']
             data.dir_calle = form.cleaned_data['dir_calle']
             data.dir_nro = form.cleaned_data['dir_nro']
+            data.dir_piso = form.cleaned_data['dir_piso']            
+            data.dir_depto = form.cleaned_data['dir_depto']
             data.dir_localidad = form.cleaned_data['dir_localidad']
             data.dir_provincia = form.cleaned_data['dir_provincia']
             data.dir_cp = form.cleaned_data['dir_cp']

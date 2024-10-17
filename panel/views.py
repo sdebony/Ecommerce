@@ -1373,6 +1373,8 @@ def panel_pedidos_save_enc(request):
             last_name = request.POST.get("last_name")
             dir_calle = request.POST.get("dir_calle")
             dir_nro = request.POST.get("dir_nro")
+            dir_piso = request.POST.get("dir_piso")
+            dir_depto = request.POST.get("dir_depto")
             dir_localidad = request.POST.get("dir_localidad")
             dir_provincia = request.POST.get("dir_provincia")
             dir_telefono = request.POST.get("dir_telefono")
@@ -1395,6 +1397,8 @@ def panel_pedidos_save_enc(request):
                     dir_telefono=dir_telefono,
                     dir_calle=dir_calle,
                     dir_nro =dir_nro,
+                    dir_piso =dir_piso,
+                    dir_depto =dir_depto,
                     dir_localidad=dir_localidad,
                     dir_provincia=dir_provincia,
                     dir_cp = order.dir_cp,

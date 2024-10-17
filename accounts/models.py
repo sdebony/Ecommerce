@@ -114,11 +114,13 @@ class AccountDirecciones(models.Model):
      dir_cp = models.CharField(max_length=10)
      dir_calle = models.CharField(max_length=100)
      dir_nro = models.CharField(max_length=25)
-     dir_localidad = models.CharField(max_length=50)
-     dir_provincia = models.CharField(max_length=50)
-     dir_area_tel = models.CharField(max_length=5)
+     dir_piso = models.CharField(max_length=10,blank=True)
+     dir_depto = models.CharField(max_length=10,blank=True)
+     dir_localidad = models.CharField(max_length=50,blank=True)
+     dir_provincia = models.CharField(max_length=50,blank=True)
+     dir_area_tel = models.CharField(max_length=5,blank=True)
      dir_telefono = models.CharField(max_length=25)
-     dir_obs    = models.CharField(max_length=250)
+     dir_obs    = models.CharField(max_length=250,blank=True)
      dir_tipocorreo = models.BigIntegerField(default=0) #1 Envio a Domicilio  #2 Sucursal Correo  
      dir_tipoenvio = models.BigIntegerField(default=0)  #1-Clasico  #2-Expreso
      dir_correo = models.BigIntegerField(default=0) # 1-OCA  #2 Correo Argentino #3 Retira Cliente

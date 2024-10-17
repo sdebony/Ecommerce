@@ -65,8 +65,8 @@
 									<div class="form-row">
 										<div class="form-group col-md-6">
 											<div class="form-group">
-												<label for="nombreSucursal">Nombre (Alias)</label>
-												<input type="text" id="dir_nombre_1" name="dir_nombre_1" class="form-control" value="{{ dir_OCA_ED.dir_nombre }}" placeholder="Nombre de la Sucursal." maxlength="50">
+												<label for="nombreSucursal">Nombre de la dirección: (Ej: Mi Casa - OCA , Oficina - OCA)</label>
+												<input type="text" id="dir_nombre_1" name="dir_nombre_1" class="form-control" value="{{ dir_OCA_ED.dir_nombre }}" placeholder="Nombre para identificar la dirección" maxlength="50">
 												
 											</div>
 										</div>
@@ -80,31 +80,44 @@
 									</div>
 									<!-- Dirección: Calle y Número -->
 									<div class="form-row">
-										<div class="form-group col-md-8">
+										<div class="form-group col-md-6">
 											<label>Calle</label>
-											<input type="text" name="dir_calle_1" class="form-control" value="{{ dir_OCA_ED.dir_calle }}" placeholder="Ingrese la calle" >
+											<input type="text" name="dir_calle_1" class="form-control" value="{{ dir_OCA_ED.dir_calle }}" placeholder="Calle" required>
 										</div>
-										<div class="form-group col-md-4">
+										<div class="form-group col-md-2">
 											<label>Número</label>
-											<input type="text" name="dir_nro_1" class="form-control" value="{{ dir_OCA_ED.dir_nro }}" placeholder="Ingrese el número" >
+											<input type="text" name="dir_nro_1" class="form-control" value="{{ dir_OCA_ED.dir_nro }}" placeholder="Número" required>
+										</div>
+										<div class="form-group col-md-2">
+											<label>Piso:</label>
+											<input type="text" name="dir_piso_1" class="form-control" value="{{ dir_OCA_ED.dir_piso }}" placeholder="Piso" maxlength="10">
+										</div>
+										<div class="form-group col-md-2">
+											<label>Depto:</label>
+											<input type="text" name="dir_depto_1" class="form-control" value="{{ dir_OCA_ED.dir_depto }}" placeholder="Departamento" maxlength="10">
 										</div>
 									</div>
 
-									<!-- Provincia -->
-									<div class="form-group">
-										<label for="provinciaSucursal">Provincia</label>
-										<input type="text" name="dir_provincia_1" class="form-control" value="{{ dir_OCA_ED.dir_provincia }}" placeholder="Ingrese la Provincia" >
+									<!-- Provincia y Localidad -->
+									<div class="form-row">
+										<div class="form-group col-md-6">
+											<label for="provinciaSucursal">Provincia</label>
+											<input type="text" name="dir_provincia_1" class="form-control" value="{{ dir_OCA_ED.dir_provincia }}" placeholder="Provincia" required>
+										</div>
+										<div class="form-group col-md-6">
+											<label for="provinciaSucursal">Localidad</label>
+											<input type="text" name="dir_localidad_1" class="form-control" value="{{ dir_OCA_ED.dir_localidad }}" placeholder="Localidad" >
+										</div>
 									</div>
-
 									<!-- Código de Área y Teléfono -->
 									<div class="form-row">
 										<div class="form-group col-md-2">
 											<label for="codigoAreaSucursal">Cod Area (011)</label>
-											<input type="text" name="dir_area_tel_1" class="form-control" value="{{ dir_OCA_ED.dir_area_tel }}" placeholder="Codigo de Area" >
+											<input type="text" name="dir_area_tel_1" class="form-control" value="{{ dir_OCA_ED.dir_area_tel }}" placeholder="Codigo de Area" required>
 										</div>
-										<div class="form-group col-md-10">
+										<div class="form-group col-md-4">
 											<label for="telefonoSucursal">Teléfono</label>
-											<input type="text" name="dir_telefono_1" class="form-control" value="{{ dir_OCA_ED.dir_telefono }}" placeholder="Ingrese el telefono de contacto" >
+											<input type="text" name="dir_telefono_1" class="form-control" value="{{ dir_OCA_ED.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
 										</div>
 									</div>
 
@@ -209,8 +222,8 @@
 									<div class="form-row">
 										<div class="form-group col-md-6">
 											<div class="form-group">
-												<label for="nombreSucursal">Nombre (Alias)</label>
-												<input type="text" name="dir_nombre_2" id="dir_nombre_2" class="form-control" value="{{ dir_OCA_RS.dir_nombre }}" maxlength="50" placeholder="Nombre de la Sucursal."  required>
+												<label for="nombreSucursal">Nombre de la Sucursal:</label>
+												<input type="text" name="dir_nombre_2" id="dir_nombre_2" class="form-control" value="{{ dir_OCA_RS.dir_nombre }}" maxlength="50" placeholder="Nombre de la Sucursal." readonly required>
 												<input type="text" name="dir_id_2" id="dir_id_2" class="form-control" value="{{ dir_OCA_RS.dir_id }}" hidden> <!-- ID OCA RETIRO EN SUCURSAL-->		
 											</div>
 											
@@ -313,13 +326,17 @@
 							<!-- Nombre y Tipo de Envío -->
 							<div class="form-row">
 								<div class="form-group col-md-6">
-									<label>Nombre</label>
+									<label>Nombre de la dirección: (Ej: Mi Casa - Correo Argentino)</label>
 									<input type="text" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="1" hidden> <!-- ENVIO A DOMICILIO  -->
 									<input type="text" name="dir_correo" id="dir_correo" class="form-control" value="2" hidden> <!-- Correo Argentino -->
-									<input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="{{ dir_CA_ED.dir_nombre }}" placeholder="Ingrese un nombre para identificar." maxlength="50" required>
+									<input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="{{ dir_CA_ED.dir_nombre }}" placeholder="Nombre para identificar la dirección" maxlength="50" required>
 									<input type="text" name="dir_id" id="dir_id" class="form-control" value="{{ dir_CA_ED.dir_id }}" hidden>
 								</div>
-								<div class="form-group col-md-6">
+								<div class="form-group col-md-2">
+									<label>Código Postal</label>
+									<input type="text" name="dir_cp" id="dir_cp" class="form-control" value="{{ dir_CA_ED.dir_cp}}" placeholder="Ingrese el código postal">
+								</div>
+								<div class="form-group col-md-4">
 									<label>Tipo de Envío</label>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
@@ -336,14 +353,12 @@
 										</label>
 									</div>
 								</div>	
+								
 							</div>
 
 							<!-- Código Postal, Calle, y Número -->
 							<div class="form-row">
-								<div class="form-group col-md-4">
-									<label>Código Postal</label>
-									<input type="text" name="dir_cp" id="dir_cp" class="form-control" value="{{ dir_CA_ED.dir_cp}}" placeholder="Ingrese el código postal">
-								</div>
+								
 								<div class="form-group col-md-4">
 									<label>Calle</label>
 									<input type="text" name="dir_calle" id="dir_calle" class="form-control" value="{{ dir_CA_ED.dir_calle }}" placeholder="Ingrese la calle" required>
@@ -352,6 +367,14 @@
 									<label>Número</label>
 									<input type="text" name="dir_nro" id="dir_nro" class="form-control" value="{{ dir_CA_ED.dir_nro }}" placeholder="Ingrese el número" required>
 									
+								</div>
+								<div class="form-group col-md-2">
+									<label>Piso:</label>
+									<input type="text" name="dir_piso" class="form-control" value="{{ dir_CA_ED.dir_piso }}" placeholder="Piso" maxlength="10">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Depto:</label>
+									<input type="text" name="dir_depto" class="form-control" value="{{ dir_CA_ED.dir_depto }}" placeholder="Departamento" maxlength="10" >
 								</div>
 							</div>
 
@@ -402,7 +425,7 @@
 							<!-- Nombre y Tipo de Envío -->
 							<div class="form-row">
 								<div class="form-group col-md-6">
-									<label>Nombre</label>
+									<label>Nombre de la Sucursal  <a href="https://www.correoargentino.com.ar/formularios/sucursales"> (Ver sucursales)</a></a></label>
 									<input type="text" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="2" hidden> <!-- ENVIO A DOMICILIO  -->
 									<input type="text" name="dir_correo" id="dir_correo" class="form-control" value="2" hidden> <!-- Correo Argentino -->
 									<input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="{{ dir_CA_RS.dir_nombre }}" placeholder="Ingrese un nombre para identificar." maxlength="50" required>
@@ -552,24 +575,58 @@
 <script>
 
 function submitFormPadre(event) {
-    //event.preventDefault(); // Evita el envío automático del formulario
+    
+	event.preventDefault(); // Evita el envío automático del formulario
 
-    const form = document.getElementById('form_padre'); // Obtén el formulario por su ID
+  	const form = document.getElementById('form_padre'); // Obtén el formulario por su ID
+    let isValid = true;
 
-	document.getElementById('action_field').value = "save_oca_ed";
-    // Aquí se realiza el envío del formulario
-    form.submit(); // Envia el formulario al servidor
+	 // Obtener todos los inputs requeridos
+	 const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+
+	requiredFields.forEach(function(field) {
+		if (!field.value) {
+			isValid = false;
+			field.classList.add('error'); // Agregar una clase para resaltar el campo vacío
+			alert(`El campo ${field.name} es obligatorio`);
+		} else {
+			field.classList.remove('error'); // Elimina la clase de error si el campo está lleno
+		}
+	});
+
+	if (isValid) {
+		document.getElementById('action_field').value = "save_oca_ed";
+		form.submit(); // Envia el formulario al servidor si todo está bien
+	}
+
+
 }
 
 function submitFormPadre2(event) {
     //event.preventDefault(); // Evita el envío automático del formulario
 
-    const form = document.getElementById('form_padre2'); // Obtén el formulario por su ID
+    event.preventDefault(); // Evita el envío automático del formulario
 
-	document.getElementById('action_field').value = "save_oca_rs";
+  	const form = document.getElementById('form_padre2'); // Obtén el formulario por su ID
+    let isValid = true;
 
-    // Aquí se realiza el envío del formulario
-    form.submit(); // Envia el formulario al servidor
+	 // Obtener todos los inputs requeridos
+	 const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+
+	requiredFields.forEach(function(field) {
+		if (!field.value) {
+			isValid = false;
+			field.classList.add('error'); // Agregar una clase para resaltar el campo vacío
+			alert(`El campo ${field.name} es obligatorio`);
+		} else {
+			field.classList.remove('error'); // Elimina la clase de error si el campo está lleno
+		}
+	});
+
+	if (isValid) {
+		document.getElementById('action_field').value = "save_oca_rs";
+		form.submit(); // Envia el formulario al servidor si todo está bien
+	}
 
 	
 }

@@ -39,6 +39,8 @@ class Order(models.Model):
     dir_telefono = models.CharField(max_length=25)
     dir_calle = models.CharField(max_length=100,blank=True)
     dir_nro = models.CharField(max_length=25,blank=True)
+    dir_piso = models.CharField(max_length=10,blank=True)
+    dir_depto = models.CharField(max_length=10,blank=True)
     dir_localidad = models.CharField(max_length=50,blank=True)
     dir_provincia = models.CharField(max_length=50,blank=True)
     dir_cp = models.CharField(max_length=10,blank=True)
@@ -67,7 +69,7 @@ class Order(models.Model):
         return f'{self.first_name} {self.last_name}'
 
     def full_address(self):
-        return f'{self.dir_calle} {self.dir_nro}'
+        return f'{self.dir_calle} {self.dir_nro} {self.dir_piso} {self.dir_depto}'
 
     def __str__(self):
         return self.first_name

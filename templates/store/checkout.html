@@ -173,13 +173,21 @@
         </div>
         <div id="div_entrega_dom">  
             <div class="form-row">
-              <div class="col form-group">
+              <div class="col form-group col-lg-6">
                 <label for="">Calle</label>
                 <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="" required>
               </div>
-              <div class="col form-group">
+              <div class="col form-group col-lg-2">
                 <label for="">Nro</label>
                 <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="" required>
+              </div>
+              <div class="col form-group col-lg-2">
+                <label for="">Piso</label>
+                <input type="text" name="dir_piso" id="dir_piso" class="form-control" value="" maxlength="10">
+              </div>
+              <div class="col form-group col-lg-2">
+                <label for="">Depto</label>
+                <input type="text" name="dir_depto" id="dir_depto" class="form-control" value="" maxlength="10" >
               </div>
             </div>
             <div class="form-row">
@@ -319,6 +327,8 @@ function buscardireccion(dir_id)     {
                 $("#dir_calle").val(r.dir_calle);
                 $("#dir_tipocorreo").val(r.dir_tipocorreo);
                 $("#dir_nro").val(r.dir_nro);
+                $("#dir_piso").val(r.dir_piso);
+                $("#dir_depto").val(r.dir_depto);
                 $("#dir_cp").val(r.dir_cp);
                 $("#dir_telefono").val(r.dir_telefono);
                 $("#dir_localidad").val(r.dir_localidad);
@@ -328,7 +338,7 @@ function buscardireccion(dir_id)     {
                 $("#dir_correo").val(r.dir_correo);
                 $("#dir_tipoenvio").val(r.dir_tipoenvio);
 
-                alert(r.dir_tipoenvio);
+                //alert(r.dir_tipoenvio);
                 //dir_tipoenvio = r.dir_tipoenvio;
                 dir_correo = r.dir_correo;
 
@@ -494,12 +504,19 @@ function mostrarOpcionEnvio() {
                 console.log(r); // Verifica que r tenga las propiedades correctas
              ;
 
-                // OCA Envio a domicilio
-                $("#oca_price_ed").text("$ " + r.Total_ed);
-                //$("#oca_plazo_ed").text(r.Plazo_ed);
-                // OCA Envio a Sucursal
-                $("#oca_price_es").text("$ " + r.Total_rs);
-                //$("#oca_plazo_es").text(r.Plazo_rs);
+                // OCA 
+                //$("#oca_price_ed").text("$ " + r.Total_ed);
+                //$("#oca_price_es").text("$ " + r.Total_rs);
+                $("#oca_price_ed").text("A Confirmar");
+                $("#oca_price_es").text("A Confirmar");
+
+
+                // CORREO ARGENTINO  
+                //$("#ca_price_ed").text("$ " + r.Total_ed);
+                //$("#ca_price_es").text("$ " + r.Total_rs);
+                $("#ca_price_ed").text("A Confirmar");
+                $("#ca_price_es").text("A Confirmar");
+                
             },
             error: function(xhr, status, error) {
                 console.log("Error:", error);
