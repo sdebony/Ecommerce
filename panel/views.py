@@ -3034,6 +3034,8 @@ def import_productos_xls(request):
                         if dato.lower().strip() != 'producto' and dato.lower().strip() != 'nombre':    
                             
                             product_name = sheet1.cell_value(rowNumber, 0)
+                            product_name = product_name.strip()
+
                             
                             #print(sheet1.cell_value(rowNumber, 0)) # Nombre
                             #print(sheet1.cell_value(rowNumber, 1)) # slug
@@ -3124,10 +3126,13 @@ def import_productos_xls(request):
                                         f_stock = float("{0:.0f}".format((float)(int_stock)))
                                         print("f_stock",f_stock)
 
+                                        description= sheet1.cell_value(rowNumber, 2)
+                                        description = description.strip()
+
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(product_name).lower(),
-                                            description= sheet1.cell_value(rowNumber, 2),
+                                            description= description,
                                             variation_category = "", #sheet1.cell_value(rowNumber, 2),
                                             variation_value = "", #sheet1.cell_value(rowNumber, 3),
                                             price=f_precio,
