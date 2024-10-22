@@ -3,6 +3,23 @@
 {% load static %}
 {% block page_content %}
 
+<style>
+    /* Estilo para la barra de progreso */
+    #progressBar {
+        background-color: navy; /* Color de fondo azul marino */
+        color: black;           /* Color del texto negro */
+    }
+
+    /* Para hacer que el texto se vea bien centrado */
+    .progress {
+        height: 30px; /* Ajusta la altura según sea necesario */
+    }
+
+    .progress-bar {
+        font-weight: bold; /* Hacer el texto más visible */
+        text-align: center; /* Centrar el texto en la barra */
+    }
+</style>
 
 <section class="content">
     <div class="container-fluid">
@@ -24,9 +41,60 @@
                                     
                                 </form>
                           </div>
+                       
                   
                     </div>
             </div>
+
+            <div class="col-md-6" >
+               
+                <aside class="col-lg-12">
+                    <div class="card-body">
+                    <!-- Collapsable Card Example -->
+                        <div class="card shadow mb-6">
+                            <!-- Card Header - Accordion -->
+                            <a href="#collapseCard3" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseCard3">
+                                <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
+                            </a>
+                            <!-- Card Content - Collapse -->
+                            <div class="collapse" id="collapseCard3">
+                                <div class="card-body">
+                                    <span> Arhivo Excel (XLS) con las siguientes columnas. (el nombre del archivo no debe tener espacios)</span>
+                                    <ul>
+                                        <li> <b>(a) Codigo</b> - Ejemplo: 5YEJ9MVUM99</li>
+                                        <li> <b>(b) Fecha</b> - Ejemplo:  2024-10-17 18:05:55</li>
+                                        <li> <b>(c) Monto Total</b> - Ejemplo:  1234.56</li>
+                                        <li> <b>(d) Monto Productos</b>  - Ejemplo: 1234.56</li>
+                                        <li> <b>(e) Mensaje</b> - Ejemplo:  Pedido: *https://pedido.shop/pedido/?pedido=5YEJ9MVUM99*  *Nombre y Apellido** _noelia rigoni_  ...</li>
+                                        <li> <b>(f) Nombre y Apellido</b> - Ejemplo:  noelia rigoni </li>
+                                        <li> <b>(g) Correo</b> - Ejemplo: 1 (OCA)  2 (Correo Argentino) 3 (Retira Cliente)</li>
+                                        <li> <b>(h) Mail</b> - Ejemplo: noeliarigoni@hotmail.com</li>
+                                        <li> <b>(i) Calle</b> - Ejemplo: Río Tunuyán 233</li>
+                                        <li> <b>(j) Localidad</b> - Ejemplo:  chajari </li>
+                                        <li> <b>(k) CP:</b> - Ejemplo:  1000 </li>
+                                        <li> <b>(l) Provincia:</b> - Ejemplo:  Entre Rios </li>
+                                        <li> <b>(m) Telefono:</b> - Ejemplo:  3456407316 </li>
+                                        <li> <b>(n) Observaciones:</b> - Ejemplo:  PELOTITAS DE COLORES: 20 celeste, 10 verde menta, 20 crema, 20 blanco, 20 rosa bebe, 10 rosa pastel </li>
+
+
+                                    </ul>
+                                    <a href="{% url 'panel_producto_import_del_all' %}"  class="btn btn-secondary">Eliminar Todos los productos</a>
+                                    <a href="{% url 'panel_producto_img' %}"  class="btn btn-primary">Actualizar Imagenes Productos</a>
+
+                                    
+
+
+                                </div>
+                            </div>
+                        </div>
+                 
+                    </div>
+                  
+            </aside>
+            </div>
+
+        </div>
 
             <!-- rigth column-->
 
@@ -59,6 +127,9 @@
     </div>            
 </section>
 <br>
+
+
+
 
 <section class="content">
     <div class="container-fluid">

@@ -26,7 +26,7 @@ from django.db.models.functions import Coalesce
 from django.db.models import OuterRef, Subquery
 from django.db.models import Sum, F, Q, Count, DecimalField
 from django.db.models.functions import TruncDate
-
+from time import sleep  # Simular un proceso largo
 from carts.models import CartItem
 from django.http import JsonResponse
 
@@ -1314,8 +1314,10 @@ def panel_pedidos_save_detalle(request):
             
             order_number = request.POST.get("edit_order_number")
             id_linea = request.POST.get("edit_item_id")
-            cantidad = request.POST.get("edit_quantity")
+            cantidad = float(request.POST.get("edit_quantity"))
             precio = request.POST.get("edit_precio")
+
+            
 
             if cantidad:
                 if precio:
@@ -1332,6 +1334,7 @@ def panel_pedidos_save_detalle(request):
                             product = Product.objects.get(id=producto)
                             if product:
                                 saldo = product.stock
+                                costo = product.costo_prod
                                 ajuste_stock = float(saldo) + float(stock) - float(cantidad)
                                 product.stock = ajuste_stock
                                 product.save()
@@ -1346,7 +1349,8 @@ def panel_pedidos_save_detalle(request):
                                 product=ordered_products.product,
                                 ordered=ordered_products.ordered,
                                 created_at = ordered_products.created_at,
-                                updated_at = datetime.today()
+                                updated_at = datetime.today(),
+                                costo = costo
                             )        
                             ordered_products.save()
 
@@ -1519,7 +1523,8 @@ def panel_product_crud(request):
 
             print("panel_product_crud - habilitar_precios_externos")
             #habilitar_precios_externos = AccountPermition.objects.filter(user=request.user,codigo="PRECIOS EXTERNOS").first()
-            habilitar_precios_externos = get_object_or_404(AccountPermition, user=request.user,codigo="PRECIOS EXTERNOS")
+            permiso = get_object_or_404(Permition, codigo="PRECIOS EXTERNOS")
+            habilitar_precios_externos = get_object_or_404(AccountPermition, user=request.user, codigo=permiso)
             if habilitar_precios_externos:
                 habilitar_precios_externos = 1
             else:
@@ -1569,6 +1574,9 @@ def panel_product_crud(request):
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
+            precio_tn = 0
+            precio_ml = 0
+            created_date = datetime.now()
             #print("subcat_id",subcat_id)
             if product_id:
                 producto = Product.objects.filter(id=product_id).first()
@@ -1579,6 +1587,7 @@ def panel_product_crud(request):
 
                     print("producto",precio_tn,precio_ml,product_id)
                 
+                  
                 if not images:
                     images = "none.jpg" #default      
                 else:
@@ -1613,8 +1622,8 @@ def panel_product_crud(request):
                     product_udp.peso = peso
                     product_udp.costo_prod = costo_prod
                     product_udp.ubicacion = ubicacion
-                    product_udp.precio_ml = precio_ml
-                    product_udp.precio_tn = precio_tn
+                    product_udp.precio_ML = precio_ml
+                    product_udp.precio_TN = precio_tn
 
                     product_udp.save()
                     print("Save tabla Product")
@@ -1641,8 +1650,8 @@ def panel_product_crud(request):
                         peso=peso,
                         costo_prod=costo_prod,
                         ubicacion=ubicacion,
-                        precio_tn=producto.precio_TN,
-                        precio_ml=producto.precio_ML
+                        precio_TN=precio_tn, # producto.precio_TN,
+                        precio_ML=precio_ml # producto.precio_ML
                         )
                 if producto:
                     producto.save()
@@ -3066,6 +3075,9 @@ def import_productos_xls(request):
                                     img_name = 'none.jpg'
                                 else:
                                     img_name = img_name.replace('%20', '')
+                                    
+                                img_name = img_name.strip()
+
 
                                 print("Articulo:",product_name,"| categoria:",cat_name,"| subCategoria",sub_cat_name)
                                 slug_cat = slugify(cat_name).lower()
@@ -3812,6 +3824,52 @@ def panel_categoria_detalle(request,categoria_id=None):
     else:
             return render (request,"panel/login.html")
 
+def panel_validar_producto_default(request,product_name):
+    # Valida que exista el producto, caso contrario lo agrega al maestro para poder hacer la importación de los pedidos.
+    try:
+        # Intentamos obtener el producto por su slug
+        producto = Product.objects.get(slug=slugify(product_name).lower())
+        return True  # El producto existe
+
+    except Product.DoesNotExist:
+        # Si no existe, se procede a agregarlo
+        try:
+            category_slug=settings.DEF_CATEGORY_ADD_PROD
+            subcategory_slug=settings.DEF_SUBCATEGORY_ADD_PROD
+            #Genero un producto propio en base a los datos del producto del proveedor
+            category = Category.objects.filter(slug=category_slug).first()
+            subcategory = SubCategory.objects.filter(category=category,sub_category_slug=subcategory_slug).first()
+            
+            producto = Product(
+                product_name=product_name,
+                slug=slugify(product_name).lower(),
+                description=product_name,
+                price=1,
+                images='none.jpg',  # Cambié .fpg a .jpg (posiblemente un error tipográfico)
+                imgfile='none.jpg',
+                stock=0,
+                is_available=False,
+                category=category,
+                subcategory=subcategory,
+                created_date=datetime.today(),
+                modified_date=datetime.today(),
+                peso=0,
+                costo_prod=1,
+                ubicacion='',
+                precio_TN=0,
+                precio_ML=0
+            )
+            producto.save()
+            return True  # El producto fue agregado correctamente
+
+        except Exception as e:
+            # Si hay algún error durante la creación o el guardado, retorna False
+            return False
+
+    except Exception as e:
+        # Si hay algún otro error inesperado, retorna False
+        return False
+
 def import_pedidos_xls(request):
 
     if validar_permisos(request,'IMPORTAR PEDIDOS'):
@@ -3833,8 +3891,7 @@ def import_pedidos_xls(request):
         error_str = ""
         articulos_tmp = []
         pedidos_tmp=[]
-    
-  
+        
 
         #Leer archivo
         archivo=""
@@ -3872,173 +3929,245 @@ def import_pedidos_xls(request):
             if articulos_tmp:
                 articulos_tmp.delete()
             
-        
-            #Get each row in the sheet as a list and print the list
+             #Get each row in the sheet as a list and print the list
             for rowNumber in range(sheet1.nrows):
+
                 try:
-                    if sheet1.cell_value(rowNumber, 0) != "Codigo":  #Paso el encabezado
-                        codigo = sheet1.cell_value(rowNumber, 0)
-                        #print("Linea ",rowNumber," codigo: ",codigo)
-                        
-                        pedidos_tmp = ImportTempOrders.objects.filter(codigo=codigo, usuario = request.user).first()
-                        if not pedidos_tmp:
-                            
-                            try:
-                                str_field       = "correo"
-                                correo =    str(sheet1.cell_value(rowNumber, 6))  #Entrega en correo
-                                
-
-                                nombre_completo= str(sheet1.cell_value(rowNumber, 5))
-                                i_end = nombre_completo.find(" ")
-                                nombre = nombre_completo[0:i_end]
-                                apellido = nombre_completo[i_end:len(nombre_completo)]
-                                #Tomo los datos de la linea
-                                str_field   = "first_name"
-                                first_name  = nombre
-                                str_field   = "Nombre"
-                                last_name   = apellido
-                                str_field   = "email"
-                                email               = str(sheet1.cell_value(rowNumber, 7)) #email
-                                str_field   = "date"
-                                created_date        =  sheet1.cell_value(rowNumber, 1) #fecha
-                                modified_date       =  sheet1.cell_value(rowNumber, 1) #fecha
-                                str_field  = "Order Total"
-                                order_total         = sheet1.cell_value(rowNumber, 2) #Order Total
-                                str_field  = "Telefono"
-                                dir_telefono        =  str(sheet1.cell_value(rowNumber, 12)) #Telefono
-                                str_field  = "Calle"
-                                dir_calle           =  str(sheet1.cell_value(rowNumber, 8)) #Calle
-                                dir_nro             = "0"
-                                str_field  = "Localidad"
-                                dir_localidad       = sheet1.cell_value(rowNumber, 9) #Localidad
-                                str_field  = "Provincia"
-                                dir_provincia       = sheet1.cell_value(rowNumber, 11) #Provincia
-                                str_field  = "CP"
-                                dir_cp              = sheet1.cell_value(rowNumber, 10) #CP
-                                str_field  = "Obs"
-                                dir_obs             = sheet1.cell_value(rowNumber, 13) #Observaciones
-                                usuario             = request.user
-                                #LISTADO DE ARTICULOS
-                                mensaje = sheet1.cell_value(rowNumber, 4)
-                                #print(correo,first_name,email)
-                                #print("Datos adicionales....",codigo)
-                                
-                                new_pedido = ImportTempOrders.objects.filter(codigo=codigo)
-                                if not new_pedido:
-                                    new_pedido=ImportTempOrders(
-                                        codigo          = codigo,
-                                        first_name      = first_name ,
-                                        last_name       = last_name   ,
-                                        email           = email     ,
-                                        created_at      = created_date,
-                                        updated_at      = modified_date,
-                                        order_total     = order_total,
-                                        dir_telefono    = dir_telefono,
-                                        dir_calle       = dir_calle,
-                                        dir_nro         = dir_nro,
-                                        dir_localidad   = dir_localidad,
-                                        dir_provincia   = dir_provincia,
-                                        dir_cp          = dir_cp,
-                                        dir_obs         = dir_obs,
-                                        dir_tipocorreo  = correo,
-                                        usuario        = request.user,
-                                        status          = False
-                                        )                                    
-                                    new_pedido.save()
-                                
-                                    if new_pedido:       
-                                        #LINEAS DE ARTICULOS
-                                        #print(mensaje)                                
-                                        if "?pedido=" in mensaje:
-                                            i_start_ped = mensaje.find('?pedido=')
-                                            i_end_ped = mensaje.find('*',i_start_ped)
-                                            codigo_ped = mensaje[i_start_ped + 8 :i_end_ped]
-                                            #print("Codigo Detalle",codigo_ped,codigo)
-                                        
-                                        if codigo == codigo_ped:
-                                            #Recorro artiuclos
-                                            if "*Pedido:*" in mensaje:
-                                                #print("i_start_ped",i_start_ped)
-                                                i_start_ped = mensaje.find('*Pedido:*')
-                                                
-                                                #Arranca linea 
-                                                mensaje = mensaje[i_start_ped+9:len(mensaje)]
-                                                i_start_ped = mensaje.find('* x *') -3
-                                                i=1
-                                                i_fin_linea=0
-                                                total_items=0
-                                                
-                                            #print("**************************")
-                                            while i_end_ped > 0:
-                                                i_start_ped= 1
-                                                # BUSCO EL SIGNO PESOS PARA BUSCAR DESDE AHI EL PRIMER ASTERISCO DE LA CANTIDAD
-                                                i_end_ped = mensaje.find('$',1) #Busco proxima linea para ver el final de esta
-                                                i_end_ped = mensaje.find('*',i_end_ped) #Busco proxima linea para ver el final de esta
-                                                i_end_ped = i_end_ped -1  # Esto es lo fijo buscado *
-                                                linea = mensaje[i_start_ped:i_end_ped]
-                                                linea = linea.lstrip() #Quito espacio a izquirda
-
-                                                #print("-->", linea)
-                                                # ** CANTIDAD **
-                                                i_fin_linea = linea.find('*',1)
-                                                quantity = linea[1:i_fin_linea]
-                                                #print("quantity:",quantity)
-                                                
-
-                                                # ** PRODUCTO **
-                                                i_ini_linea = i_fin_linea
-                                                # Busco donde empieza el producto
-                                                i_fin_linea = linea.find('* x *',i_ini_linea)
-                                                i_fin_linea = i_fin_linea +  5
-                                                i_ini_linea = i_fin_linea
-                                                #Busco donde temina el producto
-                                                i_fin_linea = linea.find('*',i_fin_linea)
-                                                product = linea[i_ini_linea:i_fin_linea]  #.strip().replace('\r','').replace('\n')
-                                                #print("Producto ", product)
-                                                
-
-                                                # ** PRECIOS **
-                                                i_ini_linea = i_fin_linea
-                                                i_ini_linea = linea.find('$',i_ini_linea)
-                                                if linea.find('Cant. Artículos',i_ini_linea)>0:
-                                                    i_fin_linea =  linea.find('Cant. Artículos',i_ini_linea)-1
-                                                    subtotal = linea[i_ini_linea+1:i_fin_linea]
-                                                    i_end_ped=0
-                                                else:
-                                                    subtotal = linea[i_ini_linea+1:len(linea)]
-                                                subtotal = subtotal.replace(".","")
-
-                                                #print("Producto ", product, "Qty", quantity, "Precio",subtotal)    
-                                                try:
-                                                        codigo = codigo
-                                                    
-                                                        new_linea_pedido = ImportTempOrdersDetail(
-                                                            codigo = new_pedido,
-                                                            product = product,
-                                                            quantity = quantity,
-                                                            subtotal = subtotal,
-                                                            usuario = usuario,
-                                                            status = False
-                                                            )
-                                                        new_linea_pedido.save()
-
-                                                except Exception as err:
-                                                    error_str= error_str + 'Artículo: ' + product + 'Linea: ' + str(i)
-                                                    error_str= error_str + f"Unexpected {err=}, {type(err)=}"
-
-
-                                               
-                                                mensaje = mensaje[i_end_ped:len(mensaje)]
-                                            #print("**************************")
+                    cell_value = sheet1.cell_value(rowNumber, 0)
+                    codigo = ''.join(cell_value.split()).lower()
+                    if codigo:
+                        codigo = ''.join(cell_value.split()).lower()
+                        if codigo != "codigo":  #Paso el encabezado
+                            print("Linea ",rowNumber," codigo: ",codigo)
+                            codigo = codigo.upper().strip()
+                            pedidos_tmp = ImportTempOrders.objects.filter(codigo=codigo, usuario = request.user).first()
+                            if not pedidos_tmp:
+                                #print("Obteniendo datos de la linea")
+                                try:
+                                    str_field       = "Tipo correo"
+                                    correo = sheet1.cell_value(rowNumber, 6)  #Tipo Correo #1 OCA # 2CA # 3 Retira Cliente
+                                    if correo in ['1', '2', '3']:
+                                        tipo_correo = int(correo)
                                     else:
-                                        print("Pedido no grabado",codigo)
+                                        tipo_correo = 2
 
-                            except Exception as err:
-                                error_str= error_str + codigo + "linea:" + str(rowNumber) + " campo: " + str_field
-                                error_str= error_str + f"Unexpected {err=}, {type(err)=}"
-                                cant_error=cant_error+1
-                                pass
-                    
+                                    nombre_completo= str(sheet1.cell_value(rowNumber, 5))
+                                    i_end = nombre_completo.find(" ")
+                                    nombre = nombre_completo[0:i_end]
+                                    apellido = nombre_completo[i_end:len(nombre_completo)]
+                                    #Tomo los datos de la linea
+                                    str_field   = "first_name"
+                                    first_name  = nombre
+                                    #print("first_name",first_name)
+                                    str_field   = "Nombre"
+                                    last_name   = apellido
+                                    #print("last_name",last_name)
+
+                                    str_field   = "email"
+                                    cell_value = sheet1.cell_value(rowNumber, 7) #email
+                                    if cell_value:
+                                        email = str(cell_value).strip()
+                                    else:
+                                        email = None
+                                    
+                                     
+                                    str_field   = "date"
+                                    cell_value = sheet1.cell_value(rowNumber, 1) #fecha
+                                    if cell_value:
+                                        created_date = str(cell_value).strip()
+                                        modified_date = str(cell_value).strip()
+                                    else:
+                                        created_date = datetime.today()
+                                        modified_date = datetime.today()
+
+                                    str_field  = "Order Total"
+                                    cell_value = sheet1.cell_value(rowNumber, 2) #Order Total
+                                    if cell_value:
+                                        order_total = float(cell_value)
+                                        
+                                    else:
+                                        order_total = None
+                                   
+                                    str_field  = "Telefono"
+                                    cell_value = sheet1.cell_value(rowNumber, 12) #Telefono
+                                    if cell_value:
+                                        dir_telefono = str(cell_value).strip()
+                                    else:
+                                        dir_telefono = ''
+
+                                    
+                                    str_field  = "Calle"
+                                    cell_value = sheet1.cell_value(rowNumber, 8) #Calle
+                                    if cell_value:
+                                        dir_calle = str(cell_value).strip()
+                                    else:
+                                        dir_calle = ''
+
+                                    dir_nro             = "0"
+                                    str_field  = "Localidad"
+                                    cell_value = sheet1.cell_value(rowNumber, 9) #Localidad
+                                    if cell_value:
+                                        dir_localidad = str(cell_value).strip()
+                                    else:
+                                        dir_localidad = ''
+                                   
+                                    str_field  = "Provincia"
+                                    cell_value = sheet1.cell_value(rowNumber, 11) #Provincia
+                                    if cell_value:
+                                        dir_provincia = str(cell_value).strip()
+                                    else:
+                                        dir_provincia = ''
+                                   
+                                    str_field  = "CP"
+                                    cell_value = sheet1.cell_value(rowNumber, 10) #CP
+                                    if cell_value:
+                                        dir_cp = str(cell_value).strip()
+                                    else:
+                                        dir_cp = ''
+
+                                    str_field  = "Obs"
+                                    cell_value = sheet1.cell_value(rowNumber, 13) #Observaciones
+                                    if cell_value:
+                                        dir_obs = str(cell_value).strip()
+                                    else:
+                                        dir_obs = ''
+
+                                    usuario             = request.user
+                                    #LISTADO DE ARTICULOS
+                                    mensaje = sheet1.cell_value(rowNumber, 4)
+                                    #print(correo,first_name,email,created_date,modified_date,order_total,dir_telefono,dir_calle,dir_nro,dir_localidad,dir_provincia,dir_cp,dir_obs)
+                                    encabezado = False
+                                    
+                                    new_pedido = ImportTempOrders.objects.filter(codigo=codigo)
+                                    if not new_pedido:
+                                        try:
+                                            new_pedido=ImportTempOrders(
+                                                codigo          = codigo,
+                                                first_name      = first_name ,
+                                                last_name       = last_name   ,
+                                                email           = email     ,
+                                                created_at      = created_date,
+                                                updated_at      = modified_date,
+                                                order_total     = order_total,
+                                                dir_telefono    = dir_telefono,
+                                                dir_calle       = dir_calle,
+                                                dir_nro         = dir_nro,
+                                                dir_localidad   = dir_localidad,
+                                                dir_provincia   = dir_provincia,
+                                                dir_cp          = dir_cp,
+                                                dir_obs         = dir_obs,
+                                                dir_tipocorreo  = tipo_correo,
+                                                usuario        = request.user,
+                                                status          = False
+                                                )                                    
+                                            new_pedido.save()
+                                            encabezado = True
+                                            print("Pedido creado en temporal ****************")
+                                        except Exception as e:
+                                            # Manejar el error aquí
+                                            print(f"Error al guardar el pedido: {e}")
+                                            encabezado = False
+                                            error_str= error_str + "codigo:" + str(codigo) + " - " + f"Error al guardar el pedido: {e}" + "   "
+                                            cant_error=cant_error+1
+                                        if encabezado:       
+                                            #LINEAS DE ARTICULOS
+                                            #print("--> DETALLE DEL PEDIDO MENSAJE:<--",mensaje)                                
+                                            if "?pedido=" in mensaje:
+                                                i_start_ped = mensaje.find('?pedido=')
+                                                i_end_ped = mensaje.find('*',i_start_ped)
+                                                codigo_ped = mensaje[i_start_ped + 8 :i_end_ped]
+                                                #print("Codigo Detalle",codigo_ped,codigo)
+                                            
+                                            if codigo.lower().strip() == codigo_ped.lower().strip():
+                                                #Recorro artiuclos
+                                                if "*Pedido:*" in mensaje:
+                                                    #print("i_start_ped",i_start_ped)
+                                                    i_start_ped = mensaje.find('*Pedido:*')
+                                                    
+                                                    #Arranca linea 
+                                                    mensaje = mensaje[i_start_ped+9:len(mensaje)]
+                                                    i_start_ped = mensaje.find('* x *') -3
+                                                    i=1
+                                                    i_fin_linea=0
+                                                    total_items=0
+                                                    
+                                                #print("**************************")
+                                                while i_end_ped > 0:
+                                                    i_start_ped= 1
+                                                    # BUSCO EL SIGNO PESOS PARA BUSCAR DESDE AHI EL PRIMER ASTERISCO DE LA CANTIDAD
+                                                    i_end_ped = mensaje.find('$',1) #Busco proxima linea para ver el final de esta
+                                                    i_end_ped = mensaje.find('*',i_end_ped) #Busco proxima linea para ver el final de esta
+                                                    i_end_ped = i_end_ped -1  # Esto es lo fijo buscado *
+                                                    linea = mensaje[i_start_ped:i_end_ped]
+                                                    linea = linea.lstrip() #Quito espacio a izquirda
+
+                                                    #print("-->", linea)
+                                                    # ** CANTIDAD **
+                                                    i_fin_linea = linea.find('*',1)
+                                                    quantity = linea[1:i_fin_linea]
+                                                    #print("quantity:",quantity)
+                                                    
+
+                                                    # ** PRODUCTO **
+                                                    i_ini_linea = i_fin_linea
+                                                    # Busco donde empieza el producto
+                                                    i_fin_linea = linea.find('* x *',i_ini_linea)
+                                                    i_fin_linea = i_fin_linea +  5
+                                                    i_ini_linea = i_fin_linea
+                                                    #Busco donde temina el producto
+                                                    i_fin_linea = linea.find('*',i_fin_linea)
+                                                    product = linea[i_ini_linea:i_fin_linea]  #.strip().replace('\r','').replace('\n')
+                                                    #print("Producto ", product)
+                                                    
+
+                                                    # ** PRECIOS **
+                                                    i_ini_linea = i_fin_linea
+                                                    i_ini_linea = linea.find('$',i_ini_linea)
+                                                    if linea.find('Cant. Artículos',i_ini_linea)>0:
+                                                        i_fin_linea =  linea.find('Cant. Artículos',i_ini_linea)-1
+                                                        subtotal = linea[i_ini_linea+1:i_fin_linea]
+                                                        i_end_ped=0
+                                                    else:
+                                                        subtotal = linea[i_ini_linea+1:len(linea)]
+                                                    subtotal = subtotal.replace(".","")
+
+                                                    try:
+                                                            #Validar si el articulo existe sino lo agrega.
+                                                            resultado = panel_validar_producto_default(request, product)
+                                                            if resultado:
+                                                            
+                                                                new_linea_pedido = ImportTempOrdersDetail(
+                                                                    codigo = new_pedido,
+                                                                    product = product,
+                                                                    quantity = quantity,
+                                                                    subtotal = subtotal,
+                                                                    usuario = usuario,
+                                                                    status = False
+                                                                    )
+                                                                new_linea_pedido.save()
+                                                            else:
+                                                                #Agrego producto
+
+
+                                                                #Producto no catalogado
+                                                                print("Producto no catalogado",product)
+                                                                error_str= error_str + 'Artículo: ' + product + ' Linea: ' + str(i) + " NO Catalogado. // " 
+                                                                cant_error=cant_error+1
+                                                    except Exception as err:
+                                                        error_str= error_str + 'Artículo: ' + product + ' Linea: ' + str(i) + " No se pudo obtener del mensaje // "
+                                                       
+                                                        cant_error=cant_error+1
+                                                    mensaje = mensaje[i_end_ped:len(mensaje)]
+                                                
+                                        else:
+                                            print("Pedido no grabado",codigo)
+
+                                except Exception as err:
+                                    error_str= error_str + codigo + " linea: " + str(rowNumber) + " campo: " + str_field + " // "
+                                  
+                                    cant_error=cant_error+1
+                                    pass
+                        
                 except OSError as err:
                     print("OS error:", err)
                     error_str = error_str + err + " ROW: " + str(rowNumber)
@@ -4163,13 +4292,15 @@ def guardar_tmp_pedidos(request,codigo=None):
     
     if codigo:
         #Importar 1
-        #print("Guardar pedido: ",codigo)
+        cant_error=0
+        error_str=''
+        print("Guardar pedido: ",codigo)
         pedidos_tmp = ImportTempOrders.objects.filter(usuario=request.user,codigo=codigo).first()
         if pedidos_tmp:
-            id_pedido=pedidos_tmp.id
+            id_temp_pedido=pedidos_tmp.id
             order = Order.objects.filter(order_number=codigo)
             if not order:
-                #print("El pedido no existe, lo grabo")
+                print("El pedido no existe, lo grabo",id_temp_pedido)
                 user_account = Account.objects.get(email=request.user)
                 if user_account:
                     
@@ -4201,16 +4332,17 @@ def guardar_tmp_pedidos(request,codigo=None):
                         id_pedido = Order_New.id
                     else:
                         id_pedido = 0
-                    #print("Encabezado: id", Order_New.id)
+                    print("Encabezado: id", Order_New.id)
                     if Order_New:
-                            detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
+                            print("Inicio detalle...",id_temp_pedido)
+                            detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo_id=id_temp_pedido, usuario=request.user)
                             total_arts = 0
                             for item in detalle_tmp:
-
+                               
                                 chk_prod= Product.objects.filter(product_name=item.product).first()
                                 if chk_prod:
                                     producto = Product.objects.get(product_name=item.product)
-                                    #print("Producto del Detalle:" , producto)
+                                    print("Producto del Detalle:" , producto)
                                     if producto:
                                         Order_Det_New = OrderProduct(
                                                 order = Order_New,
@@ -4229,7 +4361,10 @@ def guardar_tmp_pedidos(request,codigo=None):
                                         chk_prod.id = producto.id
                                         chk_prod.stock = chk_prod.stock - item.quantity
                                         chk_prod.save()
-
+                                else:
+                                    cant_error = cant_error + 1
+                                    error_str = error_str + " Orden:" + str( codigo) + ". Articulo no encontrado: " + str(producto) + "  Cant: " + str(item.quantity)
+                                    print("Producto no encontrado en el maestro:" , producto)
                         #Actualizo Total Items                    
                             Order_New.id = id_pedido
                             Order_New.order_total = total_arts
@@ -4277,7 +4412,7 @@ def guardar_tmp_pedidos(request,codigo=None):
                     print("2.Borro temp Pedidos",id_pedido)
                     pedidos_tmp.id = id_pedido
                     pedidos_tmp.delete()
-                    detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
+                    detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=id_pedido, usuario=request.user)
                     if detalle_tmp:
                         detalle_tmp.delete()
                     
@@ -4286,8 +4421,7 @@ def guardar_tmp_pedidos(request,codigo=None):
     pedidos_tmp = ImportTempOrders.objects.filter(usuario = request.user).order_by('codigo')
     articulos_tmp = ImportTempOrdersDetail.objects.filter(usuario = request.user).order_by('codigo')
     cant_ok = pedidos_tmp.count()
-    cant_error=0
-    error_str = ""
+    
 
     context = {
                 'cant_ok':cant_ok,
@@ -4308,7 +4442,7 @@ def guardar_tmp_pedidos_all(request):
             codigo = pedido.codigo
             pedidos_tmp = ImportTempOrders.objects.filter(usuario=request.user,codigo=codigo).first()
             if pedidos_tmp:
-                id_pedido=pedidos_tmp.id
+                id_temp_pedido=pedidos_tmp.id
                 order = Order.objects.filter(order_number=codigo)
                 if not order:
                     #print("El pedido no existe, lo grabo")
@@ -4345,7 +4479,7 @@ def guardar_tmp_pedidos_all(request):
                             id_pedido = 0
                         #print("Encabezado: id", Order_New.id)
                         if Order_New:
-                                detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
+                                detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=id_temp_pedido, usuario=request.user)
                                 total_arts = 0
                                 for item in detalle_tmp:
 
@@ -4383,8 +4517,10 @@ def guardar_tmp_pedidos_all(request):
                             try:
                                 usr_name= Order_New.email
                                 i_end = usr_name.find('@')
-                                usr_name = usr_name[1:i_end]
-                                #print("usr_name",usr_name)
+                                if i_end > 0:
+                                    usr_name = usr_name[1:i_end]
+                                
+                                print("usr_name",usr_name)
                                 newUser = Account(
                                     first_name      = Order_New.first_name,
                                     last_name       = Order_New.last_name,
@@ -4406,22 +4542,22 @@ def guardar_tmp_pedidos_all(request):
                                 pass
 
 
-                        if pedidos_tmp:
-                            print("1.Borro temp Pedidos:",id_pedido)
-                            pedidos_tmp.id = id_pedido
-                            pedidos_tmp.delete()
-                        if detalle_tmp:
-                            print("Borro temp Pedidos detalle")
-                            detalle_tmp.delete()
+                        #if pedidos_tmp:
+                        #    print("1.Borro temp Pedidos:",id_pedido)
+                        #    pedidos_tmp.id = id_pedido
+                        #    pedidos_tmp.delete()
+                        #if detalle_tmp:
+                        #    print("Borro temp Pedidos detalle")
+                        #    detalle_tmp.delete()
                     
 
-                    if pedidos_tmp:
-                        print("2.Borro temp Pedidos",id_pedido)
-                        pedidos_tmp.id = id_pedido
-                        pedidos_tmp.delete()
-                        detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=codigo, usuario=request.user)
-                        if detalle_tmp:
-                            detalle_tmp.delete()
+                    #if pedidos_tmp:
+                    #    print("2.Borro temp Pedidos",id_pedido)
+                    #    pedidos_tmp.id = id_pedido
+                    #    pedidos_tmp.delete()
+                    #    detalle_tmp =  detalle_tmp = ImportTempOrdersDetail.objects.filter(codigo=id_temp_pedido, usuario=request.user)
+                    #    if detalle_tmp:
+                    #        detalle_tmp.delete()
             
 
 
@@ -4886,6 +5022,7 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
             if producto:
 
                 product_price = producto.price
+                product_costo = producto.costo_prod
                 
                 try:
                     if order_number:
@@ -4904,7 +5041,8 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     quantity = articulos.quantity + float(quantity),
                                     product_price = product_price,
                                     updated_at =  datetime.today(),
-                                    created_at = articulos.created_at
+                                    created_at = articulos.created_at,
+                                    costo = articulos.costo
                                 )
                                 articulos.save()
                                 
@@ -4925,7 +5063,8 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     product = producto,
                                     quantity = quantity,
                                     product_price = product_price,
-                                    updated_at =  datetime.today()
+                                    updated_at =  datetime.today(),
+                                    costo = product_costo
                                 )
                                 articulos.save()
                                 #SI EL ARTICULO NO EXISTE RESTO ACTUAL AL STOCK 
