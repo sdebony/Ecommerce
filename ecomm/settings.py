@@ -222,10 +222,14 @@ DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
 DEF_CEL =  '54111558679809'
 #DEF_CC_MAIL = 'lifche.argentina@gmail.com'
 DEF_CC_MAIL = 'qualitiesarg@gmail.com'
-#MELI
-CLIENTE_ID="1279208844446512"                           #"5374552499309003"
-REDIRECT_URI="https://lifche.qualities.com.ar/panel/"    #"https://lifche.qualities.com.ar/panel/"
-CLIENT_SECRET="GimLKbcpxGBStJd56R38iJAzCXqxqWJR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
+
+#MELI  QUALITIES ***************
+CLIENTE_ID="710125811010660"                           #"5374552499309003"
+REDIRECT_URI="https://lifche.qualities.com.ar/meli/"    #"https://lifche.qualities.com.ar/panel/"
+CLIENT_SECRET="IYNplfYS5hrHur1RPNDHTIDgpHJDmSmR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
+NICK_NAME="DI20240920150629" #Qualities
+SELLER_ID="1998248263"  #Qualities
+
 
 OCA_CP_ORIGEN='1617'
 OCA_OPERATIVA_ED='421906'  #Oca entrega a domicilio

@@ -101,19 +101,19 @@
               <th  data-sortable="true" data-field="product_name">Nombre</th>
               <th  data-sortable="true" data-field="subcategory">Marca</th>
               <th  data-sortable="true" data-field="costo_prod">Costo</th>
-              <th  data-sortable="true" data-field="Stock">Stock</th>
+              <th  data-sortable="true" data-field="Stock" data-sort-order="desc">Stock</th>
 
               <th  data-sortable="true" data-field="precio_base">Precio Base</th>
               <th  data-sortable="true" data-field="price">Precio Web</th> 
-              <th  data-sortable="true" data-field="comision1_calculado">Com 1 Web</th>
-              <th  data-sortable="true" data-field="beneficio1_calculado">Gan V R</th>
+              <th  data-sortable="true" data-visible="false" data-field="comision1_calculado">Com 1 Web</th>
+              <th  data-sortable="true" data-visible="false" data-field="beneficio1_calculado">Gan V R</th>
               
-              <th  data-sortable="true" data-field="precio_cal_tn">P. Estim T N</th> <!-- Precio con impuestos-->
+              <th  data-sortable="true" data-visible="false" data-field="precio_cal_tn">P. Estim T N</th> <!-- Precio con impuestos-->
               <th  data-sortable="true" data-field="precio_TN">Precio TN</th>
-              <th  data-sortable="true" data-field="comision2_calculado">Com T N</th>
-              <th  data-sortable="true" data-field="beneficio2_calculado">Gan T N</th> 
+              <th  data-sortable="true" data-visible="false" data-field="comision2_calculado">Com T N</th>
+              <th  data-sortable="true" data-visible="false" data-field="beneficio2_calculado">Gan T N</th> 
 
-              <th  data-sortable="true" data-field="precio_cal_ml">P. Estm M L</th>
+              <th  data-sortable="true" data-visible="false" data-field="precio_cal_ml">P. Estm M L</th>
               <th  data-sortable="true" data-field="precio_ML">Precio ML</th>
               <th  data-sortable="true" data-field="comision3_calculado">Com M L</th>
               <th  data-sortable="true" data-field="beneficio3_calculado">Gan M L</th>
@@ -131,6 +131,7 @@
               <td>{{ item.subcategory.subcategory_name }}</td> 
               <td>{{ item.costo_prod|default:0|format_currency }}</td> <!-- Costo de compra -->
               <td>{{ item.stock|default:0|format_integer_def }}</td> <!-- STOCK -->
+              
               <td class="bg-warning text-dark">{{ item.precio_base|format_currency }}</td> <!-- Precio Estimado WEB -->
               <td class="bg-success text-dark">{{ item.price|format_currency }}</td> <!-- Precio Regular de venta-->
               <td>{{ item.comision1_calculado|format_currency }} </td> <!-- comision 1 venta web / Regular-->

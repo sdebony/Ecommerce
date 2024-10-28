@@ -384,10 +384,11 @@
               {% if items.modo_ver %}
                 {% if items.codigo.codigo == 'CONFIG ML' %}
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_productos_vendor_detail' %}">Productos Vendedor</a>
-                {% endif%}
-                {% if items.codigo.codigo == 'CONFIG ML' %}
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_search' %}">Buscar Productos</a>
-                {% endif%}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_publicaciones' %}">Mis Publicaciones</a>
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_ventas' %}">Mis Ventas</a>
+                
+                  {% endif%}
               {% endif %}
             {% endfor %}
   

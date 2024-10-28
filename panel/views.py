@@ -1,3 +1,6 @@
+#Control K + Control 0 Expande y contrae el codigo
+#Control K + Control J
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 
@@ -21,7 +24,8 @@ from slugify import slugify
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal
 from django.utils import timezone
-from django.db.models import F, ExpressionWrapper, FloatField, Value
+
+from django.db.models import Case, When, Value, FloatField, ExpressionWrapper, F
 from django.db.models.functions import Coalesce
 from django.db.models import OuterRef, Subquery
 from django.db.models import Sum, F, Q, Count, DecimalField
@@ -522,13 +526,13 @@ def panel_product_list_category(request):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         categorias = Category.objects.all()
-        catalogo = Product.objects.all().order_by('product_name')
+        catalogo = Product.objects.all().order_by('-is_available','-stock','product_name')
         cantidad = catalogo.count()
         categoria=0
        
     
         if request.method =="GET":
-            catalogo = Product.objects.all().order_by('product_name')
+            catalogo = Product.objects.all().order_by('-is_available','-stock','product_name')
             cantidad = catalogo.count()
     
         if request.method =="POST":
@@ -542,10 +546,10 @@ def panel_product_list_category(request):
 
             if category:
                 if category=='0':
-                    catalogo = Product.objects.all().order_by('product_name')
+                    catalogo = Product.objects.all().order_by('-is_available','-stock','product_name')
                     cantidad = catalogo.count()
                 else:
-                    catalogo = Product.objects.filter(category=category).order_by('product_name')
+                    catalogo = Product.objects.filter(category=category).order_by('-is_available','-stock','product_name')
                     cantidad = catalogo.count()
   
 
@@ -596,7 +600,7 @@ def panel_product_list(request):
         subcategoria = []
        
 
-        catalogo = Product.objects.filter().all().order_by('product_name')
+        catalogo = Product.objects.filter().all().order_by('-is_available','-stock','product_name')
         cantidad = catalogo.count()
         context = {
             'catalogo':catalogo,
@@ -1668,17 +1672,29 @@ def panel_producto_precio_ext(request):
         product_id = request.POST.get('product_id')
         precio_tn = request.POST.get('precio_TN')
         precio_ml = request.POST.get('precio_ML')
+        sku_meli = request.POST.get('sku_meli')
+        url_meli = request.POST.get('url_meli')
 
         if not precio_tn:
             precio_tn=0
         if not precio_ml:
             precio_ml=0
 
+        if not sku_meli:
+            sku_meli=None
+        else:
+            sku_meli = sku_meli.strip() 
+        if not url_meli:
+            url_meli=None
+        else:
+            url_meli = url_meli.strip() 
 
         producto = Product.objects.get(id=product_id)
         if producto:
             producto.precio_TN = precio_tn
             producto.precio_ML = precio_ml
+            producto.sku_meli = sku_meli
+            producto.url_meli = url_meli
             producto.save()
     
     return redirect('panel_catalogo')
@@ -2626,13 +2642,13 @@ def export_xls(request,modelo=None):
                 for col_num in range(len(columns)):
                     ws.write(row_num,col_num,columns[col_num],font_style)
                 font_style = xlwt.Style.XFStyle()
-
-                rows = Product.objects.filter().values_list('product_name','slug','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name','peso','ubicacion','costo_prod').order_by('product_name')
+                
+                rows = Product.objects.filter().values_list('product_name','slug','description','price','images','stock','is_available','category__category_name','subcategory__subcategory_name','peso','ubicacion','costo_prod').order_by('category__category_name','subcategory__subcategory_name','product_name')
                 
                 for row in rows:
                     row_num += 1      
                     for col_num in range(len(row)):              
-                        if col_num==3 or col_num==5 or col_num==9 or col_num==11: #Numericos
+                        if col_num==3 or col_num==5 or col_num==9: #Numericos
                             monto = float("{0:.2f}".format((float)(row[col_num])))
                             ws.write(row_num,col_num,int(round(monto)))
                         else:
@@ -3063,10 +3079,10 @@ def import_productos_xls(request):
                             if not tmp_producto:
                                 print("Producto no existe en temp, ...:")
                                 #Valido que exista la categoria
-                                cat_name = sheet1.cell_value(rowNumber, 7)
+                                cat_name = sheet1.cell_value(rowNumber, 7).strip()
                                 print("Category:", cat_name)
 
-                                sub_cat_name = sheet1.cell_value(rowNumber, 8)
+                                sub_cat_name = sheet1.cell_value(rowNumber, 8).strip()
                                 print("sub cat", sub_cat_name)
                                 img_name = sheet1.cell_value(rowNumber, 4)
                                 print("img_name", img_name)
@@ -3077,7 +3093,6 @@ def import_productos_xls(request):
                                     img_name = img_name.replace('%20', '')
                                     
                                 img_name = img_name.strip()
-
 
                                 print("Articulo:",product_name,"| categoria:",cat_name,"| subCategoria",sub_cat_name)
                                 slug_cat = slugify(cat_name).lower()
@@ -3118,25 +3133,32 @@ def import_productos_xls(request):
                                         print("sub Categoria .Save:",slug_subcat)
                                         sub_cat = SubCategory.objects.get(category=cat,subcategory_name=sub_cat_name)
                                     if sub_cat:
+
                                         int_peso = sheet1.cell_value(rowNumber, 9)
                                         float_peso = float("{0:.2f}".format((float)(int_peso)))
-                                        print("float_peso",float_peso)
+                                        #print("float_peso",float_peso)
 
-                                        str_ubicacion = sheet1.cell_value(rowNumber, 10)
-                                        #f_ubicacion = float("{0:.2f}".format((float)(int_ubicacion)))
-                                        print("str_ubicacion",str_ubicacion)
+                                        valor_ubicacion = sheet1.cell_value(rowNumber, 10)
+                                        # Convertimos a cadena eliminando el ".0" en caso de ser número flotante
+                                        if isinstance(valor_ubicacion, float):
+                                            str_ubicacion = str(int(valor_ubicacion))
+                                        else:
+                                            str_ubicacion = str(valor_ubicacion)
+
+                                        #print("str_ubicacion_2", str_ubicacion)
+
 
                                         int_costo = sheet1.cell_value(rowNumber, 11)
                                         f_costo = float("{0:.2f}".format((float)(int_costo)))
-                                        print("f_costo",f_costo)
+                                        #print("f_costo",f_costo)
 
                                         int_precio = sheet1.cell_value(rowNumber, 3)
                                         f_precio = float("{0:.2f}".format((float)(int_precio)))
-                                        print("f_precio",f_precio)
+                                        #print("f_precio",f_precio)
 
                                         int_stock = sheet1.cell_value(rowNumber, 5)
                                         f_stock = float("{0:.0f}".format((float)(int_stock)))
-                                        print("f_stock",f_stock)
+                                        #print("f_stock",f_stock)
 
                                         description= sheet1.cell_value(rowNumber, 2)
                                         description = description.strip()
@@ -3157,13 +3179,12 @@ def import_productos_xls(request):
                                             modified_date=datetime.today(),
                                             usuario = request.user,
                                             peso = float_peso,
-                                            ubicacion= str_ubicacion,
+                                            ubicacion= str(str_ubicacion),
                                             costo_prod=f_costo
-
                                                 )
-                                        
+                            
                                         tmp_producto.save()
-                                        print("Save temp producto")
+                                        print("Save temp producto, UBICACION:", str_ubicacion, " Costo: " , str(f_costo))
                                         if tmp_producto:
                                             product_id = tmp_producto.id
                                             cant_ok=cant_ok+1
@@ -3467,11 +3488,11 @@ def guardar_tmp_productos(request):
                       imagen = "photos/products/none.jpg" #default      
                     else:
                         imagen = a.images
-                    print("Guardar_tmp_productos",a.product_name,a.ubicacion)
+                    #print("Guardar_tmp_productos",a.product_name,a.ubicacion,a.costo_prod)
                     producto = Product(
-                        product_name = a.product_name,
+                        product_name = a.product_name.strip(),
                         slug=slugify(a.product_name).lower(),
-                        description = a.description,
+                        description = a.description.strip(),
                         category = category,
                         subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory),
                         images = imagen,
@@ -3483,12 +3504,13 @@ def guardar_tmp_productos(request):
                         modified_date=datetime.today(),
                         peso = a.peso, 
                         ubicacion= a.ubicacion,
+                        costo_prod =  float(a.costo_prod)
                     )
                     producto.save()
                     cant_art_nuevos = cant_art_nuevos +  1
                 else:
                     #Actualizo
-                    producto = Product.objects.get(product_name=a.product_name)
+                    producto = Product.objects.get(product_name=a.product_name.strip())
                     producto.category = category
                     producto.subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory)
                     producto.images = a.images
@@ -3645,8 +3667,8 @@ def panel_subcategoria_save(request,id_categoria=None,id_subcategoria=None):
 
         if request.method =="POST":
             
-            nombre = request.POST['nombre']
-            description = request.POST['description']
+            nombre = request.POST['nombre'].strip()
+            description = request.POST['description'].strip()
             idsubcategoria = request.POST['id_subcategoria']
             idcategoria = request.POST['id_categoria']
             orden = request.POST['orden']
@@ -3757,8 +3779,8 @@ def panel_categoria_detalle(request,categoria_id=None):
 
         if request.method =="POST":
             cat_id = request.POST.get("categoria_id")
-            cat_nombre = request.POST.get("category_name")
-            cat_descripcion = request.POST.get("description")
+            cat_nombre = request.POST.get("category_name").strip()
+            cat_descripcion = request.POST.get("description").strip()
             cat_imagen = request.POST.get("images")
             cat_orden = request.POST.get("orden")
             
@@ -5680,7 +5702,8 @@ def panel_lista_precios(request):
         comision3 = ConfiguracionParametros.objects.get(codigo='COM3')
 
         #COSTO FIJO x VENTA ML
-        costo3 = ConfiguracionParametros.objects.get(codigo='CST3')
+        costo3_menor = ConfiguracionParametros.objects.get(codigo='CST3_1') # Monte menor a 12000
+        costo3_mayor = ConfiguracionParametros.objects.get(codigo='CST3_2') # Monto mayor a 12000
         
         if not comision1:
             comision1=0
@@ -5688,9 +5711,11 @@ def panel_lista_precios(request):
             comision2=0
         if not comision3:
             comision3=0
-        if not costo3:
-            costo3 = 0
-
+        if not costo3_menor:
+            costo3_menor = 0
+        if not costo3_mayor:
+            costo3_mayor = 0
+        
         category = request.POST.get("category")
 
         if category:
@@ -5728,14 +5753,20 @@ def panel_lista_precios(request):
                             F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                               ),
+                        # Cálculo condicional de la comisión3 según el valor de precio_ML
                         comision3_calculado=ExpressionWrapper(
-                            F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
+                            F('precio_ML') * (float(comision3.valor) / 100) + 
+                            Case(
+                                When(Q(precio_ML__gt=12000), then=Value(float(costo3_mayor.valor))),
+                                default=Value(float(costo3_menor.valor)),
+                                output_field=FloatField()
                             ),
+                            output_field=FloatField()
+                        ),
                         beneficio3_calculado=ExpressionWrapper(
                             F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                             )
-                        ).order_by('product_name')
+                        ).order_by('-stock')
 
                 except ConfiguracionParametros.DoesNotExist:
                     # En caso de que no exista alguno de los márgenes, manejar la excepción.
@@ -5777,14 +5808,20 @@ def panel_lista_precios(request):
                             F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                             output_field=FloatField()
                               ),
+                        # Cálculo condicional de la comisión3 según el valor de precio_ML
                         comision3_calculado=ExpressionWrapper(
-                            F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                            output_field=FloatField()
+                            F('precio_ML') * (float(comision3.valor) / 100) + 
+                            Case(
+                                When(Q(precio_ML__gt=12000), then=Value(float(costo3_mayor.valor))),
+                                default=Value(float(costo3_menor.valor)),
+                                output_field=FloatField()
                             ),
+                            output_field=FloatField()
+                        ),
                         beneficio3_calculado=ExpressionWrapper(
                             F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                             )
-                        ).order_by('product_name')
+                        ).order_by('-stck')
 
 
                 except ConfiguracionParametros.DoesNotExist:
@@ -5826,14 +5863,20 @@ def panel_lista_precios(request):
                         F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                         output_field=FloatField()
                             ),
+                    # Cálculo condicional de la comisión3 según el valor de precio_ML
                     comision3_calculado=ExpressionWrapper(
-                        F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                        output_field=FloatField()
+                        F('precio_ML') * (float(comision3.valor) / 100) + 
+                        Case(
+                            When(Q(precio_ML__gt=12000), then=Value(float(costo3_mayor.valor))),
+                            default=Value(float(costo3_menor.valor)),
+                            output_field=FloatField()
                         ),
+                        output_field=FloatField()
+                    ),
                     beneficio3_calculado=ExpressionWrapper(
                         F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                         )
-                    ).order_by('product_name')
+                    ).order_by('-stock')
 
 
             except ConfiguracionParametros.DoesNotExist:
@@ -6001,6 +6044,4 @@ def consultar_suc_by_cp(request):
             centros_info = {'error': 'El código postal no puede estar vacío.'}
     
     return render(request, 'accounts/edit_direcciones.html', {'centros_info': centros_info})
-
-
 # FIN SERVICIOS SOAP OCA ******************

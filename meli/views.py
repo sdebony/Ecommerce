@@ -18,6 +18,8 @@ from django.conf import settings
 
 def meli_get_authorization_code(client_id):
 
+
+    print("meli_get_authorization_code. Cliente ID:", client_id)
     authorization_code = meli_params.objects.filter(client_id=client_id).first()
     
     if not authorization_code:
@@ -27,7 +29,7 @@ def meli_get_authorization_code(client_id):
     
     else:
         access_token = authorization_code.access_token
-    
+        print("Tomo el access token de la base:",access_token)
     
     return  access_token
 
@@ -61,6 +63,7 @@ def meli_list(request):
 
     return render(request,'panel/login.html',)
 
+#Paso 1
 def meli_get_first_token(request):
 
     print("meli_get_first_token")
@@ -74,7 +77,7 @@ def meli_get_first_token(request):
             if accesousuario:
                 if accesousuario.modo_ver==True:
                    print("Con Acceso a ML ")
-                   return redirect('panel')
+                   #return redirect('panel')
                       
             else:
                 print("Sin Acceso ML")
@@ -93,7 +96,7 @@ def meli_get_first_token(request):
             return render(request,'panel/login.html',)  
     except ObjectDoesNotExist:
         
-        print("Sin Acceso ML")
+       
         orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
         orders_count = orders.count()
 
@@ -107,14 +110,13 @@ def meli_get_first_token(request):
 
     
     if accesousuario.codigo.codigo =='CONFIG ML':
-       url = "https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=" + settings.CLIENTE_ID  +  "&redirect_uri=" + settings.REDIRECT_URI  
+       url = "https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=" + settings.CLIENTE_ID  +  "&redirect_uri=" + settings.REDIRECT_URI 
        return redirect(url)
     else:
      
         return redirect('panel')
-       
+#Paso 2     
 def meli_save_token(request):
-
 
     print("save token")
 
@@ -139,43 +141,36 @@ def meli_save_token(request):
                 'permisousuario':permisousuario,
             }    
 
-            if request.method =="POST":
-            
-                code = request.POST.get("code")
-                if code:
-                    cliente_id = settings.CLIENTE_ID
-                    print(cliente_id)
-                    token = meli_params.objects.get(client_id=cliente_id)
-                    if token:     
-                        token = meli_params(
-                            id = token.id,
-                            client_id = cliente_id,
-                            code = code,
-                            refresh_token = token.refresh_token,
-                            access_token= token.access_token,
-                            token_type= token.token_type,
-                            userid= token.userid,
-                            last_update=datetime.today(),
-                        
-                        )        
-                        token.save()
-                        messages.success(request,"Token guardado con exito.")
-                    else:
-                        messages.warning(request,"No se ha podido obtener el codigo de autorizacion.")
+            code = request.GET.get('code')
+            if code:
+                cliente_id = settings.CLIENTE_ID
+                token = meli_params.objects.get(client_id=cliente_id)
+                if token:     
+                    token = meli_params(
+                        id = token.id,
+                        client_id = cliente_id,
+                        code = code,
+                        refresh_token = token.refresh_token,
+                        access_token= token.access_token,
+                        token_type= token.token_type,
+                        userid= token.userid,
+                        last_update=datetime.today(),
+                    
+                    )        
+                    token.save()
+                    meli_solicitar_refresh_token(request)
 
-                    print("code:",code)
+                    messages.success(request,"Token guardado con exito.")
                 else:
-                    print("Sin code")
-            
-                return redirect('panel')
-            else:
+                    messages.warning(request,"No se ha podido obtener el codigo de autorizacion.")
 
-                return render(request,'meli/meli_config.html',context)  
-    
+          
+        
+            return redirect('panel')
 
     else:
         return render(request,'panel/login.html',)
-
+#Paso 3
 def meli_solicitar_refresh_token(request):
 
     print("meli_solicitar_token")
@@ -226,6 +221,14 @@ def meli_solicitar_refresh_token(request):
             user_id = resp["user_id"]
             refreshtoken=resp["refresh_token"]
 
+            print("Nuevos Datos *******")
+            print("")
+            print("Access Token: ", access_token)
+            print("Token Type: ", token_type)
+            print("User ID: ", user_id)
+            print("Refresh Token: ", refreshtoken)
+            print("")
+            print("*************************")
             refresh_token = meli_params.objects.get(client_id=cliente_id)
             if refresh_token:     
                 refresh_token = meli_params(
@@ -233,7 +236,7 @@ def meli_solicitar_refresh_token(request):
                 client_id = cliente_id,
                 code = refresh_token.code,
                 refresh_token = refreshtoken,
-                access_token= access_token,
+                access_token= 'Bearer ' + access_token,
                 token_type= token_type,
                 userid= user_id,
                 last_update=datetime.today(),
@@ -427,3 +430,159 @@ def meli_search(request):
 
     return render(request,'panel/login.html',)
 
+def meli_publicaciones(request):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        print("Mis publicaciones")
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+       
+        publicaciones=''
+        publicaciones = meli_get_all_publicaciones(request)
+        print(publicaciones)
+
+        # Busca los detalles de los artículos
+        url = "https://api.mercadolibre.com/items?ids=" + str(publicaciones)
+        
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        
+        payload = {}
+        headers = {
+            'Authorization': access_token #'APP_USR-710125811010660-102410-fc5f755c5fbdf1b370dd274c57b7e838-1998248263'
+        }
+
+        articulos=[]
+        detail_response = requests.request("GET", url, headers=headers, data=payload)
+        
+        if detail_response.status_code == 200:
+            articulos = detail_response.json()  # Detalles de los artículos
+            
+
+        else:
+            print(f"Error al obtener los detalles de los productos: {detail_response.status_code}")
+            print(f"Contenido de la respuesta: {detail_response.text}")
+            messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+
+
+       
+
+        
+        context = {
+            'permisousuario':permisousuario,
+            'articulos':articulos
+        }
+
+        return render(request,'meli/meli_publicaciones.html',context) 
+
+    return render(request,'panel/login.html',)
+
+def meli_get_all_publicaciones(request):
+    # Obtiene la lista de publicaciones de Mercado Libre
+
+    ids_concatenados = ''
+           
+    nick_name = settings.NICK_NAME
+    url = "https://api.mercadolibre.com/sites/MLA/search?nickname=" + str(nick_name)
+            
+    access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+    
+    payload = {}
+    headers = {
+        'Authorization': access_token #'APP_USR-5374552499309003-040715-531af5500eba214cfed3597ccc74e677-4388206'
+    }
+    
+    
+    #Busco todos los productos del vendedor
+    response = requests.request("GET", url, headers=headers, data=payload)
+    if response.status_code==200 : 
+        response_json = json.loads(response.text) #Diccionario
+        articulos = response_json
+        # Obtener la lista de IDs
+        ids = [result['id'] for result in articulos['results']]
+        # Concatenar los IDs en un solo string, separados por comas
+        ids_concatenados = ','.join(ids)
+    else:
+        ids_concatenados=''
+        messages.error(request,"Error de conexion  en Mercado Libre. - Consulta Productos")
+        print("ERROR DE CONEXION - Consulta")
+
+    return ids_concatenados
+
+def meli_ventas(request):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        print("Mis Ventas")
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+       
+        
+        # Busca los detalles de los artículos
+        seller_id = settings.SELLER_ID
+
+        url = "https://api.mercadolibre.com/orders/search?seller=" + str(seller_id)
+        
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        
+        payload = {}
+        headers = {
+            'Authorization': access_token #'APP_USR-710125811010660-102410-fc5f755c5fbdf1b370dd274c57b7e838-1998248263'
+        }
+
+        ventas=[]
+        detail_response = requests.request("GET", url, headers=headers, data=payload)
+        
+        if detail_response.status_code == 200:
+            ventas = detail_response.json()  # Detalles de los artículos
+            # Realizar el cálculo de (total_paid_amount - (quantity * sale_fee)) para cada venta
+            for venta in ventas['results']:
+                total_paid_amount = venta['payments'][0]['total_paid_amount']
+                shipping_cost = venta['payments'][0]['shipping_cost']
+                quantity = venta['order_items'][0]['quantity']
+                sale_fee = venta['order_items'][0]['sale_fee']
+
+                # Realizar el cálculo
+                venta['total_comision'] =  (quantity * sale_fee)
+                venta['total_calculado'] = total_paid_amount - (quantity * sale_fee) - shipping_cost 
+
+
+
+        else:
+            print(f"Error al obtener los detalles de los productos: {detail_response.status_code}")
+            print(f"Contenido de la respuesta: {detail_response.text}")
+            messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+
+        
+        context = {
+            'permisousuario':permisousuario,
+            'ventas':ventas
+        }
+
+        return render(request,'meli/meli_ventas.html',context) 
+
+    return render(request,'panel/login.html',)

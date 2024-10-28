@@ -1,0 +1,78 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-6">
+  <!-- Card Header - Dropdown -->
+ 
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <h1 class="h3 mb-6 text-gray-800">Mis Publicaciones </h1>
+        <a href="{% url 'meli_get_first_token' %}" class="btn btn-primary " role="button" style="float: right;">
+            &nbsp;Conectar ML</a>
+    </div>
+    
+      
+    <div class="card-body">
+        {% if articulos %}
+
+        <table 
+      id="dataTable"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="true"
+      data-show-toggle="true"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    > 
+       
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th data-sortable="true" scope="col">Código</th>
+                    <th data-sortable="true" scope="col">Articulo</th>
+                    <th data-sortable="true" scope="col">Stock</th>
+                    <th data-sortable="true" scope="col">Precio Original</th>
+                    <th data-sortable="true" scope="col">Precio Actual</th>
+                    <th data-sortable="true" scope="col">Vendedor</th>
+                    <th data-sortable="true" scope="col">category_id</th>
+                    <th data-sortable="true" scope="col">Status</th>
+                    <th data-sortable="true" scope="col" data-visible="true">health</th>
+                    <th data-sortable="true" scope="col" data-visible="false">% Interes</th>
+                </tr>
+            </thead>
+            <tbody>
+                       
+                        {% for articulo in articulos %}
+                        <tr>
+                            <th><a href={{articulo.body.permalink}} target="_blank">{{ articulo.body.id }}</a> </th>
+                            <th>{{articulo.body.title }} </th>
+                            <th>{{ articulo.body.available_quantity }}</th>
+                            {% if articulo.body.original_price %}
+                                <th>$ {{articulo.body.original_price }}</th>
+                            {% else %}
+                                    <th>$ {{articulo.body.base_price }}</th>
+                            {% endif %}    
+                            <th>$ {{articulo.body.price }}</th>
+                            <th> {{articulo.body.seller_id }}</th>
+                            <th>{{articulo.body.category_id}}</a></th>
+                            <th>{{articulo.body.status }} </th>
+                            <th>{{articulo.body.health }} </th>
+                            <th>{{articulo.body.installments.rate}} </th>
+                                
+                            
+                            
+                        </tr>
+                        {% endfor %}
+                
+                        
+            </thead>
+        </table>
+        {% endif %}
+    </div>
+</div>  
+
+{% endblock%}

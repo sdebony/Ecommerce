@@ -27,6 +27,8 @@ class Product(models.Model):
     ubicacion       = models.CharField(max_length=10,blank=True)
     precio_TN       = models.FloatField(default=0,blank=True)
     precio_ML       = models.FloatField(default=0,blank=True)
+    sku_meli        = models.CharField(max_length=20,blank=True)  #MLA-1915430118
+    url_meli        = models.CharField(max_length=650,blank=True) #https://articulo.mercadolibre.com.ar/MLA-1915430118-tubo-de-tenis-x-3-pelotas-tenis-head-tour-_JM
 
     def get_url(self):
         return reverse('product_detail', args=[self.category.slug, self.slug])

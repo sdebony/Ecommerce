@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 
 {% block page_content %}
 
@@ -38,7 +38,7 @@
               <div class="col mr-2">
                 <a href="{% url 'panel_pedidos' 'New'  %}">
                   <div class="text-s font-weight-bold text-primary text-uppercase mb-1"> Pend de Facturar {{ cantidad_new }}</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_new}} </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ amount_new|format_currency }} </div>
                 
               </a>
               </div>
@@ -57,7 +57,7 @@
             <div class="col mr-2">
               <a href="{% url 'panel_pedidos' 'Cobrado'  %}">
                 <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Pend de Entregar {{ cantidad_cobrado}}</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_cobrado}} </div>           
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ amount_cobrado|format_currency}} </div>           
             </a>
             </div>
             <div class="col-auto">
@@ -76,7 +76,7 @@
           <div class="col mr-2">
             <a href="{% url 'panel_pedidos' 'Entregado'  %}">
               <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Entregados {{ cantidad_entregado}}</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_entregado }}  </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ amount_entregado|format_currency }}  </div>
             
           </a>
           </div>
@@ -171,7 +171,7 @@
 
 
           
-          <td>$ {{ item.order_total }} </td>
+          <td>$ {{ item.order_total|format_currency }} </td>
           {% if item.status == "New" %}
             <td><span class="badge bg-primary text-white">{{ item.status }}</span></td>
           {% elif item.status == "Cobrado" %}

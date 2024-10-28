@@ -46,6 +46,7 @@
                     <th data-sortable="true" scope="col">Articulo</th>
                     <th data-sortable="true" scope="col">Precio Original</th>
                     <th data-sortable="true" scope="col">Precio Actual</th>
+                    <th data-sortable="true" scope="col">Vendedor</th>
                     <th data-sortable="true" scope="col">category_id</th>
                     <th data-sortable="true" scope="col">Marca</th>
                     <th data-sortable="true" scope="col">Cuotas</th>
@@ -64,6 +65,7 @@
                                     <th>$ {{arts.price }}</th>
                             {% endif %}    
                             <th>$ {{arts.price }}</th>
+                            <th> {{arts.seller.nickname }}</th>
                             <th><a href="{% url 'meli_search_categoria' arts.category_id %}">{{arts.category_id}}</a></th>
                             {% for attr in arts.attributes %}
                                 {% if attr.id == 'BRAND'%}
