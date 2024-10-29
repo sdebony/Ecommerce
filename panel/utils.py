@@ -5,10 +5,12 @@
 
 from django.conf import settings
 
-
+import json
 import requests
 #from xml.etree import ElementTree as ET
 import xml.etree.ElementTree as ET
+#from panel.views import refesh_token_correo_argentino
+
 
 def consultar_costo_envio(peso_total, volumen_total, cp_origen, cp_destino, cant_paquetes, valor_declarado, cuit, operativa):
     url = "http://webservice.oca.com.ar/ePak_Tracking/Oep_TrackEPak.asmx"
@@ -117,7 +119,6 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
     else:
         raise Exception(f"Error al consultar OCA: {response.status_code}")
 
-
 def consultar_sucursal_bycp(cp_destino,dir_id_2):
     url = "http://webservice.oca.com.ar/ePak_Tracking/Oep_TrackEPak.asmx"
     headers = {'Content-Type': 'text/xml; charset=utf-8'}
@@ -181,3 +182,48 @@ def consultar_sucursal_bycp(cp_destino,dir_id_2):
 
     else:
         raise Exception(f"Error al consultar OCA: {response.status_code}")
+
+def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
+    
+
+    url = "https://api.correoargentino.com.ar/micorreo/v1/rates"
+    cp_origen=settings.OCA_CP_ORIGEN
+    customer_id = '' #get_customer_correo_arg()
+    token = '' #refesh_token_correo_argentino()
+
+    payload = json.dumps({
+    "customerId": customer_id,
+    "postalCodeOrigin": cp_origen,
+    "postalCodeDestination": cp_destino,
+    "deliveredType": tipo_envio, #Tipo envio D (Despacho)  
+    "dimensions": {
+        "weight": peso,
+        "height": 1,
+        "width": 1,
+        "length": 1
+    }
+    })
+    headers = {
+    'Authorization': 'Bearer ' + str(token),
+    'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    if response.status_code == 200:
+        # Parsear el XML de respuesta
+        root = ET.fromstring(response.content)
+        precio = root.find('.//price').text
+        producto = root.find('.//productName').text
+        tipo_envio = root.find('.//productType').text
+
+        print("CORREO ARG: ",precio,producto,tipo_envio)
+        return {
+            'Precio': precio,
+            'producto': producto,
+            'producto': producto,
+            'tipo_envio':tipo_envio
+        }
+    else:
+        raise Exception(f"Error al consultar Correo Argentino: {response.status_code}")
+
+    

@@ -3,7 +3,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-
+from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
@@ -16,7 +16,7 @@ from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Trans
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
 from compras.models import CompraDolar,ProveedorArticulos
 from accounts.forms import UserForm, UserProfileForm
-
+from meli.models import meli_params
 from django.db.models.functions import TruncMonth
 from django.db.models.functions import Round
 from django.http import HttpResponse
@@ -24,7 +24,8 @@ from slugify import slugify
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal
 from django.utils import timezone
-
+from requests.auth import HTTPBasicAuth
+import requests
 from django.db.models import Case, When, Value, FloatField, ExpressionWrapper, F
 from django.db.models.functions import Coalesce
 from django.db.models import OuterRef, Subquery
@@ -35,7 +36,7 @@ from carts.models import CartItem
 from django.http import JsonResponse
 
 
-from .utils import consultar_costo_envio,consultar_sucursal_bycp,oca_consultar_costo_envio_by_cart  # Asegúrate de que esta función esté disponible
+from .utils import consultar_costo_envio,consultar_sucursal_bycp,oca_consultar_costo_envio_by_cart,ca_consultar_costo_envio_by_cart  # Asegúrate de que esta función esté disponible
 
 import json
 import calendar
@@ -3060,20 +3061,8 @@ def import_productos_xls(request):
                             
                             product_name = sheet1.cell_value(rowNumber, 0)
                             product_name = product_name.strip()
-
-                            
-                            #print(sheet1.cell_value(rowNumber, 0)) # Nombre
-                            #print(sheet1.cell_value(rowNumber, 1)) # slug
-                            #print(sheet1.cell_value(rowNumber, 2)) # Description
-                            #print(sheet1.cell_value(rowNumber, 3)) # Precio
-                            #print(sheet1.cell_value(rowNumber, 4)) # images
-                            #print(sheet1.cell_value(rowNumber, 5)) # stock
-                            #print(sheet1.cell_value(rowNumber, 6)) # Habilitado
-                            #print(sheet1.cell_value(rowNumber, 7)) # Category
-                            #print(sheet1.cell_value(rowNumber, 8)) # Sub Category
-                            #print(sheet1.cell_value(rowNumber, 9)) # peso
-                            #print(sheet1.cell_value(rowNumber, 10)) #ubicacion
-                            #print(sheet1.cell_value(rowNumber, 11)) # Costo
+                            slug_product = product_name.replace('ñ','enie')
+                            slug_product = product_name.replace('Ñ','enie')
 
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
                             if not tmp_producto:
@@ -3090,7 +3079,7 @@ def import_productos_xls(request):
                                 if not img_name:
                                     img_name = 'none.jpg'
                                 else:
-                                    img_name = img_name.replace('%20', '')
+                                    img_name = img_name.replace(' ', '%20')
                                     
                                 img_name = img_name.strip()
 
@@ -3165,7 +3154,7 @@ def import_productos_xls(request):
 
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
-                                            slug=slugify(product_name).lower(),
+                                            slug=slugify(slug_product).lower(),
                                             description= description,
                                             variation_category = "", #sheet1.cell_value(rowNumber, 2),
                                             variation_value = "", #sheet1.cell_value(rowNumber, 3),
@@ -3491,7 +3480,7 @@ def guardar_tmp_productos(request):
                     #print("Guardar_tmp_productos",a.product_name,a.ubicacion,a.costo_prod)
                     producto = Product(
                         product_name = a.product_name.strip(),
-                        slug=slugify(a.product_name).lower(),
+                        slug=a.slug,
                         description = a.description.strip(),
                         category = category,
                         subcategory = SubCategory.objects.get(category=category,subcategory_name=a.subcategory),
@@ -5998,21 +5987,27 @@ def costo_envio_by_cart(request,cp_destino):
         correo = 1         #OCA
         # Llamar a la función consultar_costo_envio
         try:
-            if correo==1: #OCA
-                resultado_ed = oca_consultar_costo_envio_by_cart(peso, cp_destino,1) #Envio Domicilio
-                resultado_rs = oca_consultar_costo_envio_by_cart(peso, cp_destino,2) # Retira Sucursal
-                
-                resultado = {
-                    
-                    'Total_ed': float("{0:.2f}".format((float)(resultado_ed['Total']))),
-                    'Plazo_ed': resultado_ed['PlazoEntrega'],
-                   
-                    'Total_rs': float("{0:.2f}".format((float)(resultado_rs['Total']))),
-                    'Plazo_rs': resultado_rs['PlazoEntrega']
-                }
+            #OCA
+            resultado_ed = oca_consultar_costo_envio_by_cart(peso, cp_destino,1) #Envio Domicilio
+            resultado_rs = oca_consultar_costo_envio_by_cart(peso, cp_destino,2) # Retira Sucursal
+            #Correo Argentino
+            resultado_ed_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'D') #Envio a Domicilio
+            resultado_rs_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'S') #Sucursal
 
-            if correo==2: #Correo Argentina
-                print("Definir el servicio")
+            print(resultado_ed_ca)
+            print(resultado_rs_ca)
+
+            resultado = {
+                
+                'Total_ed': float("{0:.2f}".format((float)(resultado_ed['Total']))),
+                'Plazo_ed': resultado_ed['PlazoEntrega'],
+                
+                'Total_rs': float("{0:.2f}".format((float)(resultado_rs['Total']))),
+                'Plazo_rs': resultado_rs['PlazoEntrega']
+
+            }
+
+            
 
         except Exception as e:
             resultado = {'error': str(e)}
@@ -6045,3 +6040,127 @@ def consultar_suc_by_cp(request):
     
     return render(request, 'accounts/edit_direcciones.html', {'centros_info': centros_info})
 # FIN SERVICIOS SOAP OCA ******************
+
+# INI SERVICIOS CORREO ARGENTINO ******************
+def obtener_token_correo_argentino():
+
+
+    # Reemplaza con tu usuario y contraseña
+    usuario = settings.USER_CORREO_ARG
+    contrasena = settings.PASS_CORREO_ARG
+
+    # URL para solicitar el token
+    url = "https://api.correoargentino.com.ar/micorreo/v1/token"
+
+    try:
+        # Realiza la solicitud POST con autenticación básica
+        response = requests.post(url, auth=HTTPBasicAuth(usuario, contrasena))
+
+        # Verifica si la solicitud fue exitosa (código de estado 200)
+        if response.status_code == 200:
+            # Extrae el token del JSON de respuesta
+            token = response.json().get("token")
+            fecha_venc= response.json().get("expire")
+            print("Token:", token)
+            print("Fecha venc:", fecha_venc)
+
+            return token, fecha_venc
+        else:
+            print("Error al obtener el token:", response.status_code, response.text)
+
+    except requests.RequestException as e:
+        print("Error en la solicitud:", e)
+## LLAMAR A ESTA FUNCION PARA OBTENER EL TOKEN
+#token = refesh_token_correo_argentino()
+def refesh_token_correo_argentino():
+
+    print("View: refesh_token_correo_argentino")
+    access_token=''
+    customerId=''
+    # 1 Valido si tengo guardado el token y es valido (fecha)
+        
+    user_id= settings.USER_CORREO_ARG
+    print("Get_Correo_Argentino_authorization Token. User ID:", user_id)
+    authorization_code = meli_params.objects.filter(userid=user_id).first()
+    
+    if not authorization_code:
+        #Grabo el token 
+        token, last_update = obtener_token_correo_argentino()
+        customerId = get_serv_customer_id_correo_argentino(token)  #Lo busca en el servicio
+        access_token = meli_params(
+            client_id = customerId,  #CUSTOMER ID
+            code = '',
+            access_token=token,
+            token_type= 'Bearer ',
+            userid= settings.USER_CORREO_ARG,  #USER Y PASS LIFCHE
+            refresh_token = '',
+            last_update = last_update
+        )
+        access_token.save()
+        return token
+        
+    else:
+        
+        fecha_venc = authorization_code.last_update
+        print("Fecha de vencimiento del token:", fecha_venc)
+        expiration_datetime = datetime.fromisoformat(fecha_venc)
+        ahora = datetime.now()
+
+        if expiration_datetime > ahora:
+            print("Token valido, no es necesario refrescarlo")
+            return authorization_code.access_token
+        else:
+            token, last_update = obtener_token_correo_argentino()
+            access_token = meli_params(
+                client_id = access_token.client_id,
+                code = '',
+                access_token=token,
+                token_type= 'Bearer ',
+                userid= settings.USER_CORREO_ARG,
+                refresh_token = '',
+                last_update = last_update
+            )
+            access_token.save()            
+            return token
+
+def get_serv_customer_id_correo_argentino(token):
+
+
+    url = "https://api.correoargentino.com.ar/micorreo/v1/users/validate"
+
+    customerId=''
+    payload = json.dumps({
+    "email": settings.EMAIL_USER_CORREO_ARG ,
+    "password": settings.EMAIL_PASS_CORREO_ARG
+    })
+
+    
+    headers = {
+    'Authorization': 'Bearer ' + str(token),
+    'Content-Type': 'application/json'  # ,
+    #v'Cookie': '7326f8819575d808a8a5b3a67c3616d6=209c792f93d7aa5fb08eff96537d0086'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+    if response.status_code == 200:
+    
+        customerId = response.json().get("customerId")
+        print(customerId)
+
+    return customerId
+
+
+def get_customer_correo_arg():
+
+    customer_id=''
+    user_id= settings.USER_CORREO_ARG
+    authorization_code = meli_params.objects.filter(userid=user_id).first()
+    if not authorization_code:
+        token = refesh_token_correo_argentino()
+        customer_id = get_serv_customer_id_correo_argentino(token)
+    else:
+        customer_id = authorization_code.client_id
+    
+    return customer_id
+
+   

@@ -476,8 +476,7 @@ def meli_publicaciones(request):
             print(f"Contenido de la respuesta: {detail_response.text}")
             messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
 
-
-       
+         
 
         
         context = {
@@ -496,7 +495,7 @@ def meli_get_all_publicaciones(request):
            
     nick_name = settings.NICK_NAME
     url = "https://api.mercadolibre.com/sites/MLA/search?nickname=" + str(nick_name)
-            
+          
     access_token = meli_get_authorization_code(settings.CLIENTE_ID)
     
     payload = {}
@@ -566,10 +565,13 @@ def meli_ventas(request):
                 quantity = venta['order_items'][0]['quantity']
                 sale_fee = venta['order_items'][0]['sale_fee']
 
+                total_amount = sum(payment["total_paid_amount"] for payment in venta["payments"])
+                print(total_amount)
+                
                 # Realizar el cálculo
                 venta['total_comision'] =  (quantity * sale_fee)
-                venta['total_calculado'] = total_paid_amount - (quantity * sale_fee) - shipping_cost 
-
+                venta['total_calculado'] = total_amount - (quantity * sale_fee) - shipping_cost 
+                venta['total_amount'] = total_amount
 
 
         else:

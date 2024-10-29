@@ -45,13 +45,14 @@
                 </tr>
             </thead>
             <tbody>
+
                        
                         {% for venta in ventas.results %}
                         <tr>
                             <th>{{ venta.id }}</a> </th>
                             <th>{{ venta.date_created }} </th>
                             <th>{{ venta.tags|last  }}</th>
-                            <th>{{ venta.payments.0.total_paid_amount|format_currency }}</th>
+                            <th>{{ venta.total_amount|format_currency }}</th>
                             <th>{{ venta.payments.0.shipping_cost|format_currency }}</th>
                             <th>{{ venta.total_comision|format_currency }}</th>
                             <th>{{ venta.total_calculado|format_currency }}</th>
