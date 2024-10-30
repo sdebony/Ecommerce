@@ -6025,12 +6025,41 @@ def costo_envio_by_cart(request,cp_destino):
                 if resultado['productType'] == 'EP':
                     precio_rs_ca_expreso = float("{0:.2f}".format((float)(resultado['price'])))
 
+            if not resultado_ed:
+                precio_ed_oca = "A definir"
+                plazo_entrega_ed_oca = 0
+            else:
+                plazo_entrega_ed_oca = resultado_ed['PlazoEntrega']
+                precio_ed_oca = float("{0:.2f}".format((float)(resultado_ed['Total'])))
+            
+            if not resultado_rs:
+                precio_rs_oca = "A definir"
+                plazo_entrega_rs_oca = 0
+            else:
+                plazo_entrega_rs_oca = resultado_rs['PlazoEntrega']
+                precio_rs_oca = float("{0:.2f}".format((float)(resultado_rs['Total'])))
+            
+           
+
+            print("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
+
+
+
+            if not precio_ed_ca_clasico:
+                precio_ed_ca_clasico = "A definir"
+            if not precio_ed_ca_expreso:
+                precio_ed_ca_expreso = "A definir"
+            if not precio_rs_ca_clasico:
+                precio_rs_ca_clasico = "A definir"
+            if not precio_rs_ca_expreso:
+                precio_rs_ca_expreso = "A definir"
+
             resultado = {
                 
-                'Total_ed': float("{0:.2f}".format((float)(resultado_ed['Total']))),
-                'Plazo_ed': resultado_ed['PlazoEntrega'],
-                'Total_rs': float("{0:.2f}".format((float)(resultado_rs['Total']))),
-                'Plazo_rs': resultado_rs['PlazoEntrega'],
+                'Total_ed': precio_ed_oca,
+                'Plazo_ed': plazo_entrega_ed_oca,
+                'Total_rs': precio_rs_oca,
+                'Plazo_rs': plazo_entrega_rs_oca,
                 'precio_ed_ca_clasico':precio_ed_ca_clasico,
                 'precio_ed_ca_expreso':precio_ed_ca_expreso,
                 'precio_rs_ca_clasico':precio_rs_ca_clasico,
@@ -6039,7 +6068,28 @@ def costo_envio_by_cart(request,cp_destino):
             }
 
         except Exception as e:
-            resultado = {'error': str(e)}
+
+            precio_ed_oca = "A definir"
+            plazo_entrega_ed_oca = "A definir"
+            precio_rs_oca = "A definir"
+            plazo_entrega_rs_oca = "A definir"
+            precio_ed_ca_clasico = "A definir"
+            precio_ed_ca_expreso = "A definir"
+            precio_rs_ca_clasico = "A definir"
+            precio_rs_ca_expreso = "A definir"
+
+            resultado = {
+                
+                'Total_ed': precio_ed_oca,
+                'Plazo_ed': plazo_entrega_ed_oca,
+                'Total_rs': precio_rs_oca,
+                'Plazo_rs': plazo_entrega_rs_oca,
+                'precio_ed_ca_clasico':precio_ed_ca_clasico,
+                'precio_ed_ca_expreso':precio_ed_ca_expreso,
+                'precio_rs_ca_clasico':precio_rs_ca_clasico,
+                'precio_rs_ca_expreso':precio_rs_ca_expreso
+
+            }
 
         print(resultado)
         return JsonResponse(resultado, safe=False)
@@ -6093,6 +6143,7 @@ def obtener_token_correo_argentino():
             token = response.json().get("token")
             fecha_venc= response.json().get("expire")
   
+
             return token, fecha_venc
         else:
             print("Error al obtener el token:", response.status_code, response.text)

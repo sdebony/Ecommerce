@@ -29,6 +29,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     categories = []
     category_name=""
     sub_category_name = ""
+  
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
@@ -88,8 +89,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         product_count = products.count()
 
 
-        links = Category.objects.order_by('orden')  # Obtiene las categorías ordenadas
-        sub_links = SubCategory.objects.order_by('orden')  # Obtiene las subcategorías ordenadas
+        
 
 
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
@@ -115,10 +115,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         'category_slug':category_slug,
         'sub_category_name':sub_category_name,
         'subcategories':subcategories,
-        'resolucion':resolucion,
-        'links':links,
-        'sub_links':sub_links
-
+        'resolucion':resolucion
     }
 
    
