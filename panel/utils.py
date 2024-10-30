@@ -62,7 +62,7 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
     headers = {'Content-Type': 'text/xml; charset=utf-8'}
 
 
-    print("consultar_costo_envio_by_cart")
+    print("consultar_costo_envio_by_cart --> OCA")
     OCA_CP_ORIGEN = settings.OCA_CP_ORIGEN
     OCA_OPERATIVA_ED = settings.OCA_OPERATIVA_ED 
     OCA_OPERATIVA_ES = settings.OCA_OPERATIVA_ES
@@ -183,14 +183,16 @@ def consultar_sucursal_bycp(cp_destino,dir_id_2):
     else:
         raise Exception(f"Error al consultar OCA: {response.status_code}")
 
-def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
+def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio,token,customer_id):
     
 
+    print("ca_consultar_costo_envio_by_cart --> CA")
     url = "https://api.correoargentino.com.ar/micorreo/v1/rates"
     cp_origen=settings.OCA_CP_ORIGEN
-    customer_id = '' #get_customer_correo_arg()
-    token = '' #refesh_token_correo_argentino()
-
+    token = token
+    customer_id = customer_id
+    
+    peso = int(peso * 100)
     payload = json.dumps({
     "customerId": customer_id,
     "postalCodeOrigin": cp_origen,
@@ -208,21 +210,34 @@ def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
     'Content-Type': 'application/json'
     }
 
+    
     response = requests.request("POST", url, headers=headers, data=payload)
-    if response.status_code == 200:
+    if response.status_code in [200, 202]:
         # Parsear el XML de respuesta
-        root = ET.fromstring(response.content)
-        precio = root.find('.//price').text
-        producto = root.find('.//productName').text
-        tipo_envio = root.find('.//productType').text
+        data = response.json()
+        productos = []
+        for rate in data.get("rates", []):
+            product_type = rate.get("productType")
+            product_name = rate.get("productName")
+            price = rate.get("price")
+            
+            # Agregar solo los campos deseados a la lista
+            productos.append({
+                'productType': product_type,
+                'productName': product_name,
+                'price': price
+            })
 
-        print("CORREO ARG: ",precio,producto,tipo_envio)
+    
+         # Devolver los datos
         return {
-            'Precio': precio,
-            'producto': producto,
-            'producto': producto,
+            'productos': productos,
+            'customerId': data.get('customerId'),
+            'validTo': data.get('validTo'),
             'tipo_envio':tipo_envio
-        }
+            }
+
+      
     else:
         raise Exception(f"Error al consultar Correo Argentino: {response.status_code}")
 

@@ -2776,8 +2776,10 @@ def export_xls(request,modelo=None):
             comision1 = ConfiguracionParametros.objects.get(codigo='COM1')
             comision2 = ConfiguracionParametros.objects.get(codigo='COM2')
             comision3 = ConfiguracionParametros.objects.get(codigo='COM3')
+            
             #COSTO FIJO x VENTA ML
-            costo3 = ConfiguracionParametros.objects.get(codigo='CST3')
+            costo3_menor = ConfiguracionParametros.objects.get(codigo='CST3_1') # Monte menor a 12000
+            costo3_mayor = ConfiguracionParametros.objects.get(codigo='CST3_2') # Monto mayor a 12000
             
             if not comision1:
                 comision1=0
@@ -2785,8 +2787,10 @@ def export_xls(request,modelo=None):
                 comision2=0
             if not comision3:
                 comision3=0
-            if not costo3:
-                costo3 = 0
+            if not costo3_menor:
+                costo3_menor = 0
+            if not costo3_mayor:
+                costo3_mayor = 0
 
 
             try:
@@ -2821,10 +2825,16 @@ def export_xls(request,modelo=None):
                         F('precio_base') * (float(margen3.valor) / 100) + F('precio_base'),
                         output_field=FloatField()
                             ),
+                    # Cálculo condicional de la comisión3 según el valor de precio_ML
                     comision3_calculado=ExpressionWrapper(
-                        F('precio_ML') * (float(comision3.valor) / 100) + float(costo3.valor),  # Precio de Venta Regular * Comision
-                        output_field=FloatField()
+                        F('precio_ML') * (float(comision3.valor) / 100) + 
+                        Case(
+                            When(Q(precio_ML__gt=12000), then=Value(float(costo3_mayor.valor))),
+                            default=Value(float(costo3_menor.valor)),
+                            output_field=FloatField()
                         ),
+                        output_field=FloatField()
+                    ),
                     beneficio3_calculado=ExpressionWrapper(
                         F('precio_ML') - F('costo_prod') -F('comision3_calculado'),output_field=FloatField()
                         )
@@ -5971,9 +5981,11 @@ def costo_envio_by_cart(request,cp_destino):
         resultado = None
 
 
-        print("Entre: costo_envio_by_cart")
-        print("cp_destino: ",cp_destino)
-       
+      
+        token = refesh_token_correo_argentino()
+        customer_id= get_customer_correo_arg()
+
+      
         
         total= 0
         peso = 0
@@ -5984,30 +5996,47 @@ def costo_envio_by_cart(request,cp_destino):
 
         peso = total/1000
        
-        correo = 1         #OCA
+ 
         # Llamar a la función consultar_costo_envio
         try:
             #OCA
             resultado_ed = oca_consultar_costo_envio_by_cart(peso, cp_destino,1) #Envio Domicilio
             resultado_rs = oca_consultar_costo_envio_by_cart(peso, cp_destino,2) # Retira Sucursal
             #Correo Argentino
-            resultado_ed_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'D') #Envio a Domicilio
-            resultado_rs_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'S') #Sucursal
+            resultado_ed_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'D',token,customer_id) #Envio a Domicilio
+            resultado_rs_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'S',token,customer_id) #Sucursal
 
-            print(resultado_ed_ca)
-            print(resultado_rs_ca)
+            print("**** Envio Domicilio  ***** CA ")
+            precio_ed_ca_clasico=0
+            precio_ed_ca_expreso=0
+            # Iterar sobre los productos
+            for producto in resultado_ed_ca['productos']:
+                if producto['productType'] == 'CP':
+                    precio_ed_ca_clasico = float("{0:.2f}".format(producto['price']))
+                elif producto['productType'] == 'EP':
+                    precio_ed_ca_expreso = float("{0:.2f}".format(producto['price']))
+
+            # Imprimir los resultados
+            precio_rs_ca_clasico=0
+            precio_rs_ca_expreso=0
+            for resultado in resultado_rs_ca['productos']:
+                if resultado['productType'] == 'CP':
+                    precio_rs_ca_clasico = float("{0:.2f}".format((float)(resultado['price'])))
+                if resultado['productType'] == 'EP':
+                    precio_rs_ca_expreso = float("{0:.2f}".format((float)(resultado['price'])))
 
             resultado = {
                 
                 'Total_ed': float("{0:.2f}".format((float)(resultado_ed['Total']))),
                 'Plazo_ed': resultado_ed['PlazoEntrega'],
-                
                 'Total_rs': float("{0:.2f}".format((float)(resultado_rs['Total']))),
-                'Plazo_rs': resultado_rs['PlazoEntrega']
+                'Plazo_rs': resultado_rs['PlazoEntrega'],
+                'precio_ed_ca_clasico':precio_ed_ca_clasico,
+                'precio_ed_ca_expreso':precio_ed_ca_expreso,
+                'precio_rs_ca_clasico':precio_rs_ca_clasico,
+                'precio_rs_ca_expreso':precio_rs_ca_expreso
 
             }
-
-            
 
         except Exception as e:
             resultado = {'error': str(e)}
@@ -6049,6 +6078,8 @@ def obtener_token_correo_argentino():
     usuario = settings.USER_CORREO_ARG
     contrasena = settings.PASS_CORREO_ARG
 
+    print("obtener_token_correo_argentino:", usuario,contrasena)
+
     # URL para solicitar el token
     url = "https://api.correoargentino.com.ar/micorreo/v1/token"
 
@@ -6061,13 +6092,11 @@ def obtener_token_correo_argentino():
             # Extrae el token del JSON de respuesta
             token = response.json().get("token")
             fecha_venc= response.json().get("expire")
-            print("Token:", token)
-            print("Fecha venc:", fecha_venc)
-
+  
             return token, fecha_venc
         else:
             print("Error al obtener el token:", response.status_code, response.text)
-
+            return None, None
     except requests.RequestException as e:
         print("Error en la solicitud:", e)
 ## LLAMAR A ESTA FUNCION PARA OBTENER EL TOKEN
@@ -6080,49 +6109,61 @@ def refesh_token_correo_argentino():
     # 1 Valido si tengo guardado el token y es valido (fecha)
         
     user_id= settings.USER_CORREO_ARG
-    print("Get_Correo_Argentino_authorization Token. User ID:", user_id)
     authorization_code = meli_params.objects.filter(userid=user_id).first()
     
     if not authorization_code:
         #Grabo el token 
         token, last_update = obtener_token_correo_argentino()
-        customerId = get_serv_customer_id_correo_argentino(token)  #Lo busca en el servicio
-        access_token = meli_params(
-            client_id = customerId,  #CUSTOMER ID
-            code = '',
-            access_token=token,
-            token_type= 'Bearer ',
-            userid= settings.USER_CORREO_ARG,  #USER Y PASS LIFCHE
-            refresh_token = '',
-            last_update = last_update
-        )
-        access_token.save()
-        return token
+        
+        if token:
+            customerId = get_customer_correo_arg()  #Lo busca en el servicio
+        
+            access_token = meli_params(
+                client_id = customerId,  #CUSTOMER ID
+                code = '',
+                access_token=token,
+                token_type= 'Bearer ',
+                userid= settings.USER_CORREO_ARG,  #USER Y PASS LIFCHE
+                refresh_token = '',
+                last_update = last_update
+            )
+            access_token.save()
+            return token
         
     else:
         
         fecha_venc = authorization_code.last_update
-        print("Fecha de vencimiento del token:", fecha_venc)
-        expiration_datetime = datetime.fromisoformat(fecha_venc)
-        ahora = datetime.now()
+        fecha_venc = str(fecha_venc) if not isinstance(fecha_venc, str) else fecha_venc
+        
+        try:
+            expiration_datetime = datetime.fromisoformat(fecha_venc)
+            ahora = datetime.now()
 
-        if expiration_datetime > ahora:
-            print("Token valido, no es necesario refrescarlo")
-            return authorization_code.access_token
-        else:
-            token, last_update = obtener_token_correo_argentino()
-            access_token = meli_params(
-                client_id = access_token.client_id,
-                code = '',
-                access_token=token,
-                token_type= 'Bearer ',
-                userid= settings.USER_CORREO_ARG,
-                refresh_token = '',
-                last_update = last_update
-            )
-            access_token.save()            
-            return token
+            
+            if expiration_datetime > ahora:
+                print("Token valido, no es necesario refrescarlo")
+                return authorization_code.access_token
+            else:
+                token, last_update = obtener_token_correo_argentino()
+                customerId = get_customer_correo_arg()  #Lo busca en el servicio
 
+                # Obtener el objeto de access_token de meli_params con el client_id correspondiente
+                access_token = meli_params.objects.get(client_id=customerId)
+
+                # Si el token existe, actualizamos sus atributos
+                if access_token:
+                    access_token.access_token = token
+                    access_token.token_type = 'Bearer'
+                    access_token.userid = settings.USER_CORREO_ARG
+                    access_token.last_update = last_update
+
+                    # Guardar el objeto actualizado
+                    access_token.save()
+                        
+                return token
+        except ValueError:
+            print("Error: La fecha de vencimiento no está en un formato ISO 8601 válido.")
+            
 def get_serv_customer_id_correo_argentino(token):
 
 
@@ -6145,21 +6186,19 @@ def get_serv_customer_id_correo_argentino(token):
     if response.status_code == 200:
     
         customerId = response.json().get("customerId")
-        print(customerId)
-
+   
     return customerId
-
 
 def get_customer_correo_arg():
 
-    customer_id=''
-    user_id= settings.USER_CORREO_ARG
-    authorization_code = meli_params.objects.filter(userid=user_id).first()
-    if not authorization_code:
-        token = refesh_token_correo_argentino()
-        customer_id = get_serv_customer_id_correo_argentino(token)
-    else:
-        customer_id = authorization_code.client_id
+    customer_id=settings.CUSTOMERID_CORREO_ARG
+    #user_id= settings.USER_CORREO_ARG
+    #authorization_code = meli_params.objects.filter(userid=user_id).first()
+    #if not authorization_code:
+    #    token = refesh_token_correo_argentino()
+    #    customer_id = get_serv_customer_id_correo_argentino(token)
+    #else:
+    #    customer_id = authorization_code.client_id
     
     return customer_id
 

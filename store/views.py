@@ -40,7 +40,8 @@ def store(request, category_slug=None,subcategory_slug=None):
        
     if category_slug != None:
         if subcategory_slug != None:
-            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+            
+            categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
             subcategories = SubCategory.objects.filter(category=categories)
             products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')            
@@ -56,11 +57,9 @@ def store(request, category_slug=None,subcategory_slug=None):
                 sub_category_name = subcategory.subcategory_name
             else:
                 sub_category_name = ""
-
-          
-
         else:
-            categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+            
+            categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
             #subcategories = get_object_or_404(SubCategory, category=categories)
             subcategories = SubCategory.objects.filter(category=categories)
             products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')           
@@ -80,12 +79,18 @@ def store(request, category_slug=None,subcategory_slug=None):
         print("Categoria Default:", category_slug)
         print("Subcategoria Default:", subcategory_slug)
         
-        categories = get_object_or_404(Category.objects.order_by("category_name"), slug=category_slug)
+        categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+
         subcat = get_object_or_404(SubCategory, category=categories,sub_category_slug=subcategory_slug)
         subcategories = SubCategory.objects.filter(category=categories)
         products = Product.objects.filter(category=categories,subcategory=subcat, is_available=True).order_by('product_name')
         
         product_count = products.count()
+
+
+        links = Category.objects.order_by('orden')  # Obtiene las categorías ordenadas
+        sub_links = SubCategory.objects.order_by('orden')  # Obtiene las subcategorías ordenadas
+
 
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
@@ -101,8 +106,6 @@ def store(request, category_slug=None,subcategory_slug=None):
         category_name = ""
 
     
-
-
     context = {
         'products': paged_products,
         'product_count': product_count,
@@ -112,7 +115,10 @@ def store(request, category_slug=None,subcategory_slug=None):
         'category_slug':category_slug,
         'sub_category_name':sub_category_name,
         'subcategories':subcategories,
-        'resolucion':resolucion
+        'resolucion':resolucion,
+        'links':links,
+        'sub_links':sub_links
+
     }
 
    

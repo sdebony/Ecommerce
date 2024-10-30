@@ -57,7 +57,9 @@
                 <span></span>
               </div>
               <div>
-                <span id="ca_price_ed" style="font-weight: bold;"></span>
+                <span id="ca_price_ed_c" style="font-weight: bold;"></span><br>
+                <span id="ca_price_ed_e" style="font-weight: bold;"></span>
+
               </div>
             </div>
           
@@ -86,7 +88,8 @@
               <label for="ca_es">Correo Argentno - Entrega en Sucursal</label>
             </div>
             <div>
-              <span id="ca_price_es" style="font-weight: bold;"></span>
+              <span id="ca_price_es_c" style="font-weight: bold;"></span><br>
+              <span id="ca_price_es_e" style="font-weight: bold;"></span>
             </div>
           </div>
         
@@ -505,17 +508,20 @@ function mostrarOpcionEnvio() {
              ;
 
                 // OCA 
-                //$("#oca_price_ed").text("$ " + r.Total_ed);
-                //$("#oca_price_es").text("$ " + r.Total_rs);
-                $("#oca_price_ed").text("A Confirmar");
-                $("#oca_price_es").text("A Confirmar");
+                $("#oca_price_ed").text("$ " + r.Total_ed);
+                $("#oca_price_es").text("$ " + r.Total_rs);
+                //$("#oca_price_ed").text("A Confirmar");
+                //$("#oca_price_es").text("A Confirmar");
 
 
                 // CORREO ARGENTINO  
-                //$("#ca_price_ed").text("$ " + r.Total_ed);
-                //$("#ca_price_es").text("$ " + r.Total_rs);
-                $("#ca_price_ed").text("A Confirmar");
-                $("#ca_price_es").text("A Confirmar");
+                $("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
+                $("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
+               
+                $("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
+                $("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
+                //$("#ca_price_ed").text("A Confirmar");
+                //$("#ca_price_es").text("A Confirmar");
                 
             },
             error: function(xhr, status, error) {
