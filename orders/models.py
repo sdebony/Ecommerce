@@ -45,7 +45,7 @@ class Order(models.Model):
     dir_provincia = models.CharField(max_length=50,blank=True)
     dir_cp = models.CharField(max_length=10,blank=True)
     dir_obs = models.CharField(max_length=255,blank=True)
-    dir_tipocorreo = models.BigIntegerField(default=0) #1 Sucursal Correo  #2 Envio a Domicilio 
+    dir_tipocorreo = models.BigIntegerField(default=0) #1 Envio a Domicilio  #2 Retira en sucursal
     dir_tipoenvio = models.BigIntegerField(default=0,blank=True)  #1-Clasico  #2-Expresso
     dir_correo = models.BigIntegerField(default=0,blank=True)   #1 OCA  2 Correo Argentino 3 Retira Cliente
 

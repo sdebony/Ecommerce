@@ -635,11 +635,15 @@ def panel_product_detalle(request,product_id=None):
             variantes = []
             subcategoria=[]
 
-        habilitar_precios_externos = AccountPermition.objects.filter(user=request.user, codigo__codigo ="PRECIOS EXTERNOS",modo_ver=True).first() 
+        try:
+            print("panel_product_crud - habilitar_precios_externos")
+            Permisos_pe = AccountPermition.objects.filter(user=request.user,codigo__codigo="PRECIOS EXTERNOS").first()
         
-        if habilitar_precios_externos:
-            habilitar_precios_externos = 1
-        else:
+            if Permisos_pe:
+                habilitar_precios_externos = 1
+            else:
+                habilitar_precios_externos = 0
+        except ObjectDoesNotExist:
             habilitar_precios_externos = 0
             
 
@@ -1067,7 +1071,10 @@ def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
             total = total.replace(",",".")
             subtotal = subtotal.replace(",",".")
 
-
+            rs_cuenta = Cuentas.objects.get(id=cuenta)
+            if rs_cuenta:
+                cuenta_text = rs_cuenta.nombre 
+                
          
             if pedido:
                 #Actualizo el cotos del envio y la cuenta asociada para el pago
@@ -1131,6 +1138,9 @@ def panel_pedidos_enviar_datos_cuenta(request,order_number=None):
                     </tr>
                     <tr>
                         <td></td>            
+                    </tr>
+                    <tr>
+                        <td>Nombre: ''' + str(cuenta_text) + ''' </td>            
                     </tr>
                     <tr>
                         <td>Documento: ''' + str(documento) + ''' </td>
@@ -1526,16 +1536,18 @@ def panel_product_crud(request):
             variantes = []
             habilitar_precios_externos=0
 
-            print("panel_product_crud - habilitar_precios_externos")
-            #habilitar_precios_externos = AccountPermition.objects.filter(user=request.user,codigo="PRECIOS EXTERNOS").first()
-            permiso = get_object_or_404(Permition, codigo="PRECIOS EXTERNOS")
-            habilitar_precios_externos = get_object_or_404(AccountPermition, user=request.user, codigo=permiso)
-            if habilitar_precios_externos:
-                habilitar_precios_externos = 1
-            else:
-                habilitar_precios_externos = 0
+            try:
+               
+                precios_externos = AccountPermition.objects.filter(user=request.user,codigo__codigo="PRECIOS EXTERNOS").first()
             
-            print("Habilitar precios TN",habilitar_precios_externos)
+                if precios_externos:
+                    habilitar_precios_externos = 1
+                else:
+                    habilitar_precios_externos = 0
+            except ObjectDoesNotExist:
+                habilitar_precios_externos = 0
+
+         
 
             context = {
                 'producto':producto,
