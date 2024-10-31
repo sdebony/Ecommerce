@@ -5993,9 +5993,13 @@ def costo_envio_by_cart(request,cp_destino):
         resultado = None
 
 
-      
+        print("costo_envio_by_cart")
+        print("obteniendo tocken Correo Argentino...")
         token = refesh_token_correo_argentino()
+        print("Token:")
+        print("obteniendo customer_id Correo Argentino")
         customer_id= get_customer_correo_arg()
+        print("customer_id:",customer_id)
 
       
         
@@ -6011,10 +6015,13 @@ def costo_envio_by_cart(request,cp_destino):
  
         # Llamar a la función consultar_costo_envio
         try:
+            print("llamando servicios OCA....")
             #OCA
             resultado_ed = oca_consultar_costo_envio_by_cart(peso, cp_destino,1) #Envio Domicilio
             resultado_rs = oca_consultar_costo_envio_by_cart(peso, cp_destino,2) # Retira Sucursal
             #Correo Argentino
+            print("llamando servicios CA ....")
+            
             resultado_ed_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'D',token,customer_id) #Envio a Domicilio
             resultado_rs_ca = ca_consultar_costo_envio_by_cart(peso,cp_destino,'S',token,customer_id) #Sucursal
 
@@ -6051,11 +6058,6 @@ def costo_envio_by_cart(request,cp_destino):
                 plazo_entrega_rs_oca = resultado_rs['PlazoEntrega']
                 precio_rs_oca = float("{0:.2f}".format((float)(resultado_rs['Total'])))
             
-           
-
-            print("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
-
-
 
             if not precio_ed_ca_clasico:
                 precio_ed_ca_clasico = "A definir"
@@ -6103,7 +6105,7 @@ def costo_envio_by_cart(request,cp_destino):
 
             }
 
-        print(resultado)
+        #print(resultado)
         return JsonResponse(resultado, safe=False)
        
 def consultar_suc_by_cp(request):
@@ -6140,8 +6142,6 @@ def obtener_token_correo_argentino():
     usuario = settings.USER_CORREO_ARG
     contrasena = settings.PASS_CORREO_ARG
 
-    print("obtener_token_correo_argentino:", usuario,contrasena)
-
     # URL para solicitar el token
     url = "https://api.correoargentino.com.ar/micorreo/v1/token"
 
@@ -6154,21 +6154,22 @@ def obtener_token_correo_argentino():
             # Extrae el token del JSON de respuesta
             token = response.json().get("token")
             fecha_venc= response.json().get("expire")
-  
+            #print("Tocken Correo Arg:", token, fecha_venc)
 
             return token, fecha_venc
         else:
-            print("Error al obtener el token:", response.status_code, response.text)
+            #print("Error al obtener el token:", response.status_code, response.text)
             return None, None
     except requests.RequestException as e:
         print("Error en la solicitud:", e)
+        return None, None
 ## LLAMAR A ESTA FUNCION PARA OBTENER EL TOKEN
 #token = refesh_token_correo_argentino()
 def refesh_token_correo_argentino():
 
     print("View: refesh_token_correo_argentino")
     access_token=''
-    customerId=''
+    customerId=settings.CUSTOMERID_CORREO_ARG
     # 1 Valido si tengo guardado el token y es valido (fecha)
         
     user_id= settings.USER_CORREO_ARG
@@ -6177,22 +6178,22 @@ def refesh_token_correo_argentino():
     if not authorization_code:
         #Grabo el token 
         token, last_update = obtener_token_correo_argentino()
-        
+        #print("Token: ", token)
         if token:
-            customerId = get_customer_correo_arg()  #Lo busca en el servicio
-        
-            access_token = meli_params(
-                client_id = customerId,  #CUSTOMER ID
-                code = '',
-                access_token=token,
-                token_type= 'Bearer ',
-                userid= settings.USER_CORREO_ARG,  #USER Y PASS LIFCHE
-                refresh_token = '',
-                last_update = last_update
-            )
-            access_token.save()
+            print("Grabando datos del token en la tabla....")
+            rs_access_token = meli_params.objects.get(client_id=customerId)
+            if rs_access_token:
+                rs_access_token.code = '',
+                rs_access_token.access_token=token,
+                rs_access_token.token_type= 'Bearer ',
+                rs_access_token.userid= settings.USER_CORREO_ARG,  #USER Y PASS LIFCHE
+                rs_access_token.refresh_token = '',
+                rs_access_token.last_update = last_update
+                rs_access_token.save()
+    
             return token
-        
+        else:
+            print("No token found - refesh_token_correo_argentino")
     else:
         
         fecha_venc = authorization_code.last_update
@@ -6208,7 +6209,8 @@ def refesh_token_correo_argentino():
                 return authorization_code.access_token
             else:
                 token, last_update = obtener_token_correo_argentino()
-                customerId = get_customer_correo_arg()  #Lo busca en el servicio
+                customerId = settings.CUSTOMERID_CORREO_ARG
+                print("Tengo Tocken y Customer")
 
                 # Obtener el objeto de access_token de meli_params con el client_id correspondiente
                 access_token = meli_params.objects.get(client_id=customerId)

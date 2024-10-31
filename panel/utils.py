@@ -62,7 +62,7 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
     headers = {'Content-Type': 'text/xml; charset=utf-8'}
 
 
-    print("consultar_costo_envio_by_cart --> OCA")
+    print("oca_consultar_costo_envio_by_cart")
     OCA_CP_ORIGEN = settings.OCA_CP_ORIGEN
     OCA_OPERATIVA_ED = settings.OCA_OPERATIVA_ED 
     OCA_OPERATIVA_ES = settings.OCA_OPERATIVA_ES
@@ -71,6 +71,10 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
     OCA_VOLUMETRIA_TOTAL = settings.OCA_VOLUMETRIA_TOTAL
 
     peso_total=peso
+
+    if peso_total< 1:
+        peso_total = 1
+
     volumen_total=OCA_VOLUMETRIA_TOTAL
     cp_origen=OCA_CP_ORIGEN
     cant_paquetes=1
@@ -80,7 +84,6 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
         operativa=OCA_OPERATIVA_ED  #Envio a Domicilio
     else:
         operativa=OCA_OPERATIVA_ES  #Envio a Sucursal
-
 
     # Construir el XML del request
     body = f"""
@@ -103,9 +106,11 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
 
     # Enviar la solicitud SOAP
     response = requests.post(url, data=body, headers=headers)
+    #print("Resultado Servicio OCA: ", url, body)
 
     if response.status_code == 200:
         # Parsear el XML de respuesta
+        #print("Request: ", response.content)
         root = ET.fromstring(response.content)
         precio = root.find('.//Precio').text
         total = root.find('.//Total').text
@@ -117,6 +122,7 @@ def oca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio):
             'PlazoEntrega': plazo_entrega
         }
     else:
+        #print("Error Servicio OCA: ", url, response.content)
         raise Exception(f"Error al consultar OCA: {response.status_code}")
 
 def consultar_sucursal_bycp(cp_destino,dir_id_2):
@@ -193,6 +199,9 @@ def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio,token,customer_i
     customer_id = customer_id
     
     peso = int(peso * 100)
+    if peso<1:
+        peso=1
+
     payload = json.dumps({
     "customerId": customer_id,
     "postalCodeOrigin": cp_origen,
@@ -210,11 +219,12 @@ def ca_consultar_costo_envio_by_cart(peso,cp_destino,tipo_envio,token,customer_i
     'Content-Type': 'application/json'
     }
 
-    
+    #print("servicio CA",url,payload)
     response = requests.request("POST", url, headers=headers, data=payload)
     if response.status_code in [200, 202]:
         # Parsear el XML de respuesta
         data = response.json()
+        #print("Request:", data)
         productos = []
         for rate in data.get("rates", []):
             product_type = rate.get("productType")

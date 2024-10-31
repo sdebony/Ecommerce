@@ -344,7 +344,8 @@ function buscardireccion(dir_id)     {
                 //alert(r.dir_tipoenvio);
                 //dir_tipoenvio = r.dir_tipoenvio;
                 dir_correo = r.dir_correo;
-
+                
+                
                 // ENVIO CLASICO - CORREO ARGENTINO
                 if (dir_tipoenvio=='1'){
                   document.getElementById('envioClasico').checked  = true;
@@ -356,7 +357,7 @@ function buscardireccion(dir_id)     {
                   document.getElementById('envioExpresso').checked  = true;
                   $("#dir_tipoenvio").val(2);
                 }
-                
+             
                 // Entrega en Sucursal Correo
                 if (r.dir_tipocorreo==2){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
@@ -371,10 +372,9 @@ function buscardireccion(dir_id)     {
                   document.getElementById('dir_provincia').readOnly = false;
                   document.getElementById('dir_cp').readOnly = false; 
                   document.getElementById('dir_nombre').readOnly = false; 
-                  document.getElementById('email').readOnly = true;
-
-
+                  
                   $("#dir_localidad").val(r.dir_localidad); 
+                
      
                 } // ENVIO A DOMICILIO
                 if (r.dir_tipocorreo==1){
@@ -390,7 +390,8 @@ function buscardireccion(dir_id)     {
                   document.getElementById('dir_provincia').readOnly = false;
                   document.getElementById('dir_cp').readOnly = false;  
                   document.getElementById('dir_nombre').readOnly = false; 
-                  
+
+                 
                 }// RETIRA CLIENTE
                 if (r.dir_correo==3){
                   document.getElementById("tipo_envio").innerText = "Retira Cliente"
@@ -401,12 +402,17 @@ function buscardireccion(dir_id)     {
                   document.getElementById("div_datos_suc").style.display = "none";
                   
                 }
-                
+
                 document.getElementById("div_chk_tipoenvio").style.display = "none";
-                if (r.dir_correo==2) //Correo Argentino
-                {
-                  document.getElementById("div_chk_tipoenvio").style.display = "block";
-                }
+                if (dir_correo==2) //Correo Argentino
+                  {
+                     document.getElementById("div_chk_tipoenvio").style.display = "block";
+                  }
+                  else
+                  {
+                    document.getElementById("div_chk_tipoenvio").style.display = "none";
+                  }
+                
                 
             },
         });
@@ -440,7 +446,7 @@ function buscardireccion_seleccion(correo_tipo)     {
        if (correo_tipo==''){
             return false;
         }
-
+        
         // Limpiar el select antes de agregar nuevas opciones
         var select = $("#direccion");
         select.empty();
@@ -464,7 +470,7 @@ function buscardireccion_seleccion(correo_tipo)     {
                 dir_tipoenvio = r[0].dir_tipoenvio;
                 dir_correo = r[0].dir_correo;  //1- OCA // 2-Correo Arg  // 3-Retira Cliente
 
-
+                
                 // ENVIO CLASICO - CORREO ARGENTINO
                 if (dir_correo == 2) {
                   if (dir_tipoenvio=='1'){
@@ -505,23 +511,22 @@ function mostrarOpcionEnvio() {
             dataType: "json",  // Asegura que la respuesta sea tratada como JSON
             success: function(r) {
                 console.log(r); // Verifica que r tenga las propiedades correctas
-             ;
+             
 
-                // OCA 
-                $("#oca_price_ed").text("$ " + r.Total_ed);
-                $("#oca_price_es").text("$ " + r.Total_rs);
-                //$("#oca_price_ed").text("A Confirmar");
-                //$("#oca_price_es").text("A Confirmar");
+                // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
+                //$("#oca_price_ed").text("$ " + r.Total_ed);
+                //$("#oca_price_es").text("$ " + r.Total_rs);
+                $("#oca_price_ed").text("A Confirmar");
+                $("#oca_price_es").text("A Confirmar");
 
 
-                // CORREO ARGENTINO  
-                $("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
-                $("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
-               
-                $("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
-                $("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
-                //$("#ca_price_ed").text("A Confirmar");
-                //$("#ca_price_es").text("A Confirmar");
+                // CORREO ARGENTINO  -- DESCOMENTAR PARA MOSTRAR VALORES
+                //$("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
+                //$("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
+                //$("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
+                //$("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
+                $("#ca_price_ed_c").text("A Confirmar");
+                $("#ca_price_es_c").text("A Confirmar");
                 
             },
             error: function(xhr, status, error) {
@@ -569,6 +574,7 @@ function mostrarOpcionEnvio() {
         } else if (segundaParte === 'CLIENTE') {   
             $("#dir_tipocorreo").val(0); // Retira Cliente
         }
+       
 
         const textInput = document.getElementById("dir_nombre");
 
@@ -624,6 +630,8 @@ function mostrarOpcionEnvio() {
             document.getElementById("dir_nombre").style.display = "block";
             //textInput.required = false;
           }
+          
+
           document.getElementById("div_chk_tipoenvio").style.display = "none";
           if (primeraParte === 'CA') //Correo Argentino
           {
@@ -633,9 +641,6 @@ function mostrarOpcionEnvio() {
             document.getElementById('envioClasico').checked  = true;  //PARA OCA O RETIRA CLIENTE SETEO UNO 
           }
          
-          
-
-          document.getElementById('email').readOnly = true;
 
     });
 });
@@ -702,6 +707,8 @@ function validarFormulario(event) {
         document.getElementById("div_chk_tipoenvio").style.display = "none";
     
         $("#direccion").val({{direccion.dir_id }}).change();
+
+      
             
     });
 
