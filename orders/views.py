@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from carts.models import CartItem
+from store.models import ProductKit
 from .forms import OrderForm
 import datetime
 import time
@@ -20,6 +21,7 @@ from django.conf import settings
 import smtplib
 #from email.message import EmailMessage
 from django.core.mail import EmailMessage
+from django.db import transaction
 
 #import pywhatkit  #Kit de envio de whatsapp
 
@@ -239,11 +241,25 @@ def order_cash(request):
 
 
             # Reduce the quantity of the sold products
+           
             product = Product.objects.get(id=item.product_id)
-            pesoarticulos += product.peso * item.quantity 
-            product.stock -= item.quantity
-            product.save()
-        
+            if product:
+                pesoarticulos += product.peso * item.quantity 
+                product.stock = product.stock - item.quantity
+                product.save()
+
+                if product.es_kit:
+                    # Filtrar todos los kits asociados con el producto dado
+                    kits = ProductKit.objects.filter(productokit=product.id)
+                    with transaction.atomic():
+                        for kit in kits:
+                            product_hijo = kit.productohijo
+                            cantidad_a_reducir = kit.cantidad * item.quantity
+                            # Restar la cantidad en stock del producto hijo
+                            product_hijo.stock -= cantidad_a_reducir
+                            product_hijo.save()
+                        
+            
         #print("total peso Articulos:",pesoarticulos)
         # Clear cart
         CartItem.objects.filter(user=request.user).delete()

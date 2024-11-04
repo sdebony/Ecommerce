@@ -1143,8 +1143,9 @@ def oc_recibir(request,id_oc=None):
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
                 total_recibido = total_recibido + float(cantidad_recibida)
             
-            otros_costo = float(otros_costo) / float(total_recibido)
-            otros_costo = math.ceil(otros_costo)
+            if total_recibido > 0:
+                otros_costo = float(otros_costo) / float(total_recibido)
+                otros_costo = math.ceil(otros_costo)
 
             # Puedes procesar los datos como necesites
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
@@ -1159,10 +1160,22 @@ def oc_recibir(request,id_oc=None):
                 #print(f'stock:', {cantidad_recibida},)
                 product = Product.objects.get(id=idproducto)
                 if product:
-                        product.id = idproducto
-                        product.stock += float(cantidad_recibida)
-                        product.costo_prod = float(costo_float)
-                        product.save()
+                        #Valido si el producto tiene aun stock
+                        if product.stock > 0:
+                            #Actualizo el Costo del producto Total Actual Stock x Costo + cant_recib x nuevo costo
+                            total_costo = (product.stock * product.costo_prod) + (int(cantidad_recibida) * costo_float )
+                            total_stock = product.stock + int(cantidad_recibida)
+                            product.costo_prod = total_costo / total_stock
+                            #Actualizo el stock del producto
+                            product.stock = total_stock
+                            print("Nuevo Costo: ", product.costo_prod, " Nuevo Stock: ",total_stock)
+                            product.save()
+                            
+                        else:
+                            product.id = idproducto
+                            product.stock += float(cantidad_recibida)
+                            product.costo_prod = float(costo_float)
+                            product.save()
 
             #Cambia a estado Finalizada OC_ENC
             oc_enc_compras = ComprasEnc.objects.get(id=id_oc)
@@ -1196,9 +1209,21 @@ def oc_anula_recepcion(request,id_oc=None):
                 if oc_det_compras:
                     for item in oc_det_compras:
                         producto = Product.objects.get(id=item.producto.id_product.id)
-                        print ("descontar del producto (", producto.id , ") - ", producto.product_name , ' stock:', item.cantidad)
-                        producto.stock = producto.stock - item.cantidad
-                        producto.save()
+                        nueva_cantidad = producto.stock - item.cantidad
+                    
+                        if nueva_cantidad > 0:
+                            #Total Actual
+                            totalcosto = producto.stock * producto.costo_prod # Esto es el total actual sin descontar
+                            total_oc_anula = item.cantidad * item.precio_prv
+                            totalcosto = totalcosto - total_oc_anula
+                            totalcostonvo = totalcosto /  nueva_cantidad #Descuento la anulacion
+                            producto.stock = producto.stock - item.cantidad
+                            producto.costo_prod = totalcostonvo
+                            producto.save()
+                        else:
+                            producto.costo_prod = 0
+                            producto.stock = producto.stock - item.cantidad
+                            producto.save() 
 
             return redirect('oc_list')
     

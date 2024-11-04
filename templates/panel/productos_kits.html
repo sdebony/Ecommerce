@@ -1,0 +1,87 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+<div class="container">
+    <h2>Asociar Productos al Kit: {{ producto_kit.product_name }}</h2>
+    
+    <div class="form-group">
+        <label for="producto_hijo">Buscar Producto Hijo:</label>
+        <input type="text" id="producto_hijo" class="form-control" placeholder="Escribe el nombre del producto" list="productos-suggestions">
+        <datalist id="productos-suggestions"></datalist>
+    </div>
+    
+    <div class="form-group">
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" class="form-control" min="1" value="1">
+    </div>
+    
+    <button id="agregarProductoBtn" class="btn btn-primary">Agregar Producto al Kit</button>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Realizar búsqueda en tiempo real
+            $('#producto_hijo').on('input', function () {
+                const term = $(this).val();
+                if (term.length > 2) {
+                    $.ajax({
+                        url: '{% url "buscar_producto_hijo" %}',
+                        data: {'term': term},
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log("Datos recibidos:", data);  // Verifica los datos recibidos
+                            $('#productos-suggestions').empty();
+                            data.forEach(item => {
+                                $('#productos-suggestions').append(
+                                    `<option value="${item.nombre}" data-id="${item.id}">${item.nombre}</option>`
+                                );
+                            });
+                        },
+                        error: function (xhr) {
+                            console.error("Error al buscar productos:", xhr.responseText);
+                        }
+                    });
+                }
+            });
+
+            // Agregar producto al kit usando AJAX
+            $('#agregarProductoBtn').click(function () {
+                const productoNombre = $('#producto_hijo').val();
+                const cantidad = $('#cantidad').val();
+              
+                // Obtener el ID del producto seleccionado
+                const productoId = $('#productos-suggestions option').filter(function() {
+                    return $(this).val() === productoNombre;
+                }).data('id');
+                
+                if (productoId && cantidad > 0) {
+                    $.ajax({
+                        url: '{% url "agregar_producto_al_kit" producto_kit.id %}',
+                        method: 'POST',
+                        data: {
+                            'producto_hijo_id': productoId,
+                            'cantidad': cantidad,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        dataType: 'json',
+                        success: function (response) {
+                             $('#producto_hijo').val('');
+                            $('#cantidad').val(1);
+
+                            window.location.href = '{% url "panel_producto_detalle" producto_kit.id %}';
+                        },
+
+                       
+                        error: function (xhr) {
+                            alert('Error al agregar el producto: ' + xhr.responseJSON.message);
+                        }
+                    });
+                } else {
+                    alert('Selecciona un producto válido y una cantidad mayor a 0.');
+                }
+            });
+        });
+    </script>
+</div>
+{% endblock %}

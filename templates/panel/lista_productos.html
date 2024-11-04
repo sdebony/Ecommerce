@@ -67,22 +67,23 @@
       data-locale="es-AR"
     >
       <thead>
-          <th data-sortable="true" data-field="product_name">Nombre</th>
+         
+          <th data-sortable="true" data-field="product_name">Producto</th>
           <th data-sortable="true" data-field="costo_prod">Costo</th>   
           <th data-sortable="true" data-field="price">Precio</th>
-<!--      <th data-sortable="true" data-field="images">Imagen</th>
--->       <th data-sortable="true" data-field="stock">Stock</th>
+          <th data-sortable="true" data-field="stock">Stock</th>
           <th data-sortable="true" data-field="is_available">Habilitado</th>
           <th data-sortable="true" data-field="category">Categoria</th>
           <th data-sortable="true" data-field="subcategory">Subcategoria</th> 
-          <th data-sortable="true" data-field="modified_date">Fecha Modificaciòn</th>
+          
 
           <th class="all">Acciones</th>  
       </thead>
       <tbody>
         {% for item in catalogo %}
         <tr>
-          
+  
+         
           <td><b><a href="{% url 'panel_producto_detalle' item.id %}">{{ item.product_name }}</a></b></td> 
           <td>{{ item.costo_prod|format_currency }}</td>
           <td>{{ item.price|format_currency }}</td>
@@ -100,7 +101,7 @@
           {% endif %}
            <td>{{ item.category }}</td>
           <td>{{ item.subcategory }}</td>
-          <td>{{ item.modified_date | date:"d/m/Y" }}</td>
+        
           <td>  
             <!--  <a href="{% url 'panel_productos_del' item.id %}" class="href btn btn-warning btn-circle" title="Editar">  <i class="far fa-edit"> </i></a>   
             -->  <a href="{% url 'panel_productos_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
@@ -112,6 +113,10 @@
     </table>
   </div>
 </div>
+
+
+
+
 {% endblock %}
 
 {% block js_page %}

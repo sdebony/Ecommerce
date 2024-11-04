@@ -87,17 +87,21 @@
 		<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 		<figure class="card card-product-grid">
 			<section id="{{product.id}}">
-			<div class="img-wrap">
-					{% if product.images %}
-						<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}">
-					{% else %}
-						<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg">
-					{% endif %}
-			</div> <!-- img-wrap.// -->
-			<figcaption class="info-wrap p-1">
-				<div class="fix-start P-1 text-wrap">
-						<span  class="text-muted small" style="font-size: 15px">{{ product.desc_item_large |capfirst|truncatechars:70}}</span> <!-- |truncatechars:70 -->
-				</div>
+				<a href="{{ product.get_url }}" class="title" onclick="guardarRutaYPosicion(event, '{{ product.get_url }}')">
+						
+					<div class="img-wrap">
+							{% if product.images %}
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}">
+							{% else %}
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg">
+							{% endif %}
+					</div> <!-- img-wrap.// -->
+					<figcaption class="info-wrap p-1">
+						<div class="fix-start P-1 text-wrap">
+							
+								<span class="text-muted small" style="font-size: 15px">{{ product.desc_item_large | capfirst | truncatechars:70 }}</span>
+					</div>
+				</a>
 				{% if product.stock > 0 %}
 				<div class="input-group-prepend p-1">
 					<span class="input-group-text" style="font-size: 15px">$ {{ product.price }}</span>	 
@@ -133,28 +137,6 @@
 	
 	{% endif %}
 
-
-	  <!-- Modal 
-		
-
-<div class="modal fade modal-auto-clear" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-	<div class="modal-dialog">
-	  <div class="modal-content">
-		<div class="modal-header">
-			
-			<h5 class="modal-title" id="staticBackdropLabel"><i class="fa fa-shopping-cart"> - Carrito </i> </h5>
-		  	
-		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times; </span>
-		  </button>
-		</div>
-		<div class="modal-body">
-		  Producto Agregado
-		</div>
-	  </div>
-	</div>
-  </div>
-	 FIN MODAL-->
 </div> <!-- row end.// -->
 
 
@@ -211,7 +193,49 @@
 				
 </dialog>
 {% endif %}
+
+
 </body>
+
+
+
+<script>
+function guardarRutaYPosicion(event, url) {
+  event.preventDefault(); // Evita el comportamiento predeterminado del enlace
+
+
+  // Si ya existe una rutaAnterior, la eliminamos
+  if (sessionStorage.getItem('rutaAnterior')) {
+    sessionStorage.removeItem('rutaAnterior');
+  }
+  
+  // Guarda la nueva ruta actual
+  const urlActual = window.location.href;
+  
+  sessionStorage.setItem('rutaAnterior', urlActual);
+
+  // Guarda la posición de desplazamiento
+ 
+  sessionStorage.setItem('posicionScroll', window.scrollY);
+
+  // Redirige a la nueva URL
+  window.location.href = url; // Navega a la nueva URL
+}
+
+
+</script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+	  const posicionScroll = sessionStorage.getItem('posicionScroll');
+	  if (posicionScroll) {
+		window.scrollTo(0, posicionScroll); // Restaura la posición guardada
+	  }
+	  
+	});
+  </script>
+  
+
 <script>
 	const btnAbrirModal = document.querySelector("#btn_abrir_modal"); 
 	const btnCerrarModal = document.querySelector("#btn_cerrar_modal");

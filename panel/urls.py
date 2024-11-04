@@ -12,6 +12,15 @@ urlpatterns = [
     path('productos/list', views.panel_product_list_category, name="producto_list_category"),
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
     path('producto/<int:product_id>/', views.panel_product_detalle, name='panel_producto_detalle'),
+
+    path('producto/kit/<int:prod_id>/', views.panel_product_kit, name='panel_product_kit'),
+    path('producto/buscar_producto_hijo/', views.panel_buscar_producto_hijo, name='buscar_producto_hijo'),
+    path('producto/kit/<int:producto_id>/agregar/', views.panel_agregar_producto_al_kit, name='agregar_producto_al_kit'),    
+    path('producto/kit/<int:idkit>/del/', views.panel_productos_kit_del, name='panel_productos_kit_del'),    
+
+
+
+
     path('producto/', views.panel_product_crud, name='panel_producto_crud'),
     path('producto/img', views.panel_producto_img, name='panel_producto_img'),
     path('producto/variant/', views.panel_productos_variantes, name='panel_producto_variante'),

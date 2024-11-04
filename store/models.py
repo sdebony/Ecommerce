@@ -29,6 +29,8 @@ class Product(models.Model):
     precio_ML       = models.FloatField(default=0,blank=True)
     sku_meli        = models.CharField(max_length=20,blank=True)  #MLA-1915430118
     url_meli        = models.CharField(max_length=650,blank=True) #https://articulo.mercadolibre.com.ar/MLA-1915430118-tubo-de-tenis-x-3-pelotas-tenis-head-tour-_JM
+    es_kit          = models.BooleanField(default=False)
+
 
     def get_url(self):
         return reverse('product_detail', args=[self.category.slug, self.slug])
@@ -158,3 +160,18 @@ class Costo(models.Model):
     def __str__(self):
         return self.producto
 
+    class Meta:
+        verbose_name = 'Costo'
+        verbose_name_plural = 'Costo'
+
+class ProductKit(models.Model):
+    productokit = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kits_padre')
+    productohijo = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kits_hijo')
+    cantidad = models.FloatField()
+    
+    def __str__(self):
+        return str(self.productokit)  # Utiliza str() para evitar errores de tipo
+
+    class Meta:
+        verbose_name = 'producto_kit'
+        verbose_name_plural = 'producto_kit'

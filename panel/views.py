@@ -2,24 +2,25 @@
 #Control K + Control J
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect,HttpResponse
+from django.urls import reverse
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from store.models import Product,Variation,Costo
+from store.models import Product,Variation,Costo,ProductKit
 from orders.models import Order, OrderProduct,Payment,OrderShipping
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
-from contabilidad.models import Cuentas, Movimientos,Operaciones, Monedas, Transferencias,CierreMes,ConfiguracionParametros
+from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
 from compras.models import CompraDolar,ProveedorArticulos
 from accounts.forms import UserForm, UserProfileForm
 from meli.models import meli_params
 from django.db.models.functions import TruncMonth
 from django.db.models.functions import Round
-from django.http import HttpResponse
+from django.db import transaction
 from slugify import slugify
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal
@@ -68,6 +69,7 @@ import csv
 
 
 import os
+import itertools
 # Create your views here.
 def monthToNum(shortMonth):
     return {
@@ -100,6 +102,19 @@ def NumTomonth(shortMonth):
             11 : 'Noviembre',
             12 : 'Diciembre'
     }[shortMonth]
+
+# Función para generar un slug único
+def generate_unique_slug(product_slug, product_id=None):
+    new_slug = slugify(product_slug).lower()
+    # Verificar si el slug ya existe
+    unique_slug = new_slug
+    for i in itertools.count(1):
+        # Filtra por slug y omite el producto que estamos actualizando (por su ID)
+        if not Product.objects.filter(slug=unique_slug).exclude(id=product_id).exists():
+            break
+        # Si ya existe, genera un nuevo slug con un sufijo numérico
+        unique_slug = f"{new_slug}-{i}"
+    return unique_slug
 
 def search_lookup(request,keyword=None,order_number=None):
 
@@ -627,6 +642,7 @@ def panel_product_detalle(request,product_id=None):
             categorias = Category.objects.all()
             variantes = Variation.objects.filter(product=product)
             subcategoria = SubCategory.objects.filter(category=producto.category).all()
+            product_kit = ProductKit.objects.filter(productokit=product_id)
 
 
         else:
@@ -634,6 +650,7 @@ def panel_product_detalle(request,product_id=None):
             producto = []
             variantes = []
             subcategoria=[]
+            product_kit=[]
 
         try:
             print("panel_product_crud - habilitar_precios_externos")
@@ -649,6 +666,7 @@ def panel_product_detalle(request,product_id=None):
 
         context = {
             'producto':producto,
+            'product_kit':product_kit,
             'permisousuario':permisousuario,
             'categorias': categorias,
             'subcategoria':subcategoria,
@@ -1271,6 +1289,17 @@ def panel_pedidos_eliminar(request,order_number=None):
                             product.stock += float(cantidad)
                             product.save()
 
+                        if product.es_kit:
+                            # Filtrar todos los kits asociados con el producto dado
+                            kits = ProductKit.objects.filter(productokit=product.id)
+                            with transaction.atomic():
+                                for kit in kits:
+                                    product_hijo = kit.productohijo
+                                    cantidad_a_sumar = kit.cantidad * cantidad
+                                    # Restar la cantidad en stock del producto hijo
+                                    product_hijo.stock += cantidad_a_sumar
+                                    product_hijo.save()    
+
                     if ordenes_detalle:
                         ordenes_detalle.delete()
                 ordenes.delete()
@@ -1573,6 +1602,7 @@ def panel_product_crud(request):
             cat_id = request.POST.get("category")
             subcat_id = request.POST.get("subcategory")
             is_popular = request.POST.getlist("is_popular[]")
+            es_kit = request.POST.getlist("es_kit[]")
             peso = request.POST.get("peso")
             costo_prod = request.POST.get("costo_prod")
             ubicacion = request.POST.get("ubicacion").strip()
@@ -1587,7 +1617,9 @@ def panel_product_crud(request):
                 costo_prod=0
             if not ubicacion:
                 ubicacion=''
- 
+          
+            if not es_kit:
+                es_kit = False
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
@@ -1602,7 +1634,7 @@ def panel_product_crud(request):
                     precio_tn =producto.precio_TN
                     precio_ml = producto.precio_ML
 
-                    print("producto",precio_tn,precio_ml,product_id)
+                    #print("producto",precio_tn,precio_ml,product_id)
                 
                   
                 if not images:
@@ -1619,12 +1651,21 @@ def panel_product_crud(request):
                     popular = True
                 else:
                     popular = False
+                
+                if es_kit:
+                    es_kit = True
+                else:
+                    es_kit = False
+
+                product_slug = product_name.replace('ñ', 'enie')
+                product_slug = product_name.replace('Ñ', 'eniee')
+                print("product_slug: ",product_slug, "Product id", product_id)
 
                 product_udp = Product.objects.get(id=product_id)
-                print("product_udp",precio_tn,precio_ml)
+                
                 if product_udp:
                     product_udp.product_name = product_name
-                    product_udp.slug = slugify(product_name).lower()
+                    product_udp.slug = generate_unique_slug(product_slug, product_id=product_udp.id)
                     product_udp.description = description
                     product_udp.price = price
                     product_udp.images = images
@@ -1641,40 +1682,139 @@ def panel_product_crud(request):
                     product_udp.ubicacion = ubicacion
                     product_udp.precio_ML = precio_ml
                     product_udp.precio_TN = precio_tn
+                    product_udp.es_kit = es_kit
 
                     product_udp.save()
                     print("Save tabla Product")
+
+                    #Actualizo la tabla KIT
+                    if not es_kit:
+                        producto_kit = ProductKit.objects.filter(productokit=product_id)
+                        if producto_kit:
+                            producto_kit.delete()
+                            print("Delete tabla ProductKit")
                 else:
                     print("Producto no encontrado")
             else:
                 # ADD
                 print("POS --> ADD")
                 print(slugify(product_name))
+                product_slug = product_name.replace('ñ', 'enie')
+                product_slug = product_name.replace('Ñ', 'eniee')
 
-                producto = Product(
-                        product_name=product_name,
-                        slug=slugify(product_name).lower(),
-                        description= description,
-                        price=price,
-                        images=images,
-                        imgfile = images,
-                        stock=stock_entero,
-                        is_available=True,
-                        category=category,
-                        subcategory = subcategory,
-                        created_date= datetime.today(),
-                        modified_date=datetime.today(),
-                        peso=peso,
-                        costo_prod=costo_prod,
-                        ubicacion=ubicacion,
-                        precio_TN=precio_tn, # producto.precio_TN,
-                        precio_ML=precio_ml # producto.precio_ML
-                        )
-                if producto:
-                    producto.save()
-                    product_id = producto.id
+                if not images:
+                    images = "none.jpg" #default      
+
+                if Product.objects.filter(slug=product_slug).exists():
+                    print("Producto ya existe. Slug repetido")
+                else:
+                    producto = Product(
+                            product_name=product_name,
+                            slug=slugify(product_slug).lower(),
+                            description= description,
+                            price=price,
+                            images=images,
+                            imgfile = images,
+                            stock=stock_entero,
+                            is_available=True,
+                            category=category,
+                            subcategory = subcategory,
+                            created_date= datetime.today(),
+                            modified_date=datetime.today(),
+                            peso=peso,
+                            costo_prod=costo_prod,
+                            ubicacion=ubicacion,
+                            precio_TN=precio_tn, # producto.precio_TN,
+                            precio_ML=precio_ml, # producto.precio_ML
+                            es_kit=es_kit
+                            )
+                    if producto:
+                        producto.save()
+                        product_id = producto.id
+
+                    #Actualizo la tabla KIT
+                    try:
+                        producto_kit = ProductKit.objects.get(productokit=product_id)
+                        if producto_kit:
+                            producto_kit.delete()
+                            print("Delete tabla ProductKit")
+                    except ProductKit.DoesNotExist:
+                        producto_kit = None  # O cualquier otra acción que prefieras
+
+                    
 
             return redirect('panel_catalogo')
+    else:
+        return render (request,"panel/login.html")
+
+def panel_product_kit(request,prod_id):
+    
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+    #if request.method == 'GET':
+    producto_kit = get_object_or_404(Product, id=prod_id)
+
+
+    return render(request, 'panel/productos_kits.html', {'producto_kit': producto_kit, 'permisousuario': permisousuario})
+    
+def panel_buscar_producto_hijo(request):
+
+
+
+    if 'term' in request.GET:
+        term = request.GET.get('term')
+       
+        productos = Product.objects.filter(product_name__icontains=term)
+        results = [{'id': prod.id, 'nombre': prod.product_name} for prod in productos]
+        return JsonResponse(results, safe=False)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def panel_agregar_producto_al_kit(request, producto_id):
+
+    print("panel_agregar_producto_al_kit")
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+   
+    if request.method == 'POST':
+        
+        producto_hijo_id = request.POST.get('producto_hijo_id')
+        cantidad = request.POST.get('cantidad')
+        
+        producto_kit = get_object_or_404(Product, id=producto_id)
+        producto_hijo = get_object_or_404(Product, id=producto_hijo_id)
+
+        ProductKit.objects.create(productokit=producto_kit, productohijo=producto_hijo, cantidad=cantidad)
+        print("Kit grabado con éxito")   
+        # Suponiendo que tienes una consulta para obtener los permisos del usuario
+        # Convertir el QuerySet en una lista de diccionarios
+        permisousuario_data = list(permisousuario.values())
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Producto agregado al kit',
+            'permisousuario': permisousuario_data
+        })
+  
+       
+    return JsonResponse({'success': False, 'message': 'Error al agregar el producto'}, status=400)
+
+def panel_productos_kit_del(request,idkit):
+    #El ID corresponde al ID DEL PRODUCTO DE LA TABLA PRODUCTKIT
+    if validar_permisos(request,'PRODUCTO'):
+
+        try:
+            print("IDKIT: " ,idkit)
+
+            producto_kit = ProductKit.objects.get(id=idkit)
+            if producto_kit:
+                id_prodPadre = producto_kit.productokit.id
+                producto_kit.delete()
+                print("Producto eliminado del kit.",id_prodPadre)
+            return redirect(reverse('panel_producto_detalle', args=[id_prodPadre]))
+            
+        except:
+            print("Error: IDKIT: " ,idkit)
+            return redirect('panel_catalogo') 
+            
     else:
         return render (request,"panel/login.html")
 
@@ -1730,7 +1870,7 @@ def panel_producto_img(request):
                         images=imagen,
                         imgfile = imagen,
                         product_name=product.product_name,
-                        slug=slugify(product.product_name).lower(),
+                        slug=product.slug,
                         description=product.description,
                         price=product.price,
                         stock=product.stock,
@@ -1769,7 +1909,9 @@ def panel_producto_habilitar(request,product_id=None,estado=None):
                     # Actualiza el producto existente
                     producto.is_available = habilitado
                     producto.modified_date = datetime.today()
-                    producto.slug = slugify(producto.product_name).lower()
+                    product_slug = producto.product_name.replace('ñ', 'enie')
+                    product_slug = product_slug.replace('Ñ', 'eniee')
+                    producto.slug = slugify(product_slug).lower()
 
                     # Guarda los cambios
                     producto.save()
@@ -1796,7 +1938,6 @@ def panel_usuario_list(request):
             'permisousuario':permisousuario,
             'cantidad':cantidad,
         }
-        print(usuarios)
         return render(request,'panel/lista_usuarios.html',context) 
 
     else:
@@ -2662,8 +2803,8 @@ def export_xls(request,modelo=None):
                     row_num += 1      
                     for col_num in range(len(row)):              
                         if col_num==3 or col_num==5 or col_num==9: #Numericos
-                            monto = float("{0:.2f}".format((float)(row[col_num])))
-                            ws.write(row_num,col_num,int(round(monto)))
+                            monto = float("{:.2f}".format(float(row[col_num])))
+                            ws.write(row_num,col_num,monto)
                         else:
                             ws.write(row_num,col_num, str(row[col_num]),font_style)
                     
@@ -3084,7 +3225,7 @@ def import_productos_xls(request):
                             product_name = sheet1.cell_value(rowNumber, 0)
                             product_name = product_name.strip()
                             slug_product = product_name.replace('ñ','enie')
-                            slug_product = product_name.replace('Ñ','enie')
+                            slug_product = product_name.replace('Ñ','eniee')
 
                             tmp_producto = ImportTempProduct.objects.filter(product_name=product_name, usuario = request.user).first()
                             if not tmp_producto:
@@ -3146,7 +3287,7 @@ def import_productos_xls(request):
                                     if sub_cat:
 
                                         int_peso = sheet1.cell_value(rowNumber, 9)
-                                        float_peso = float("{0:.2f}".format((float)(int_peso)))
+                                        float_peso = float("{0:.2f}".format(float(int_peso)))
                                         #print("float_peso",float_peso)
 
                                         valor_ubicacion = sheet1.cell_value(rowNumber, 10)
@@ -3173,7 +3314,7 @@ def import_productos_xls(request):
 
                                         description= sheet1.cell_value(rowNumber, 2)
                                         description = description.strip()
-
+                                        
                                         tmp_producto = ImportTempProduct(
                                             product_name=product_name,
                                             slug=slugify(slug_product).lower(),
@@ -3861,7 +4002,9 @@ def panel_validar_producto_default(request,product_name):
     # Valida que exista el producto, caso contrario lo agrega al maestro para poder hacer la importación de los pedidos.
     try:
         # Intentamos obtener el producto por su slug
-        producto = Product.objects.get(slug=slugify(product_name).lower())
+        slug_product = product_name.replace('ñ','enie')
+        slug_product = product_name.replace('Ñ','eniee')
+        producto = Product.objects.get(slug=slugify(slug_product).lower())
         return True  # El producto existe
 
     except Product.DoesNotExist:
@@ -3869,13 +4012,15 @@ def panel_validar_producto_default(request,product_name):
         try:
             category_slug=settings.DEF_CATEGORY_ADD_PROD
             subcategory_slug=settings.DEF_SUBCATEGORY_ADD_PROD
+
+            slug_product = product_name.replace('ñ','enie')
+            slug_product = product_name.replace('Ñ','eniee')
             #Genero un producto propio en base a los datos del producto del proveedor
             category = Category.objects.filter(slug=category_slug).first()
             subcategory = SubCategory.objects.filter(category=category,sub_category_slug=subcategory_slug).first()
-            
             producto = Product(
                 product_name=product_name,
-                slug=slugify(product_name).lower(),
+                slug=slugify(slug_product).lower(),
                 description=product_name,
                 price=1,
                 images='none.jpg',  # Cambié .fpg a .jpg (posiblemente un error tipográfico)
@@ -4267,7 +4412,9 @@ def validar_tmp_pedidos(request):
             if pedidos_det_tmp:
                 for a in pedidos_det_tmp:
                     try:
-                        slug=slugify(a.product).lower()
+                        slug_product = product_name.replace('ñ','enie')
+                        slug_product = product_name.replace('Ñ','eniee')
+                        slug=slugify(slug_product).lower()
                         #print("sulg prod:",slug)
                         producto = Product.objects.filter(slug=slug).first()
                         if producto:

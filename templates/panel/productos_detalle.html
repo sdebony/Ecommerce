@@ -13,22 +13,33 @@
                     {% csrf_token %}
                     <div class="form-row">
                         <div class="col form-group">
-                        <label for="">Nombre</label>
-                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                            <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" maxlength="70" required>
+                            <label for="">Nombre</label>
+                                <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
+                                <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" maxlength="70" required>
+                            </div>
+                            <div class="col form-group">
+                                <label for="">slug</label>
+                                <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
+                            </div>
                         </div>
-                        <div class="col form-group">
-                            <label for="">slug</label>
-                            <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
-                        </div>
-                        <div class="form-check">
-                            {% if producto.is_available  %}
-                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
-                            {% else%}
-                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
-                            {% endif %}
-                            <label class="form-check-label" if=is_available for="flexCheckChecked">Activo</label>
-                        </div>
+                        <div class="col form-group">    
+                            <div class="form-check "> <!-- Puedes usar mb-4 para margen inferior -->
+                                {% if producto.is_available %}
+                                <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
+                                {% else %}
+                                <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
+                                {% endif %}
+                                <label class="form-check-label" for="is_available">Activo</label>
+                            </div>
+                            
+                            <div class="form-check" hidden> <!-- OCULTO HASTA QUE SE APRUEBE EL REQUERIMIENTO -->
+                                {% if producto.es_kit %}
+                                <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="0" checked>
+                                {% else %}
+                                <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="1">
+                                {% endif %}
+                                <label class="form-check-label" for="es_kit">Es KIT</label>
+                            </div>
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
@@ -52,7 +63,7 @@
 
                         <div class="col form-group">
                             <label for="">Peso (Gramos)</label>
-                            <input type="text" name="peso" class="form-control" value=" {{producto.peso}} ">
+                            <input type="text" name="peso" class="form-control" value=" {{producto.peso}} " required>
                         </div>
                         
                     </div>
@@ -135,7 +146,66 @@
                     <a href="{% url 'panel_catalogo' %}" class="btn btn-secondary">Cancelar</a>
                 </form>
         </div> <!-- card.// -->
+        <br>
+        {% if producto.es_kit %}
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'panel_product_kit' producto.id %}" method="POST" id="frmvariantes">
+                    {% csrf_token %}
+    
+                    <h4 class="card-title mb-6">Kit Productos </h4>
+                    <aside class="col-md-12">
+                        <div class="form-row">
+                            <div class="col form-group">
+                            <label for="">Producto</label>
+                            <input type="number" name="product_id" class="form-control" value="{{producto.id }}" hidden >
+                            <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
+                            </div>          
+                        </div>
+                        {% if product_kit %}
+                        <div class="form-row">           
+                            <table 
+                                id="table"
+                                data-toggle="table"
+                                data-pagination="false"
+                                data-search="false"
+                                data-show-columns="false"
+                                data-show-toggle="false"
+                                data-show-fullscreen="false"
+                                data-locale="es-AR"
+                                data-perpage="25"
+                            >
+                                <thead>
+                                    <th data-sortable="true" data-field="variation_category">Producto</th>
+                                    <th data-sortable="true" data-field="variation_value">Cantidad</th>
+                                    <th >Eliminar</th>
+                                    
+                                </thead>
+                                <tbody>
+                                    {% for item in product_kit %}
+                                    <tr>   
+                                        <td >{{item.productohijo.product_name}}</td> 
+                                        <td >{{item.cantidad}}</td>
+                                        <td ><a href="{% url 'panel_productos_kit_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a></td>
+                                    
+                                    </tr>                               
+                                    {% endfor%}
+                                </tbody>                        
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>  
+                        <div class="form-row ">
+                            <div class="col form-group d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary"><span class=""></span> Agregar </button>
+                            </div> 
+                        </div>
+                    </form>
+            </div>
+        </div>
+        {% endif %}
     </aside>
+    <br>
     <aside class="col-lg-6">
         <div class="card">
             <div class="card-body">
@@ -298,8 +368,6 @@
 
 </div>
 
-
-      
 
 {% endblock %}
 
