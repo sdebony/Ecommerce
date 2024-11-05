@@ -1665,7 +1665,7 @@ def panel_product_crud(request):
                 
                 if product_udp:
                     product_udp.product_name = product_name
-                    product_udp.slug = generate_unique_slug(product_slug, product_id=product_udp.id)
+                    product_udp.slug = product_udp.slug #generate_unique_slug(product_slug, product_id=product_udp.id)
                     product_udp.description = description
                     product_udp.price = price
                     product_udp.images = images
