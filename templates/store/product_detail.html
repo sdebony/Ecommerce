@@ -111,14 +111,23 @@
 	</div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
-
 <script>
 	function volverAlListado() {
-	  // Obtén la ruta anterior guardada o define una ruta predeterminada
+	  // Obtiene la URL guardada en sessionStorage
 	  const rutaAnterior = sessionStorage.getItem('rutaAnterior');
-	  window.location.href = rutaAnterior;
+	  
+	  // Verifica si hay una ruta guardada y muestra una alerta
+	  if (rutaAnterior) {
+		//alert(`Redirigiendo a la ruta guardada: ${rutaAnterior}`);
+		window.location.href = rutaAnterior;
+	  } else {
+		//alert("No hay ruta guardada. Volviendo al listado sin posición específica.");
+		// Si no hay ruta guardada, redirige al listado de productos sin posición específica
+		window.location.href = 'store/';
+	  }
 	}
-</script>
+  </script>
+
 
  
 
