@@ -210,12 +210,14 @@
           <label for="">Codigo Postal</label>
           <input type="text" name="dir_cp" id="dir_cp" class="form-control" value="" maxlength="10" required>
         </div>
-          <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden >
-          <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden>
-          <input type="number" name="dir_correo" id="dir_correo" class="form-control" value="0" required hidden >
-          <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" hidden >
-          
         </div>
+        <br>  
+        <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden> 
+        <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden> 
+        <input type="number" name="dir_correo" id="dir_correo" class="form-control" value="0" required hidden > 
+        <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" hidden  >
+        <input type="number" name="envio" step="any" value="0" id="id_envio" hidden> 
+        
         <div class="form-row">
           <label for="">Observaciones</label>
           <textarea name="dir_obs" id="dir_obs" rows="2" class="form-control"></textarea>
@@ -571,10 +573,10 @@ function mostrarOpcionEnvio() {
              
 
                 // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
-                $("#oca_price_ed").text("$ " + r.Total_ed);
-                $("#oca_price_es").text("$ " + r.Total_rs);
-                //$("#oca_price_ed").text("A Confirmar");
-                //$("#oca_price_es").text("A Confirmar");
+                //$("#oca_price_ed").text("$ " + r.Total_ed);
+                //$("#oca_price_es").text("$ " + r.Total_rs);
+                $("#oca_price_ed").text("A Confirmar");
+                $("#oca_price_es").text("A Confirmar");
 
 
                 // CORREO ARGENTINO  -- DESCOMENTAR PARA MOSTRAR VALORES
@@ -620,10 +622,11 @@ function mostrarOpcionEnvio() {
         if (primeraParte === 'OCA') {
             $("#dir_correo").val(1); // OCA
             $("#dir_tipoenvio").val(0); // OCA
+            
            
         } else if (primeraParte === 'CA') {
             $("#dir_correo").val(2); // Correo Argentino
-            $("#dir_tipoenvio").val(0); // OCA  
+            $("#dir_tipoenvio").val(1);   
            
         } else if (primeraParte === 'RET') {   
             $("#dir_correo").val(3); // Retira Cliente

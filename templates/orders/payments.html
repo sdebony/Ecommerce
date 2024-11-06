@@ -15,6 +15,9 @@
 				<div class="card">
 					<h5 class="card-header">Datos de la Entrega - #{{ order.order_number }}</h5>
 					<div class="card-body">
+						<p class="card-text mb-0 fw-bold">
+						{% if order.dir_correo == 2 %} Correo Argentino {% elif order.dir_correo == 1 %} OCA {% elif order.dir_correo == 3 %} Retira Cliente {% endif%} 
+						</p>
 						{% if order.dir_tipocorreo == 2 %}
 						<p class="card-text mb-0 fw-bold">Retiro en Sucursal - <strong>{{ order.dir_nombre }}</strong></p>
 						{% endif %}
