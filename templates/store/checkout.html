@@ -24,6 +24,7 @@
         <div class="col form-group">
           <label for="">Nombre</label>
           <input type="text" name="first_name" class="form-control" value="{{user.first_name}}"  required>
+          <input type="text" name="envio" id="envio" class="form-control" value="0" hidden>
         </div>
         <div class="col form-group">
           <label for="">Apellido</label>
@@ -52,7 +53,7 @@
           <div class="border p-2">
             <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
               <div>
-                <input type="radio" id="ca_ed" name="envio" value="ca_ed">
+                <input type="radio" id="ca_ed" name="chkenvio" value="ca_ed">
                 <label for="ca_ed">Correo Argentino - Entrega a Domicilio</label>
                 <span></span>
               </div>
@@ -65,7 +66,7 @@
           
             <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
               <div>
-                <input type="radio" id="oca_ed" name="envio" value="oca_ed">
+                <input type="radio" id="oca_ed" name="chkenvio" value="oca_ed">
                 <label for="oca_ed">OCA - Entrega a Domicilio</label>
                 <!-- <br> Plazo de Entrega:
                 <span id="oca_plazo_ed" style="font-weight: bold;"></span>
@@ -84,7 +85,7 @@
         <div class="border p-2">
           <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
             <div>
-              <input type="radio" id="ca_es" name="envio" value="ca_es">
+              <input type="radio" id="ca_es" name="chkenvio" value="ca_es">
               <label for="ca_es">Correo Argentno - Entrega en Sucursal</label>
             </div>
             <div>
@@ -95,7 +96,7 @@
         
           <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
             <div>
-              <input type="radio" id="oca_es" name="envio" value="oca_es">
+              <input type="radio" id="oca_es" name="chkenvio" value="oca_es">
               <label for="oca_es">OCA - Entrega en Sucursal</label>
             </div>
             <div>
@@ -113,7 +114,7 @@
          <div class="border p-2">
            <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
              <div>
-              <input type="radio" id="ret_cliente" name="envio" value="ret_cliente">
+              <input type="radio" id="ret_cliente" name="chkenvio" value="ret_cliente">
                <label for="ret_cliente">Retiro en persona</label>
              </div>
              <div>
@@ -358,6 +359,62 @@ function buscardireccion(dir_id)     {
                   $("#dir_tipoenvio").val(2);
                 }
              
+                let ca_price_ed_c = document.getElementById("ca_price_ed_c").textContent;
+                let ca_price_ed_e = document.getElementById("ca_price_ed_e").textContent;
+                
+                let ca_price_es_c = document.getElementById("ca_price_es_c").textContent;
+                let ca_price_es_e = document.getElementById("ca_price_es_e").textContent;
+
+                let oca_price_ed = document.getElementById("oca_price_ed").textContent;
+                let oca_price_es = document.getElementById("oca_price_es").textContent;
+
+                monto=0
+                if (dir_correo==2) //Correo Argentino
+                {
+                  // Entrega en Sucursal Correo
+                  if (r.dir_tipocorreo==2){
+                      // CORREO ARGENTINO ENTREGA EN SUCURSAL 
+                      if (r.dir_tipoenvio==1) //CLASICO
+                      {
+                        let monto = ca_price_es_c.replace(/[^\d.,]/g, '');
+                      }
+                      else
+                      {
+                        let monto = ca_price_es_e.replace(/[^\d.,]/g, '');
+                      }
+
+                  }
+                  else  //ENTREGA EN DOMICILIO
+                  {
+                    if (r.dir_tipoenvio==1) //CLASICO
+                      {
+                        let monto = ca_price_ed_c.replace(/[^\d.,]/g, '');
+                        document.getElementById("envio").value = monto;
+                      }
+                    else
+                      {
+                        let monto = ca_price_ed_e.replace(/[^\d.,]/g, '');
+                        document.getElementById("envio").value = monto;
+                      }
+                  }
+                }
+                else  //OCA
+                {
+                  if (r.dir_tipocorreo==2){
+                    let monto = oca_price_ed.replace(/[^\d.,]/g, '');
+                    document.getElementById("envio").value = monto;
+                  }
+                  else
+                  {
+                    let monto = oca_price_es.replace(/[^\d.,]/g, '');
+                    document.getElementById("envio").value = monto;
+                  }
+                }
+
+                
+
+
+
                 // Entrega en Sucursal Correo
                 if (r.dir_tipocorreo==2){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
@@ -514,19 +571,19 @@ function mostrarOpcionEnvio() {
              
 
                 // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
-                //$("#oca_price_ed").text("$ " + r.Total_ed);
-                //$("#oca_price_es").text("$ " + r.Total_rs);
-                $("#oca_price_ed").text("A Confirmar");
-                $("#oca_price_es").text("A Confirmar");
+                $("#oca_price_ed").text("$ " + r.Total_ed);
+                $("#oca_price_es").text("$ " + r.Total_rs);
+                //$("#oca_price_ed").text("A Confirmar");
+                //$("#oca_price_es").text("A Confirmar");
 
 
                 // CORREO ARGENTINO  -- DESCOMENTAR PARA MOSTRAR VALORES
-                //$("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
-                //$("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
-                //$("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
-                //$("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
-                $("#ca_price_ed_c").text("A Confirmar");
-                $("#ca_price_es_c").text("A Confirmar");
+                $("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
+                $("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
+                $("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
+                $("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
+                //$("#ca_price_ed_c").text("A Confirmar");
+                //$("#ca_price_es_c").text("A Confirmar");
                 
             },
             error: function(xhr, status, error) {
@@ -536,7 +593,7 @@ function mostrarOpcionEnvio() {
         });
   } 
   // Obtiene el valor seleccionado de la opcion 
-  document.querySelectorAll('input[name="envio"]').forEach((radio) => {
+  document.querySelectorAll('input[name="chkenvio"]').forEach((radio) => {
     radio.addEventListener('change', function() {
         //alert("Valor seleccionado: " + this.value);
 
@@ -544,6 +601,15 @@ function mostrarOpcionEnvio() {
         document.getElementById("detalle").style.display = "block";
 
         limpiarDatosDireccion();
+       
+
+        let ca_price_ed_c = document.getElementById("ca_price_ed_c").textContent;
+        let ca_price_ed_e = document.getElementById("ca_price_ed_e").textContent;
+        let ca_price_es_c = document.getElementById("ca_price_es_c").textContent;
+        let ca_price_es_e = document.getElementById("ca_price_es_e").textContent;
+
+        let oca_price_ed = document.getElementById("oca_price_ed").textContent;
+        let oca_price_es = document.getElementById("oca_price_es").textContent;
 
         // Separar la cadena en dos partes
         let partes =  this.value.split('_'); // Dividir por el guion bajo '_'
@@ -554,12 +620,15 @@ function mostrarOpcionEnvio() {
         if (primeraParte === 'OCA') {
             $("#dir_correo").val(1); // OCA
             $("#dir_tipoenvio").val(0); // OCA
+           
         } else if (primeraParte === 'CA') {
             $("#dir_correo").val(2); // Correo Argentino
             $("#dir_tipoenvio").val(0); // OCA  
+           
         } else if (primeraParte === 'RET') {   
             $("#dir_correo").val(3); // Retira Cliente
             $("#dir_tipoenvio").val(0); // OCA
+           
 
         }
                 
@@ -576,7 +645,33 @@ function mostrarOpcionEnvio() {
         }
        
 
-        const textInput = document.getElementById("dir_nombre");
+       //Asigno el precio segun lo seleccionado.
+       document.getElementById("envio").value = "0";
+       if (primeraParte === 'OCA') {
+          if (segundaParte === 'ED') {
+            //OCA ENVIO A DOMICILIO
+            let monto = oca_price_ed.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          } else if (segundaParte === 'ES') {
+            //OCA ENVIO A SUCURSAL
+            let monto = oca_price_es.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+       } else if  (primeraParte === 'CA') {
+        if (segundaParte === 'ED') {
+            //CA ENVIO A DOMICILIO
+            let monto = ca_price_ed_c.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          } else if (segundaParte === 'ES') {
+            //OCA ENVIO A SUCURSAL
+            let monto = ca_price_es_c.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+        }
+        
+       
+       
+       const textInput = document.getElementById("dir_nombre");
 
          // 2-  Entrega en Sucursal Correo
          if (this.value=='oca_es' || this.value=='ca_es'){
@@ -631,7 +726,8 @@ function mostrarOpcionEnvio() {
             //textInput.required = false;
           }
           
-
+          
+          
           document.getElementById("div_chk_tipoenvio").style.display = "none";
           if (primeraParte === 'CA') //Correo Argentino
           {
@@ -720,7 +816,40 @@ function validarFormulario(event) {
         // Obtener el valor del radio button seleccionado
         const selectedValue = event.target.value;
         $("#dir_tipoEnvio").val(selectedValue);
-      
+
+         let tipo_correo = document.getElementById("dir_tipocorreo").value;
+        // Envio a domicilio
+        let ca_price_ed_c = document.getElementById("ca_price_ed_c").textContent;
+        let ca_price_ed_e = document.getElementById("ca_price_ed_e").textContent;
+        // Entrega en Sucursal
+        let ca_price_es_c = document.getElementById("ca_price_es_c").textContent;
+        let ca_price_es_e = document.getElementById("ca_price_es_e").textContent;
+        
+        
+
+        if (selectedValue==1)
+        {
+          if ( tipo_correo==1) { // Entrega en Domicilio)
+            let monto = ca_price_ed_c.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+          else {
+            let monto = ca_price_es_c.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+        }
+        else 
+        {
+          if ( tipo_correo==1) { // Entrega en Domicilio)
+            let monto = ca_price_ed_e.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+          else {
+            let monto = ca_price_es_e.replace(/[^\d.,]/g, '');
+            document.getElementById("envio").value = monto;
+          }
+        }
+        
 
     }
 

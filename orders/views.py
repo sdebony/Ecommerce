@@ -106,15 +106,7 @@ def place_order(request, total=0, quantity=0,):
     if cart_count <= 0:
         return redirect('store')
 
-    grand_total = 0
-    envio = 0
-    for cart_item in cart_items:
-        total += (cart_item.product.price * cart_item.quantity)
-        quantity += cart_item.quantity
     
-    grand_total = total + envio
-
-   
 
     if request.method == 'POST':
         
@@ -122,6 +114,17 @@ def place_order(request, total=0, quantity=0,):
         form = OrderForm(request.POST)
         
         if form.is_valid():
+
+            envio = 0
+            envio = form.cleaned_data['envio']
+            print("Costo de envio:",  envio)
+
+            grand_total = 0
+            for cart_item in cart_items:
+                total += (cart_item.product.price * cart_item.quantity)
+                quantity += cart_item.quantity
+            
+            grand_total = total + envio
             
             # Store all the billing information inside Order table
             data = Order()
@@ -141,16 +144,17 @@ def place_order(request, total=0, quantity=0,):
             data.dir_tipoenvio =  form.cleaned_data['dir_tipoenvio']
             data.dir_correo =  form.cleaned_data['dir_correo']
             data.dir_nombre =  form.cleaned_data['dir_nombre']
-            
+            data.envio = form.cleaned_data['envio']
             data.order_note = form.cleaned_data['dir_obs']
             data.order_total = grand_total
             data.envio = envio
             data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.ip = request.META.get('REMOTE_ADDR')
             
+            
             data.save()
 
-           
+            
             # Generate order number
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))
