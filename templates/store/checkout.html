@@ -24,7 +24,6 @@
         <div class="col form-group">
           <label for="">Nombre</label>
           <input type="text" name="first_name" class="form-control" value="{{user.first_name}}"  required>
-          <input type="text" name="envio" id="envio" class="form-control" value="0" hidden>
         </div>
         <div class="col form-group">
           <label for="">Apellido</label>
@@ -42,6 +41,7 @@
             <button class="btn btn-primary" type="button" onclick="mostrarOpcionEnvio()">
               <i class="fas fa-search"></i>
             </button>
+           
           </div>
         </div>
       </div>
@@ -216,7 +216,8 @@
         <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden> 
         <input type="number" name="dir_correo" id="dir_correo" class="form-control" value="0" required hidden > 
         <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" hidden  >
-        <input type="number" name="envio" step="any" value="0" id="id_envio" hidden> 
+        <input type="number" name="id_envio" step="any" value="0" id="id_envio" hidden> 
+        <input type="number" name="envio" id="envio" class="form-control" value="0" hidden >
         
         <div class="form-row">
           <label for="">Observaciones</label>
@@ -573,10 +574,10 @@ function mostrarOpcionEnvio() {
              
 
                 // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
-                //$("#oca_price_ed").text("$ " + r.Total_ed);
-                //$("#oca_price_es").text("$ " + r.Total_rs);
-                $("#oca_price_ed").text("A Confirmar");
-                $("#oca_price_es").text("A Confirmar");
+                $("#oca_price_ed").text("$ " + r.Total_ed);
+                $("#oca_price_es").text("$ " + r.Total_rs);
+                $("#oca_price_ed").text("$ 0 - A Confirmar");
+                $("#oca_price_es").text("$ 0 - A Confirmar");
 
 
                 // CORREO ARGENTINO  -- DESCOMENTAR PARA MOSTRAR VALORES
@@ -671,6 +672,7 @@ function mostrarOpcionEnvio() {
             document.getElementById("envio").value = monto;
           }
         }
+        //alert(monto);
         
        
        
