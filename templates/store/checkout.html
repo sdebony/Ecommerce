@@ -416,8 +416,6 @@ function buscardireccion(dir_id)     {
 
                 
 
-
-
                 // Entrega en Sucursal Correo
                 if (r.dir_tipocorreo==2){
                   document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
@@ -456,10 +454,13 @@ function buscardireccion(dir_id)     {
                 if (r.dir_correo==3){
                   document.getElementById("tipo_envio").innerText = "Retira Cliente"
                   document.getElementById("div_chk_tipoenvio").style.display = "none";
-                  document.getElementById("div_entrega_dom").style.display = "none";
-                  document.getElementById("div_provincia").style.display = "none";
+                  document.getElementById("div_entrega_dom").style.display = "block";
+                  document.getElementById("div_provincia").style.display = "block";
                   document.getElementById("div_cp").style.display = "none";
-                  document.getElementById("div_datos_suc").style.display = "none";
+                  document.getElementById("div_datos_suc").style.display = "block";
+                  document.getElementById("div_nombre_suc").style.display = "block";
+                  document.getElementById('dir_nombre').readOnly = false; 
+                  
                   
                 }
 
@@ -548,7 +549,7 @@ function buscardireccion_seleccion(correo_tipo)     {
                   $("#dir_tipoenvio").val(1); // Default no importa
                 }
 
-
+                
                 
                
             },
@@ -574,8 +575,8 @@ function mostrarOpcionEnvio() {
              
 
                 // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
-                $("#oca_price_ed").text("$ " + r.Total_ed);
-                $("#oca_price_es").text("$ " + r.Total_rs);
+                //$("#oca_price_ed").text("$ " + r.Total_ed);
+                //$("#oca_price_es").text("$ " + r.Total_rs);
                 $("#oca_price_ed").text("$ 0 - A Confirmar");
                 $("#oca_price_es").text("$ 0 - A Confirmar");
 
@@ -758,29 +759,41 @@ function cargarDirecciones() {
     });
 }
 
-
 function validarFormulario(event) {
-    // Obtener el valor del campo
-   
-    // Limpiar cualquier mensaje de error previo
-    //document.getElementById('error').textContent = "";
-    // Obtener el valor del campo como número
+    // Obtener los valores de los campos
+    var envio = document.getElementById('envio');
+    var id_envio = document.getElementById('id_envio');
     var dir_id = document.getElementById('dir_id').value;
     var dir_tipo_envio = document.getElementById('chktipoEnvio').value;
    
     
-    // Validar que sea mayor a 0 y distinto de una cadena vacía
-    if (dir_id.split() == '' || parseInt(dir_id) <= 0) {
-        // Mostrar un mensaje de error
-        document.getElementById('error').textContent = "Seleccione una opcion del combo direcciones";
+   
+    // Verificar si el campo envio está vacío y asignarle 0 si es así
+    if (!envio.value || envio.value.trim() === "") {
+        envio.value = 0;
+    }
 
-        alert("Seleccione una opcion del combo direcciones");
+    // Verificar si el campo envio está vacío y asignarle 0 si es así
+    if (!id_envio.value || id_envio.value.trim() === "") {
+        id_envio.value = 0;
+    }
+
+   
+    // Validar que dir_id no esté vacío y sea mayor a 0
+    if (!dir_id || parseInt(dir_id) <= 0) {
+        // Mostrar un mensaje de error
+        document.getElementById('error').textContent = "Seleccione una opción del combo direcciones";
+        alert("Seleccione una opción del combo direcciones");
         // Prevenir el envío del formulario
         event.preventDefault();
         return false;
     }
+    
+    // Limpiar mensaje de error si todo está bien
+    document.getElementById('error').textContent = "";
     return true;
 }
+
 
 </script>
 

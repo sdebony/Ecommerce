@@ -115,10 +115,11 @@ def place_order(request, total=0, quantity=0,):
         
         if form.is_valid():
 
-            envio = 0
+           
             envio = form.cleaned_data['envio']
             print("Costo de envio:",  envio)
-
+            total = total if total is not None else 0.0
+            envio = envio if envio is not None else 0.0
             grand_total = 0
             for cart_item in cart_items:
                 total += (cart_item.product.price * cart_item.quantity)

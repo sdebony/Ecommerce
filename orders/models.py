@@ -51,7 +51,7 @@ class Order(models.Model):
 
     order_note = models.CharField(max_length=250, blank=True)
     order_total = models.FloatField()
-    envio = models.FloatField()  #Monto Envio
+    envio = models.FloatField(default=0,blank=True)  #Monto Envio
     status = models.CharField(max_length=10, choices=STATUS, default='New')
     ip = models.CharField(blank=True, max_length=20)
     is_ordered = models.BooleanField(default=False)
