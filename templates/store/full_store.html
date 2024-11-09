@@ -91,9 +91,9 @@
 						
 					<div class="img-wrap">
 							{% if product.images %}
-								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}">
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}" loading="lazy">
 							{% else %}
-								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg">
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg" loading="lazy">
 							{% endif %}
 					</div> <!-- img-wrap.// -->
 					<figcaption class="info-wrap p-1">

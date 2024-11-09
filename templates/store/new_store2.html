@@ -53,9 +53,9 @@
 							
 							<div class="img-wrap">
 							{% if product.images %}
-								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem">
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}"  style="width: 20rem; height: 20rem" loading="lazy">
 							{% else %}
-								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem">
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem" loading="lazy">
 							{% endif %}
 							</div>
 						

@@ -101,9 +101,9 @@ VERSION MOBILE OPERATIVO
 				<center>
 					<a href="{{ product.get_url }}">
 					{% if product.images %}
-						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}" width="80" height="90" class="text-muted small">
+						<img src="https://yourfiles.cloud/uploads/{{product.imgfile}}" width="80" height="90" class="text-muted small" loading="lazy">
 					{% else %}
-						<img src="https://yourfiles.cloud/uploads/none.jpg" width="80" height="90">
+						<img src="https://yourfiles.cloud/uploads/none.jpg" width="80" height="90" loading="lazy">
 					{% endif %}
 				</a>
 				</center>
