@@ -40,7 +40,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
        
     if category_slug != None:
-        if subcategory_slug != None:
+        if subcategory_slug != None and "todos" not in subcategory_slug.lower():
             
             categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos

@@ -87,7 +87,7 @@
 		<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 		<figure class="card card-product-grid">
 			<section id="{{product.id}}">
-				<a href="{{ product.get_url }}" class="title" onclick="guardarRutaYPosicion(event, '{{ product.get_url }}')">
+				<a href="{{ product.get_url }}" class="title" style="text-decoration: none; color: inherit;" onclick="guardarRutaYPosicion(event, '{{ product.get_url }}')">
 						
 					<div class="img-wrap">
 							{% if product.images %}
@@ -213,10 +213,10 @@ function guardarRutaYPosicion(event, url) {
   const urlActual = window.location.href;
   
   sessionStorage.setItem('rutaAnterior', urlActual);
-
   // Guarda la posición de desplazamiento
  
   sessionStorage.setItem('posicionScroll', window.scrollY);
+  
 
   // Redirige a la nueva URL
   window.location.href = url; // Navega a la nueva URL
@@ -230,7 +230,9 @@ function guardarRutaYPosicion(event, url) {
 	  const posicionScroll = sessionStorage.getItem('posicionScroll');
 	  if (posicionScroll) {
 		window.scrollTo(0, posicionScroll); // Restaura la posición guardada
+		sessionStorage.removeItem('posicionScroll');
 	  }
+	  
 	  
 	});
   </script>

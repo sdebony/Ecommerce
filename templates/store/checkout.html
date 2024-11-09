@@ -577,17 +577,17 @@ function mostrarOpcionEnvio() {
                 // OCA --> -- DESCOMENTAR PARA MOSTRAR VALORES
                 //$("#oca_price_ed").text("$ " + r.Total_ed);
                 //$("#oca_price_es").text("$ " + r.Total_rs);
-                $("#oca_price_ed").text("$ 0 - A Confirmar");
-                $("#oca_price_es").text("$ 0 - A Confirmar");
+                $("#oca_price_ed").text("A Confirmar");
+                $("#oca_price_es").text("A Confirmar");
 
 
                 // CORREO ARGENTINO  -- DESCOMENTAR PARA MOSTRAR VALORES
-                $("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
-                $("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
-                $("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
-                $("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
-                //$("#ca_price_ed_c").text("A Confirmar");
-                //$("#ca_price_es_c").text("A Confirmar");
+                //$("#ca_price_ed_c").text("Clasico: $ " + r.precio_ed_ca_clasico);
+                //$("#ca_price_ed_e").text("Expreso: $ " + r.precio_ed_ca_expreso);
+                //$("#ca_price_es_c").text("Clasico: $ " + r.precio_rs_ca_clasico);
+                //$("#ca_price_es_e").text("Expreso: $ " + r.precio_rs_ca_expreso);
+                $("#ca_price_ed_c").text("A Confirmar");
+                $("#ca_price_es_c").text("A Confirmar");
                 
             },
             error: function(xhr, status, error) {
