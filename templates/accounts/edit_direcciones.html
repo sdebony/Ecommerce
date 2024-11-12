@@ -10,6 +10,7 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
 
+
 {% block content %}
 
 <section class="section-conten padding-y bg">
@@ -431,10 +432,10 @@
 									<input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="{{ dir_CA_RS.dir_nombre }}" placeholder="Ingrese un nombre para identificar." maxlength="50" required>
 									<input type="text" name="dir_id" id="dir_id" class="form-control" value="{{ dir_CA_RS.dir_id }}" hidden>
 								</div>
-								<div class="form-group col-md-6">
+								<div class="form-group col-md-6" id="chk_CA-tipo_envio">
 									<label>Tipo de Envío</label>
 									<div class="form-check">
-										<input class="form-check-input" type="radio" name="tipoEnvio_RS" id="envioClasico" value="1" 
+										<input class="form-check-input" type="radio" name="tipoEnvio_RS" id="ca_envioClasico" value="1" 
 										{% if dir_CA_RS.dir_tipoenvio == 1 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioClasico">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
@@ -572,6 +573,20 @@
 
 
 </section>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+		// Oculta el div contenedor de los tipos de envío
+		document.getElementById("chk_CA-tipo_envio").style.display = "none";
+		
+		// Selecciona el envío clásico por defecto
+		document.getElementById("ca_envioClasico").checked = true;
+		
+	});
+</script>
+
+
+
 <script>
 
 function submitFormPadre(event) {

@@ -47,6 +47,8 @@
         }
     
 </style>
+
+
   <div id="TopDiv" class="container">
       <div  class="row">
         <div class="col">
@@ -66,8 +68,9 @@
                </select>
             </div>
              <div class="input-group-prepend p-1">	
-                   
-                    <select name="filtro-subcat" id="filtro-subcat" class="form-control">
+              
+<!--                    <select id="filtro-subcat" name="filtro-subcat" class="form-control" style="border: 2px solid #ffd700; border-radius: 4px; padding: 10px; width: 100%; margin-bottom: 20px;">
+-->                 <select name="filtro-subcat" id="filtro-subcat" class="form-control">  
                      {% if not sub_category_name %}
                         <option selected disabled value=""> -- Seleccione -- </option>
                      {% else %}
@@ -77,6 +80,18 @@
                           <option value="{{subcategory.sub_category_slug}}/">{{ subcategory.subcategory_name }}</option>		
                       {% endfor%}
                      </select>
+
+                     <script>
+                      // JavaScript para cambiar el color del borde y crear la animación
+                      const combo = document.getElementById('filtro-subcat');
+                      let borderColor = '#ffd700';  // Color inicial del borde
+                      let alternateColor = '#ff4500';  // Segundo color para el parpadeo
+              
+                      setInterval(() => {
+                          // Alternar entre el color inicial y el color alternativo
+                          combo.style.borderColor = combo.style.borderColor === borderColor ? alternateColor : borderColor;
+                      }, 500); // Cambiar cada 500 ms para crear el efecto de parpadeo
+                  </script>
              </div>
           </div> 
         </div>

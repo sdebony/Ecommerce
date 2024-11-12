@@ -41,7 +41,7 @@ def store(request, category_slug=None,subcategory_slug=None):
        
     if category_slug != None:
         if subcategory_slug != None and "todos" not in subcategory_slug.lower():
-            
+            print("Subcategoria seleccionada")
             categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
             subcategories = SubCategory.objects.filter(category=categories)
@@ -59,13 +59,23 @@ def store(request, category_slug=None,subcategory_slug=None):
             else:
                 sub_category_name = ""
         else:
-            
-            categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
-            #subcategories = get_object_or_404(SubCategory, category=categories)
-            subcategories = SubCategory.objects.filter(category=categories)
-            products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')           
-            #products = Product.objects.filter(category=categories, is_available=True).order_by('product_name').annotate(desc= Concat(f'product_name',Value('*')))
-        
+            if subcategory_slug == None:
+                print("Sin seleccion subcategoria ")
+
+                categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+                subcategory = SubCategory.objects.filter(category=categories).exclude(subcategory_name__iexact="todos").order_by('orden').first() #Para el Query de productos
+                subcategories = SubCategory.objects.filter(category=categories)
+                print("Primera subcategoria:",subcategory)
+                products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')           
+                #products = Product.objects.filter(category=categories, is_available=True).order_by('product_name').annotate(desc= Concat(f'product_name',Value('*')))
+            elif  "todos" in subcategory_slug.lower():
+                print("Todos")
+                categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+                #subcategories = get_object_or_404(SubCategory, category=categories)
+                subcategories = SubCategory.objects.filter(category=categories)
+                products = Product.objects.filter(category=categories, is_available=True).order_by('product_name')   
+
+
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
