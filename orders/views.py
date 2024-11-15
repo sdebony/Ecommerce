@@ -5,7 +5,7 @@ from store.models import ProductKit
 from .forms import OrderForm
 import datetime
 import time
-from .models import Order, Payment, OrderProduct
+from .models import Order, Payment, OrderProduct,OrigenVenta
 from accounts.models import AccountDirecciones, Account
 
 
@@ -56,9 +56,12 @@ def payments(request):
         orderproduct.quantity = item.quantity
         orderproduct.product_price = item.product.price
         orderproduct.ordered = True
+
+        orderproduct.descuento_unitario = 0
+        orderproduct.precio_unitario_cobrado =  item.product.price
+
         costo = costo_producto(item.product_id)
-        print("COSTO COSTO COSTO COSTO COSTO")
-        print(str(costo))
+        
         orderproduct.costo = costo
         orderproduct.save()
 
@@ -110,12 +113,17 @@ def place_order(request, total=0, quantity=0,):
 
     if request.method == 'POST':
         
-    
         form = OrderForm(request.POST)
+
+        canal_venta= settings.STORE_DEF_CANAL  #WEB
+        origen_venta = OrigenVenta.objects.filter(codigo=canal_venta).first()
+        #if origen_venta:
+        #    id_origen_venta =  origen_venta.id
+        #else:
+        #    id_origen_venta = 1    
         
         if form.is_valid():
 
-           
             envio = form.cleaned_data['envio']
             print("Costo de envio:",  envio)
             total = total if total is not None else 0.0
@@ -127,9 +135,17 @@ def place_order(request, total=0, quantity=0,):
             
             grand_total = total + envio
             
+
             # Store all the billing information inside Order table
             data = Order()
             data.user = current_user
+            
+            data.origen_venta = origen_venta
+            data.order_total_comisiones = 0
+            data.order_total_descuentos = 0
+            data.order_total_impuestos = 0
+
+
             data.first_name = form.cleaned_data['first_name']
             data.last_name = form.cleaned_data['last_name']
             data.dir_telefono = form.cleaned_data['dir_telefono']
@@ -233,6 +249,9 @@ def order_cash(request):
             orderproduct.product_price = item.product.price
             orderproduct.ordered = True
 
+            orderproduct.descuento_unitario = 0
+            orderproduct.precio_unitario_cobrado =  item.product.price
+            
             costo = costo_producto(item.product_id)
             orderproduct.costo = costo
             orderproduct.save()
@@ -278,15 +297,7 @@ def order_cash(request):
                 order.is_ordered = True  #Confirmo la orden de compa
                 order.total_peso = pesoarticulos
                 user = Account.objects.filter(email=order.user).first()
-                #sucursal = AccountDirecciones.objects.get(user=user,dir_tipocorreo = order.dir_tipocorreo)
-                #print(sucursal)
-
-                #if sucursal:
-                #    dir_nombre =sucursal.dir_nombre 
-                #else:
-                #    dir_nombre = ""
                 
-                #print(dir_nombre)
                 order.dir_nombre = ""
                 order.save()
 

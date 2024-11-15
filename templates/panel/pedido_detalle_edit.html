@@ -1,4 +1,7 @@
 {% extends 'panel/base.html' %}
+
+{% load custom_filters %}
+
 {% block page_content %}
 
   <!-- Content Wrapper. Contains page content -->
@@ -266,6 +269,10 @@
                       <tr>
                         <th>Envio:</th>
                         <td>{{ ordenes.envio }}</td>
+                      </tr>
+                      <tr>
+                        <th>Descuentos:</th>
+                        <td> <input type="number" step="any" name="order_total_descuentos" id="order_total_descuentos" class="form-control" value="{{ ordenes.order_total_descuentos|floatformat:2|decimal_point }}" maxlength="10"></td>
                       </tr>
                       <tr>
                         <th>Total:</th>

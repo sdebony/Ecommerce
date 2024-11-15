@@ -1,10 +1,23 @@
 from django.db import models
 from accounts.models import Account
 
-from store.models import Product, Variation, Costo
+from store.models import Product, Variation
 
 
 
+class OrigenVenta(models.Model):
+
+    codigo = models.CharField(max_length=5,unique=True)
+    origen = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.origen
+    
+    class Meta:
+        
+        verbose_name = "Origen Venta"
+        verbose_name_plural = "Origen Ventas"
+        
 class Payment(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     payment_id = models.CharField(max_length=100)
@@ -35,6 +48,8 @@ class Order(models.Model):
     email = models.EmailField(max_length=50)
     fecha = models.DateField(blank=True)
 
+    origen_venta =models.ForeignKey(OrigenVenta, on_delete=models.SET_DEFAULT, default=1)  #models.BigIntegerField(default=1)
+
     dir_nombre = models.CharField(max_length=50,blank=True)
     dir_telefono = models.CharField(max_length=25)
     dir_calle = models.CharField(max_length=100,blank=True)
@@ -52,6 +67,11 @@ class Order(models.Model):
     order_note = models.CharField(max_length=250, blank=True)
     order_total = models.FloatField()
     envio = models.FloatField(default=0,blank=True)  #Monto Envio
+
+    order_total_comisiones=  models.FloatField(default=0,blank=True)
+    order_total_descuentos=  models.FloatField(default=0,blank=True)
+    order_total_impuestos=  models.FloatField(default=0,blank=True)
+
     status = models.CharField(max_length=10, choices=STATUS, default='New')
     ip = models.CharField(blank=True, max_length=20)
     is_ordered = models.BooleanField(default=False)
@@ -95,7 +115,12 @@ class OrderProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variations = models.ManyToManyField(Variation, blank=True)
     quantity = models.IntegerField()
-    product_price = models.FloatField()
+    product_price = models.FloatField()  #Precio de lista
+
+    descuento_unitario =  models.FloatField(default=0,blank=True) #Monto descuento
+    precio_unitario_cobrado = models.FloatField()         #Precio Unitario Cobrado sin impuestos ni comisiones
+
+
     ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -33,11 +33,11 @@
 
       <hr>
       <!-- <h3 class="card-title mb-6">Entrega en:</h3>  -->
-      <div class="form-group">
+      <div class="form-group" id="div_codigopostal">
         <label for="cp_search">Código Postal:</label>
         <div class="input-group">
           <div class="input-group-append">
-            <input type="text" name="cp_search" id="cp_search" placeholder="Seleccione el còdigo postal "  class="form-control" required>
+            <input type="text" name="cp_search" id="cp_search" placeholder="Seleccione el còdigo postal "  class="form-control" >
             <button class="btn btn-primary" type="button" onclick="mostrarOpcionEnvio()">
               <i class="fas fa-search"></i>
             </button>
@@ -167,7 +167,7 @@
             <input type="email" name="email" class="form-control" value="{{user.email}}" required>
           </div>
           <div id="div_nombre_suc"class="col form-group">
-            <label for="dir_nombre">Nombre</label>
+            <label for="dir_nombre">Nombre Sucursal</label>
             <input type="text" name="dir_nombre" id="dir_nombre" class="form-control" value="">
           </div>
           <div class="col form-group">
@@ -176,8 +176,8 @@
           </div>
         </div>
         <div id="div_entrega_dom">  
-            <div class="form-row">
-              <div class="col form-group col-lg-6">
+            <div class="form-row" id="div_datos_direccion">
+              <div class="col form-group col-lg-6" >
                 <label for="">Calle</label>
                 <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="" required>
               </div>
@@ -316,6 +316,11 @@
     document.getElementById("div_cp").style.display = "none";
     document.getElementById("div_datos_suc").style.display = "none";
 
+    document.getElementById("div_codigopostal").style.display = "none";
+    $("#cp_search").val('1617');
+    mostrarOpcionEnvio();
+
+
   };
 
 function buscardireccion(dir_id)     {
@@ -418,7 +423,8 @@ function buscardireccion(dir_id)     {
 
                 // Entrega en Sucursal Correo
                 if (r.dir_tipocorreo==2){
-                  document.getElementById("tipo_envio").innerText = "Entrega en Sucursal"
+                  document.getElementById("tipo_envio").innerText = "Entrega en Sucursal";
+                  document.querySelector('label[for="dir_nombre"]').innerText = 'Nombre Sucursal';
                   document.getElementById("div_chk_tipoenvio").style.display = "block";
                   document.getElementById("div_datos_suc").style.display = "block";
                   document.getElementById("div_entrega_dom").style.display = "block";
@@ -436,7 +442,7 @@ function buscardireccion(dir_id)     {
      
                 } // ENVIO A DOMICILIO
                 if (r.dir_tipocorreo==1){
-                  document.getElementById("tipo_envio").innerText = "Envio a Domicilio"
+                  document.getElementById("tipo_envio").innerText = "Envio a Domicilio";
                   
                   document.getElementById("div_datos_suc").style.display = "block";
                   document.getElementById("div_entrega_dom").style.display = "block";
@@ -629,6 +635,7 @@ function mostrarOpcionEnvio() {
         } else if (primeraParte === 'CA') {
             $("#dir_correo").val(2); // Correo Argentino
             $("#dir_tipoenvio").val(1);   
+            //alert("Correo Argentino");
            
         } else if (primeraParte === 'RET') {   
             $("#dir_correo").val(3); // Retira Cliente
@@ -645,6 +652,8 @@ function mostrarOpcionEnvio() {
             $("#dir_tipocorreo").val(1); // Entrega en Domicilio
         } else if (segundaParte === 'ES') {
             $("#dir_tipocorreo").val(2); // Entrega Sucursal  
+            //alert("Entrega en Sucursal");
+
         } else if (segundaParte === 'CLIENTE') {   
             $("#dir_tipocorreo").val(0); // Retira Cliente
         }
@@ -668,9 +677,10 @@ function mostrarOpcionEnvio() {
             let monto = ca_price_ed_c.replace(/[^\d.,]/g, '');
             document.getElementById("envio").value = monto;
           } else if (segundaParte === 'ES') {
-            //OCA ENVIO A SUCURSAL
+            //CA ENVIO A SUCURSAL
             let monto = ca_price_es_c.replace(/[^\d.,]/g, '');
             document.getElementById("envio").value = monto;
+
           }
         }
         //alert(monto);
@@ -695,7 +705,13 @@ function mostrarOpcionEnvio() {
             document.getElementById('dir_provincia').readOnly = false;
             document.getElementById('dir_cp').readOnly = false; 
             document.getElementById('dir_nombre').readOnly = false;
-           
+
+            document.getElementById('dir_calle').value = 'N/A';
+            document.getElementById('dir_nro').value = '0';
+            document.getElementById('dir_piso').value = '0';
+            document.getElementById('dir_depto').value = '0';
+            document.getElementById('div_datos_direccion').style.display = 'none'; 
+            
             textInput.required = true;
             
         
@@ -715,7 +731,9 @@ function mostrarOpcionEnvio() {
             document.getElementById('dir_provincia').readOnly = false;
             document.getElementById('dir_cp').readOnly = false; 
             document.getElementById('div_nombre_suc').readOnly = false; 
-           
+
+            document.getElementById('div_datos_direccion').style.display = 'block';
+            
             //textInput.required = false;
             
 
@@ -761,12 +779,14 @@ function cargarDirecciones() {
 
 function validarFormulario(event) {
     // Obtener los valores de los campos
+
     var envio = document.getElementById('envio');
     var id_envio = document.getElementById('id_envio');
     var dir_id = document.getElementById('dir_id').value;
     var dir_tipo_envio = document.getElementById('chktipoEnvio').value;
    
     
+   
    
     // Verificar si el campo envio está vacío y asignarle 0 si es así
     if (!envio.value || envio.value.trim() === "") {
@@ -835,7 +855,7 @@ function validarFormulario(event) {
         const selectedValue = event.target.value;
         $("#dir_tipoEnvio").val(selectedValue);
 
-         let tipo_correo = document.getElementById("dir_tipocorreo").value;
+        let tipo_correo = document.getElementById("dir_tipocorreo").value;
         // Envio a domicilio
         let ca_price_ed_c = document.getElementById("ca_price_ed_c").textContent;
         let ca_price_ed_e = document.getElementById("ca_price_ed_e").textContent;

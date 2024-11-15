@@ -1,5 +1,6 @@
 {% extends 'panel/base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block page_content %}
 
   <!-- Content Wrapper. Contains page content -->
@@ -31,6 +32,11 @@
               {{ ordenes.status | upper }}</font></b></h5>
          
             </div>
+            {% if canal_venta == 'SI' %}
+            <td class="text-center">
+              <span class="badge bg-primary text-white">{{ ordenes.origen_venta }} </span>
+            </td>
+            {% endif %}
 
 
             <!-- Main content -->
@@ -94,6 +100,7 @@
                       <th>Product</th>
                       <th>Variantes</th>
                       <th>Precio Unit</th>
+                      <th>Descuento</th>
                       <th>Subtotal</th>
                     </tr>
                     </thead>
@@ -107,8 +114,10 @@
                           {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
                         {% endfor %}
                       </td>
-                      <td>{{ item.product_price }}</td>
-                      <td>{{item.subtotal}}</td>
+                      <td>{{ item.product_price|format_currency }}</td>
+                      <td>{{ item.descuento_unitario|format_currency }}</td>
+                      
+                      <td>{{item.subtotal|format_currency}}</td>
                     </tr>
                     {% endfor %}
                     
@@ -145,16 +154,32 @@
                     <table class="table">
                       <tr>
                         <th style="width:50%">Subtotal:</th>
-                        <td>{{ subtotal }}</td>
+                        <td>{{ subtotal|format_currency }}</td>
                       </tr>
                     
                       <tr>
                         <th>Envio:</th>
-                        <td>{{ ordenes.envio }}</td>
+                        <td>{{ ordenes.envio|format_currency }}</td>
                       </tr>
                       <tr>
+                        <th>Descuentos:</th>
+                        <td>{{ ordenes.order_total_descuentos|format_currency }}</td>
+                      </tr>
+                      {% if canal_venta == 'SI' %}
+                        <tr>
+                          <th>Comisiones:</th>
+                          <td>{{ ordenes.order_total_comisiones|format_currency }}</td>
+                        </tr>
+                        <tr>
+                          <th>Impuestos:</th>
+                          <td>{{ ordenes.order_total_impuestos|format_currency }}</td>
+                        </tr>
+                      
+                      {% endif %}
+
+                      <tr>
                         <th>Total:</th>
-                        <td>{{ ordenes.order_total }}</td>
+                        <td>{{ ordenes.order_total|format_currency }}</td>
                       </tr>
                     </table>
                   </div>

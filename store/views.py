@@ -66,6 +66,8 @@ def store(request, category_slug=None,subcategory_slug=None):
                 subcategory = SubCategory.objects.filter(category=categories).exclude(subcategory_name__iexact="todos").order_by('orden').first() #Para el Query de productos
                 subcategories = SubCategory.objects.filter(category=categories)
                 print("Primera subcategoria:",subcategory)
+                sub_category_name = subcategory.subcategory_name
+                print("subcategoria:",sub_category_name)
                 products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')           
                 #products = Product.objects.filter(category=categories, is_available=True).order_by('product_name').annotate(desc= Concat(f'product_name',Value('*')))
             elif  "todos" in subcategory_slug.lower():

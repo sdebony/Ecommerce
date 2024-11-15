@@ -48,8 +48,8 @@
 
                        
                         {% for venta in ventas.results %}
-                        <tr>
-                            <th>{{ venta.id }}</a> </th>
+                        <tr> 
+                            <th><a href="{% url 'meli_ventas_detalle' venta.id %}">{{ venta.id }}</a> </th>
                             <th>{{ venta.date_created }} </th>
                             <th>{{ venta.tags|last  }}</th>
                             <th>{{ venta.total_amount|format_currency }}</th>

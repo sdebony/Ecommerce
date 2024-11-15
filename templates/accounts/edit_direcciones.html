@@ -337,10 +337,10 @@
 									<label>Código Postal</label>
 									<input type="text" name="dir_cp" id="dir_cp" class="form-control" value="{{ dir_CA_ED.dir_cp}}" placeholder="Ingrese el código postal">
 								</div>
-								<div class="form-group col-md-4">
+								<div class="form-group col-md-4" id="chk_CA-tipo_envio_ED">
 									<label>Tipo de Envío</label>
-									<div class="form-check">
-										<input class="form-check-input" type="radio" name="tipoEnvio" id="envioClasico" value="1" 
+									<div class="form-check" >
+										<input class="form-check-input" type="radio" name="tipoEnvio" id="ed_envioClasico" value="1" 
 										{% if dir_CA_ED.dir_tipoenvio == 1 %} checked {% endif %} required>
 										<label class="form-check-label" for="envioClasico">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
@@ -578,9 +578,12 @@
 	document.addEventListener("DOMContentLoaded", function() {
 		// Oculta el div contenedor de los tipos de envío
 		document.getElementById("chk_CA-tipo_envio").style.display = "none";
+		document.getElementById("chk_CA-tipo_envio_ED").style.display = "none";
 		
 		// Selecciona el envío clásico por defecto
 		document.getElementById("ca_envioClasico").checked = true;
+		document.getElementById("ed_envioClasico").checked = true;
+		
 		
 	});
 </script>

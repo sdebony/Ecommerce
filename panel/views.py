@@ -490,23 +490,19 @@ def dashboard_control(request):
         orders_validas = Order.objects.exclude(status='New')
 
         # Obtener los márgenes
-        margen_bruto = OrderProduct.objects.filter(order__in=orders_validas) \
-            .aggregate(
-                total_product_price=Sum(F('product_price')* F('quantity')),         # Suma total de product_price
-                total_product_cost=Sum(F('costo')* F('quantity'))
-                
-            ) 
-        margen_utilidad = OrderProduct.objects.filter(order__in=orders_validas) \
-            .aggregate(
-                margen_utilidad_total=Sum(
-                    (F('product_price') * F('quantity')) - (F('costo')*F('quantity')),
-                    output_field=FloatField()
-                ),
-                total_articulos_vendidos=Sum('quantity')
-            )
-            
-       
+        margen_bruto = OrderProduct.objects.filter(order__in=orders_validas).aggregate(
+            total_product_price=Sum((F('precio_unitario_cobrado') - F('descuento_unitario')) * F('quantity')),  # Corrige las operaciones con F()
+            total_product_cost=Sum(F('costo') * F('quantity'))
+        )
 
+        margen_utilidad = OrderProduct.objects.filter(order__in=orders_validas).aggregate(
+            margen_utilidad_total=Sum(
+                ((F('precio_unitario_cobrado') - F('descuento_unitario')) * F('quantity')) - (F('costo') * F('quantity')),
+                output_field=FloatField()  # Asegura que el resultado sea un campo flotante
+            ),
+            total_articulos_vendidos=Sum('quantity')  # Total de artículos vendidos
+        )    
+       
 
         total_product_price = margen_bruto['total_product_price']
         total_product_cost = margen_bruto['total_product_cost']
@@ -733,8 +729,14 @@ def panel_pedidos_list(request,status=None):
         amount_cobrado = round(amount_cobrado)
         amount_entregado = round(amount_entregado)
 
-        print(ordenes)
-
+        #Permite cambiar canal de venta
+        
+        store_multi_canal = getattr(settings, 'STORE_MULTI_CANAL', False)
+        if store_multi_canal==False:
+            canal_venta="NO"
+        else:
+            canal_venta= settings.STORE_MULTI_CANAL.upper()
+        
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
@@ -748,7 +750,8 @@ def panel_pedidos_list(request,status=None):
             "cantidad_entregado":cantidad_entregado,
             "fecha_desde":fecha_desde,
             "fecha_hasta":fecha_hasta,
-            "cuenta":cuenta
+            "cuenta":cuenta,
+            "canal_venta":canal_venta
              
             
 
@@ -769,13 +772,19 @@ def panel_pedidos_detalle(request,order_number=None):
             Round(
                 Sum('product_price')*Sum('quantity'),2
                 ))
-                
+
+        subtotal=0     
+        for detalle in ordenes_detalle:
+            subtotal = subtotal + detalle.subtotal  # Accede al subtotal de cada elemento
+        
+        
         idcuenta = ordenes.cuenta
         if idcuenta>0:
             cuenta = Cuentas.objects.get(id=idcuenta)
         else:
             cuenta= []
-        subtotal = ordenes.order_total - ordenes.envio
+
+        
         if ordenes.status=="New":
             pago_pendiente=True
             entrega_pendinete=False
@@ -789,6 +798,13 @@ def panel_pedidos_detalle(request,order_number=None):
             entrega_pendinete=False
             entregado=True
 
+        store_multi_canal = getattr(settings, 'STORE_MULTI_CANAL', False)
+        if store_multi_canal==False:
+            canal_venta="NO"
+        else:
+            canal_venta= settings.STORE_MULTI_CANAL.upper()
+
+        
         print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
         
         context = {
@@ -799,7 +815,8 @@ def panel_pedidos_detalle(request,order_number=None):
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
             'entregado':entregado,
-            'cuenta':cuenta
+            'cuenta':cuenta,
+            "canal_venta":canal_venta
         }
         
         return render(request,'panel/pedidos_detalle.html',context) 
@@ -1391,6 +1408,8 @@ def panel_pedidos_save_detalle(request):
                                 payment = ordered_products.payment,
                                 user =ordered_products.user,
                                 product=ordered_products.product,
+                                descuento_unitario = 0,
+                                precio_unitario_cobrado =precio,    #Precio Unitario Cobrado sin impuestos ni comisiones
                                 ordered=ordered_products.ordered,
                                 created_at = ordered_products.created_at,
                                 updated_at = datetime.today(),
@@ -4531,6 +4550,8 @@ def guardar_tmp_pedidos(request,codigo=None):
                                                 quantity = item.quantity,
                                                 product_price = item.subtotal / item.quantity,  # EN LA IMPOSTARCION VIENE EL TOTAL NO PRECIO UNITARIO
                                                 ordered = True,
+                                                descuento_unitario = 0,
+                                                precio_unitario_cobrado =item.subtotal / item.quantity,     #Precio Unitario Cobrado sin impuestos ni comisiones
                                                 created_at = datetime.today(),
                                                 updated_at = datetime.today()
                                             )
@@ -4675,6 +4696,8 @@ def guardar_tmp_pedidos_all(request):
                                                     quantity = item.quantity,
                                                     product_price = item.subtotal / item.quantity,  # EN LA IMPOSTARCION VIENE EL TOTAL NO PRECIO UNITARIO
                                                     ordered = True,
+                                                    descuento_unitario = 0,
+                                                    precio_unitario_cobrado =item.subtotal / item.quantity, 
                                                     created_at = datetime.today(),
                                                     updated_at = datetime.today()
                                                 )
