@@ -175,15 +175,13 @@ def search(request):
 
     
     user_agent = request.META.get('HTTP_USER_AGENT', '')
-
-    print("user_agent - search ",user_agent)
-
+    
+    print("Store....")
     if 'Mobile' in user_agent:
-        print('Estás accediendo desde un celular.')
         resolucion=settings.STORE_TEMPLATE_MOBILE
     else:
-        print('Estás accediendo desde PC.')
         resolucion=settings.STORE_TEMPLATE  #DEFAULT = PC Normal.  Tipo 2    
+
 
     print("*****store***",resolucion)    
 
@@ -209,11 +207,11 @@ def search(request):
         return render(request, 'store/store.html', context)
     elif resolucion =="2":   #PC Normal
         return render(request,'store/full_store.html', context)
-    elif resolucion =="3":  #Test Nuew Store
-        return render(request,'store/new_store.html', context)
-    else:   #Default para mariano
-        print("Salio por default - STORE - ")
-        return render(request, 'store/store.html', context)
+    elif resolucion =="3":  #Celular Test Nuew Store
+        return render(request,'store/new_store2.html', context)
+    else:   #Default para test mariano 
+        return render(request, 'store/new_store.html', context)
+
 
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')

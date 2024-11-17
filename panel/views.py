@@ -2774,18 +2774,18 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','Costo','Cuenta']
+                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','Costo','Cuenta','descuento_unitario','precio_unitario_cobrado']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
-                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta')
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta','descuento_unitario','precio_unitario_cobrado')
                             
                     for row in rows:
                         row_num += 1      
                         for col_num in range(len(row)):              
-                            if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10:
+                            if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10 or col_num==11 or col_num==12:
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,monto)
                             elif col_num==11:

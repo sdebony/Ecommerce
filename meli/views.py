@@ -786,7 +786,7 @@ def importar_pedido_meli(request):
                 'dir_tipocorreo' : 0,
                 'dir_tipoenvio' :0,
                 'dir_correo' :0,
-                'order_total' :  float(total_paid_amount) - float(impuestos) - float(sum_total_tax),
+                'order_total' :  float(transaction_amount) - float(impuestos) - float(sum_total_tax),
                 'order_total_comisiones' : sum_total_tax,
                 'order_total_impuestos' : impuestos,
                 'status' : "Cobrado",

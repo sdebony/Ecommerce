@@ -231,7 +231,7 @@ CLIENTE_ID="710125811010660"                           #"5374552499309003"
 REDIRECT_URI="https://lifche.qualities.com.ar/meli/"    #"https://lifche.qualities.com.ar/meli/"
 CLIENT_SECRET="IYNplfYS5hrHur1RPNDHTIDgpHJDmSmR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
 NICK_NAME="DI20240920150629" #Qualities
-SELLER_ID="QUALITIES_ARG" #"1998248263"  #Qualities
+SELLER_ID="1998248263" #"1998248263"  #QUALITIES_ARG
 
 ID_CUENTA_MELI=11  #MP Qualities
 
