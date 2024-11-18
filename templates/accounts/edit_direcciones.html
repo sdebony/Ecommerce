@@ -449,10 +449,15 @@
 										</label>
 									</div>
 								</div>	
+								<div class="form-group col-md-6">
+									<label>Provincia</label>
+									<input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="{{ dir_CA_RS.dir_provincia }}" placeholder="Ingrese la Provincia" required>
+								</div>
+
 							</div>
 
 							<!-- Código Postal, Calle, y Número -->
-							<div class="form-row">
+							<div class="form-row" id="datos_direccion">
 								<div class="form-group col-md-4">
 									<label>Código Postal</label>
 									<input type="text" name="dir_cp" id="dir_cp" class="form-control" value="{{ dir_CA_RS.dir_cp}}" placeholder="Ingrese el código postal">
@@ -470,15 +475,12 @@
 
 							<!-- Localidad y Provincia -->
 							<div class="form-row">
-								<div class="form-group col-md-6">
+								<div class="form-group col-md-6" id="ca_localidad">
 									<label>Localidad</label>
 									<input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ dir_CA_RS.dir_localidad }}" placeholder="Ingrese la localidad" required>
 									
 								</div>
-								<div class="form-group col-md-6">
-									<label>Provincia</label>
-									<input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="{{ dir_CA_RS.dir_provincia }}" placeholder="Ingrese la Provincia" required>
-								</div>
+								
 							</div>
 
 							<!-- Código de Área y Teléfono -->
@@ -579,6 +581,9 @@
 		// Oculta el div contenedor de los tipos de envío
 		document.getElementById("chk_CA-tipo_envio").style.display = "none";
 		document.getElementById("chk_CA-tipo_envio_ED").style.display = "none";
+		document.getElementById("datos_direccion").style.display = "none";
+		document.getElementById("ca_localidad").style.display = "none";
+
 		
 		// Selecciona el envío clásico por defecto
 		document.getElementById("ca_envioClasico").checked = true;
