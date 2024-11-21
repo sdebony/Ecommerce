@@ -168,7 +168,7 @@ def place_order(request, total=0, quantity=0,):
             data.fecha = datetime.date.today()  #Grabo la fecha del momento
             data.ip = request.META.get('REMOTE_ADDR')
             
-            
+            print("data.dir_nombre",data.dir_nombre)
             data.save()
 
             
@@ -298,7 +298,7 @@ def order_cash(request):
                 order.total_peso = pesoarticulos
                 user = Account.objects.filter(email=order.user).first()
                 
-                order.dir_nombre = ""
+                #order.dir_nombre = ""
                 order.save()
 
             print("order status", order.is_ordered)
