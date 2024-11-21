@@ -341,10 +341,6 @@ def order_cash(request):
             send_email.send()
 
 
-
-
-
-
             #************************
             #Send Whatsapp
             #*************************
