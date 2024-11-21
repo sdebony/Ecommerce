@@ -173,24 +173,38 @@
 	}
   </script>
 
+<script>
+	window.addEventListener('load', function() {
+    Modal.showModal();
+    setTimeout(() => {
+        Modal.close(); // Cierra el modal después de 2 segundos
+    }, 1000); // Tiempo en milisegundos
+});
 
+</script>
 	
 <script>
-	const btnAbrirModal = document.querySelector("#btn_abrir_modal"); 
-	const btnCerrarModal = document.querySelector("#btn_cerrar_modal");
-	const Modal = document.querySelector("#modal");
+    const btnAbrirModal = document.querySelector("#btn_abrir_modal");
+    const btnCerrarModal = document.querySelector("#btn_cerrar_modal");
+    const Modal = document.querySelector("#modal");
 
-	btnAbrirModal.addEventListener("click",()=>{
-		Modal.showModal();
-	})
-	btnCerrarModal.addEventListener("click",()=>{
-		Modal.close();
-	})
+    btnAbrirModal.addEventListener("click", () => {
+        Modal.showModal();
+        setTimeout(() => {
+            Modal.close();
+        }, 1000);
+    });
 
-	window.addEventListener('load', function() {
-		Modal.showModal();
-	});
-	
+    btnCerrarModal.addEventListener("click", () => {
+        Modal.close();
+    });
+
+    window.addEventListener('load', function() {
+        Modal.showModal();
+        setTimeout(() => {
+            Modal.close(); // Cierra el modal después de 2 segundos
+        }, 1000); // Tiempo en milisegundos
+    });
 </script>
     
 <script>

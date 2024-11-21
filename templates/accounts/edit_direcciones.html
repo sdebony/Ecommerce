@@ -67,14 +67,14 @@
 										<div class="form-group col-md-6">
 											<div class="form-group">
 												<label for="nombreSucursal">Nombre de la dirección: (Ej: Mi Casa - OCA , Oficina - OCA)</label>
-												<input type="text" id="dir_nombre_1" name="dir_nombre_1" class="form-control" value="{{ dir_OCA_ED.dir_nombre }}" placeholder="Nombre para identificar la dirección" maxlength="50">
+												<input type="text" id="dir_nombre_1" name="dir_nombre_1" class="form-control" value="{{ dir_OCA_ED.dir_nombre }}" placeholder="Nombre para identificar la dirección" maxlength="50" required>
 												
 											</div>
 										</div>
 										<div class="form-group col-md-6">
 											<div class="form-group">
 												<label for="nombreSucursal">Codigo Postal:</label>
-												<input type="text" id="dir_cp_1" name="dir_cp_1" class="form-control" value="{{ dir_OCA_ED.dir_cp }}" placeholder="Codigo Postal" >
+												<input type="text" id="dir_cp_1" name="dir_cp_1" class="form-control" value="{{ dir_OCA_ED.dir_cp }}" placeholder="Codigo Postal" required>
 											</div>
 										</div>
 
@@ -107,7 +107,7 @@
 										</div>
 										<div class="form-group col-md-6">
 											<label for="provinciaSucursal">Localidad</label>
-											<input type="text" name="dir_localidad_1" class="form-control" value="{{ dir_OCA_ED.dir_localidad }}" placeholder="Localidad" >
+											<input type="text" name="dir_localidad_1" class="form-control" value="{{ dir_OCA_ED.dir_localidad }}" placeholder="Localidad" required >
 										</div>
 									</div>
 									<!-- Código de Área y Teléfono -->
@@ -223,23 +223,24 @@
 									<div class="form-row">
 										<div class="form-group col-md-6">
 											<div class="form-group">
-												<label for="nombreSucursal">Nombre de la Sucursal:</label>
+												<label for="nombreSucursal">Nombre de la Sucursal: </label>
 												<input type="text" name="dir_nombre_2" id="dir_nombre_2" class="form-control" value="{{ dir_OCA_RS.dir_nombre }}" maxlength="50" placeholder="Nombre de la Sucursal." readonly required>
 												<input type="text" name="dir_id_2" id="dir_id_2" class="form-control" value="{{ dir_OCA_RS.dir_id }}" hidden> <!-- ID OCA RETIRO EN SUCURSAL-->		
 											</div>
+											
 											
 										</div>
 										<div class="form-group col-md-2">
 											<div class="form-group">
 												<label for="Codigo Posta">Código Postal</label>
-												<input type="text" name="dir_cp_2" id="dir_cp_2" class="form-control" value="{{ dir_OCA_RS.dir_cp }}" placeholder="Código Postal" readonly  required>
+												<input type="text" name="dir_cp_2" id="dir_cp_2" class="form-control" value="{{ dir_OCA_RS.dir_cp }}" placeholder="Código Postal" readonly required>
 												
 											</div>
 										</div>
 										<div class="form-group col-md-4">
 											<div class="form-group">
 												<label for="Codigo Posta">Localidad:</label>
-												<input type="text" name="dir_localidad_2" id="dir_localidad_2" class="form-control" value="{{ dir_OCA_RS.dir_cp }}" placeholder="Código Postal" readonly  required>
+												<input type="text" name="dir_localidad_2" id="dir_localidad_2" class="form-control" value="{{ dir_OCA_RS.dir_cp }}" placeholder="Código Postal" readonly required>
 												
 											</div>
 										</div>
@@ -257,7 +258,7 @@
 										</div>
 										<div class="form-group col-md-4">
 											<label for="telefonoSucursal">Teléfono</label>
-											<input type="text" name="dir_telefono_2" id="dir_telefono_2" class="form-control" value="{{ dir_OCA_RS.dir_telefono }}" placeholder="Ingrese el telefono de contacto" readonly required>
+											<input type="text" name="dir_telefono_2" id="dir_telefono_2" class="form-control" value="{{ dir_OCA_RS.dir_telefono }}" placeholder="Ingrese el telefono de contacto" readonly  required>
 										</div>
 										
 									</div>
@@ -591,6 +592,7 @@
 		
 		
 	});
+
 </script>
 
 
@@ -631,11 +633,17 @@ function submitFormPadre2(event) {
 
     event.preventDefault(); // Evita el envío automático del formulario
 
+	
+
   	const form = document.getElementById('form_padre2'); // Obtén el formulario por su ID
     let isValid = true;
 
 	 // Obtener todos los inputs requeridos
 	 const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+
+
+	
+											
 
 	requiredFields.forEach(function(field) {
 		if (!field.value) {

@@ -463,7 +463,9 @@ def edit_dir_entrega(request):
         if button_press=='save_oca_rs':
             #OCA RETIRO EN SUCURSAL
             dir_tipocorreo_2 = request.POST.get('dir_tipocorreo_2')
-            if dir_tipocorreo_2 == '2':    
+            dir_nombre_2 = request.POST.get('dir_nombre_2','') #Nombre Sucursal
+            
+            if dir_tipocorreo_2 == '2' and dir_nombre_2:    
                     
                     dir_id_2 = request.POST.get('dir_id_2')  #ID DIRECC
                     dir_nombre_2 = request.POST.get('dir_nombre_2','')  #Nombre Direccion
@@ -518,20 +520,23 @@ def edit_dir_entrega(request):
                         direcciones.save()
                     
                         messages.success(request,'Se ha actualizado la Dirección de Entrega correctamente!')
+            else:
+                messages.error(request,'Seleccione una sucursal')
         if button_press=='delete_oca_ed':
             dir_id_1= request.POST["dir_id_1"]     
-            
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id_1).first()
-            if direcciones:
-                direcciones.delete()
-                messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')         
+            if dir_id_1:
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_id_1).first()
+                if direcciones:
+                    direcciones.delete()
+                    messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')         
         if button_press=='delete_oca_rs':
             dir_id_2 = request.POST.get('dir_id_2')
             print("delete Retiro sucursar Oca",dir_id_2)
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id_2).first()
-            if direcciones:
-                direcciones.delete()
-                messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')        
+            if dir_id_2:
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_id_2).first()
+                if direcciones:
+                    direcciones.delete()
+                    messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')        
         
         #***** CORREO ARGENTINO *************
         if button_press=='save_ca_ed':
@@ -656,17 +661,19 @@ def edit_dir_entrega(request):
         if button_press=='delete_ca_ed':
             dir_del_id = request.POST.get("dir_id_del",0)
             print("delete  Entrega Domicilio Correo Argentino",dir_del_id)
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_del_id).first()
-            if direcciones:
-                direcciones.delete()
-                messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
+            if dir_del_id:
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_del_id).first()
+                if direcciones:
+                    direcciones.delete()
+                    messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
         if button_press=='delete_ca_rs':
             dir_id = request.POST.get('dir_id',0)
             print("delete Retira en Sucursal Correo Argentino",dir_id)
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
-            if direcciones:
-                direcciones.delete()
-                messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
+            if dir_id:
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+                if direcciones:
+                    direcciones.delete()
+                    messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
         
 
         #***** RETIRO EN PERSONA *************
@@ -731,10 +738,11 @@ def edit_dir_entrega(request):
         if button_press=='delete_rc':
             dir_id = request.POST.get('dir_id',0)
             print("Eliminar Retira cliente. Dir:",dir_id)
-            direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
-            if direcciones:
-                direcciones.delete()
-                messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
+            if dir_id:
+                direcciones = AccountDirecciones.objects.filter(dir_id=dir_id).first()
+                if direcciones:
+                    direcciones.delete()
+                    messages.success(request,'Se ha eliminado la Dirección de Entrega correctamente!')
 
     #***************************   
     #DEVULVO INFO DE DIRECCIONES
