@@ -127,3 +127,31 @@ class AccountDirecciones(models.Model):
 
      def __str__(self):
         return f'{self.dir_id}'
+
+class BillingInfo(models.Model):
+    
+    order = models.CharField(max_length=20,unique=True)
+    name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    identification_type = models.CharField(max_length=50)
+    identification_number = models.CharField(max_length=50)
+    taxpayer_type_id = models.CharField(max_length=10)
+    taxpayer_type_description = models.CharField(max_length=100)
+    street_name = models.CharField(max_length=200)
+    street_number = models.CharField(max_length=50)
+    city_name = models.CharField(max_length=100)
+    state_code = models.CharField(max_length=10)
+    state_name = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=10)
+    country_id = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f'{self.order}'
+
+    class Meta:
+        
+        verbose_name = "BillingInfo"
+        verbose_name_plural = "BillingInfo"
+        
+        
+

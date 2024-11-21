@@ -40,8 +40,15 @@
             <div class="invoice p-3 mb-3">
             <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
             {% csrf_token %}
+            <input type="number" step="any" name="enc_order_total_comisiones" id="enc_order_total_comisiones" class="form-control" value="{{ ordenes.order_total_comisiones|floatformat:2|decimal_point }}" maxlength="10" hidden >
+            <input type="number" step="any" name="enc_order_total_impuestos" id="enc_order_total_impuestos" class="form-control" value="{{ordenes.order_total_impuestos|floatformat:2|decimal_point }}" maxlength="10" hidden >
+            <input type="number" step="any" name="enc_order_total_descuentos" id="enc_order_total_descuentos" class="form-control" value="{{ ordenes.order_total_descuentos|floatformat:2|decimal_point }}" maxlength="10" hidden>
+            <input type="number" step="any" name="enc_envio" id="enc_envio" class="form-control" value="{{ ordenes.envio|floatformat:2|decimal_point }}" maxlength="10" hidden>
+            <input type="text" name="enc_origen_venta" id="enc_origen_venta" class="form-control" value="{{ ordenes.origen_venta.codigo }}" maxlength="10" hidden>
             
-              <!-- title row -->
+
+            
+            <!-- title row -->
               <div class="row">
                 <div class="col-12">
                  {% if ordenes.dir_tipocorreo == 1 %} 
@@ -130,8 +137,10 @@
                                 <label>Email:</label>
                                 <input type="text" name="email" id="email" class="form-control" value="{{ ordenes.email }}" required> 
                             </div>   
-                            <div class="input-group-append">
-                              <pre style='display:inline'  class="float-right"> 
+                            <div class="input-group">
+                                {% if pago_pendiente %}
+                                <a href="{% url 'panel_pedidos' 'New' %}"  class="btn btn-secondary float-right">Cancelar</a>
+                                {% endif %} 
                                 <button type="submit" class="btn btn-success">Guardar</button>
                               </pre>
                             </div>   
@@ -268,13 +277,46 @@
                     
                       <tr>
                         <th>Envio:</th>
-                        <td>{{ ordenes.envio }}</td>
+                        <td> <input type="number" step="any" name="envio" id="envio" class="form-control" value="{{ ordenes.envio|floatformat:2|decimal_point }}" maxlength="10"></td>
                       </tr>
                       <tr>
                         <th>Descuentos:</th>
                         <td> <input type="number" step="any" name="order_total_descuentos" id="order_total_descuentos" class="form-control" value="{{ ordenes.order_total_descuentos|floatformat:2|decimal_point }}" maxlength="10"></td>
                       </tr>
                       <tr>
+
+                        {% if canal_venta == 'SI' %}
+                        <tr>
+                          <th>Comisiones:</th>
+                          <td><input type="number" step="any" name="order_total_comisiones" id="order_total_comisiones" class="form-control" value="{{ ordenes.order_total_comisiones|floatformat:2|decimal_point }}" maxlength="10"></td>
+                        </tr>
+                        <tr>
+                          <th>Impuestos:</th>
+                          <td><input type="number" step="any" name="order_total_impuestos" id="order_total_impuestos" class="form-control" value="{{ ordenes.order_total_impuestos|floatformat:2|decimal_point }}" maxlength="10">
+                        </tr>
+
+                        <script>
+                          document.getElementById('order_total_impuestos').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_impuestos').value = newValue;
+                          });
+                          document.getElementById('order_total_comisiones').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_comisiones').value = newValue;
+                          });
+                          document.getElementById('order_total_descuentos').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_descuentos').value = newValue;
+                          });
+                          document.getElementById('envio').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_envio').value = newValue;
+                          });
+
+                        </script>
+                      
+                      {% endif %}
+
                         <th>Total:</th>
                         <td>{{ ordenes.order_total }}</td>
                       </tr>
@@ -289,12 +331,7 @@
               <div class="row no-print">
                 <div class="col-12">
                   <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
-                 {% if pago_pendiente %}
-                  <pre style='display:inline'  class="float-right"> </pre>
-                  <a href="{% url 'panel_pedidos' 'New' %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Cancelar</a>
-                  <pre style='display:inline'  class="float-right"> </pre>
-                   
-                  {% endif %} 
+                 
                  
 
                    

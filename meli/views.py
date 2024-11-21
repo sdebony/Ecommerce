@@ -1,11 +1,12 @@
 
 from django.shortcuts import render, get_object_or_404,redirect
 from django.core.exceptions import ObjectDoesNotExist
-from accounts.models import AccountPermition,UserProfile,Account
+from accounts.models import AccountPermition,UserProfile,Account,BillingInfo
 from meli.models import meli_params
 from django.contrib import messages
-from orders.models import Order, OrderProduct,Payment,OrigenVenta
-from orders.models import Product
+from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product
+
+
 
 
 from datetime import datetime
@@ -631,13 +632,18 @@ def meli_ventas_detalle(request,id_pedido_meli):
         if detail_response.status_code == 200:
             data = detail_response.json()  # Detalles de los artículos
            
+            
             # Extraer datos de `payments`
             payments = data["results"][0]["payments"]
             for payment in payments:
                 total_paid_amount = payment["total_paid_amount"]
                 order_id = payment["order_id"]
                 transaction_amount = payment["transaction_amount"]
-                date_approved = payment["date_approved"]
+                # Transformar `date_approved` al formato `dd.mm-yyyy`
+                date_approved_raw = payment["date_approved"]
+                date_approved = datetime.fromisoformat(date_approved_raw).strftime("%d.%m-%Y")
+                
+            
                 
             # Extraer datos de `order_items`
             order_items = data["results"][0]["order_items"]
@@ -749,7 +755,7 @@ def importar_pedido_meli(request):
             payment_id = "Mercado Electronico",
             payment_method = "Mercado Libre",
             amount_paid = transaction_amount,
-            status = "Cobrado",
+            status = "New",
         )
         payment.save()
 
@@ -766,97 +772,123 @@ def importar_pedido_meli(request):
         zip_code = request.session.get('zip_code')
         receiver_name = request.session.get('receiver_name')
 
+        if not tracking_number:
+            tracking_number = '0'
         print("Datos de Entrega:",tracking_number,city_name,street_name,street_number,state_name,zip_code,receiver_name)
 
-        order, created = Order.objects.update_or_create(
-            order_number=order_id,
-            defaults={
-                'payment': payment,
-                'is_ordered': True,
-                'first_name' : buyer_nickname,
-                'fecha' : date.today(),
-                'origen_venta' : origen_venta,
-                'dir_nombre' : "Entrega mercado Libre",
-                'dir_calle' : street_name,
-                'dir_nro': street_number,
-                'dir_localidad' :state_name,
-                'dir_provincia' :city_name,
-                'dir_cp' :zip_code,
-                'dir_obs' : 'Mercado Libre',
-                'dir_tipocorreo' : 0,
-                'dir_tipoenvio' :0,
-                'dir_correo' :0,
-                'order_total' :  float(transaction_amount) - float(impuestos) - float(sum_total_tax),
-                'order_total_comisiones' : sum_total_tax,
-                'order_total_impuestos' : impuestos,
-                'status' : "Cobrado",
-                'ip' : request.META.get('REMOTE_ADDR'),
-                'is_ordered' : True,
-                'created_at' :  date.today(),
-                'updated_at' : date.today(),
-                'total_peso' : 0,
-                'cuenta'  : settings.ID_CUENTA_MELI,
-                'fecha_tracking' : date.today(),
-                'nro_tracking' : tracking_number,
-                # Agrega los campos que deseas actualizar
-            }
-        )
+        traer_datos_facturacion(request,order_id)
 
-        user = Account.objects.filter(email=request.user).first()
-        try:
-            OrderProduct.objects.filter(order=order).delete()
-        except Order.DoesNotExist:
-            print("No hay productos")
+        first_name = request.session['first_name']
+        last_name = request.session['last_name']
+       
+        print(first_name,last_name)
+        # Borrar datos de la sesión
+        del request.session['first_name']
+        del request.session['last_name']
 
-        for item_data in items:
-            item_id = item_data.get('item_id')
-            item_title = item_data.get('item_title')
-            quantity = item_data.get('quantity')
-            unit_price = item_data.get('unit_price')
-            full_unit_price = item_data.get('full_unit_price')
-            sale_fee = item_data.get('sale_fee')
+
+        # Busca si ya existe una orden con el mismo número
+        existing_order = Order.objects.filter(order_number=order_id).first()
+        # Valida la condición
+        if not existing_order or existing_order.status == "New":
+
+            order, created = Order.objects.update_or_create(
+                order_number=order_id,
+                defaults={
+                    'payment': payment,
+                    'is_ordered': True,
+                    'first_name' : first_name, #buyer_nickname,
+                    'last_name': last_name,
+                    'fecha' : datetime.fromisoformat(date_approved).strftime("%Y-%m-%d"),
+                    'origen_venta' : origen_venta,
+                    'dir_nombre' : "Entrega mercado Libre",
+                    'dir_calle' : street_name,
+                    'dir_nro': street_number,
+                    'dir_localidad' :state_name,
+                    'dir_provincia' :city_name,
+                    'dir_cp' :zip_code,
+                    'dir_obs' : 'Mercado Libre',
+                    'dir_tipocorreo' : 0,
+                    'dir_tipoenvio' :0,
+                    'dir_correo' :0,
+                    'order_total' :  round(float(transaction_amount) - float(impuestos) - float(sum_total_tax),2),
+                    'order_total_comisiones' : round(float(sum_total_tax),2),
+                    'order_total_impuestos' : round(float(impuestos),2),
+                    'status' : "New",
+                    'ip' : request.META.get('REMOTE_ADDR'),
+                    'is_ordered' : True,
+                    'created_at' :  datetime.fromisoformat(date_approved).strftime("%Y-%m-%d"),
+                    'updated_at' : date.today(),
+                    'total_peso' : 0,
+                    'cuenta'  : settings.ID_CUENTA_MELI,
+                    'fecha_tracking' : date.today(),
+                    'nro_tracking' : tracking_number,
+                    # Agrega los campos que deseas actualizar
+                }
+            )
+
             
-            print("Items:",item_title,item_id,quantity,unit_price,full_unit_price,sale_fee)
-            peso_total = 0
-           
-            product = get_producto_ml(item_id,item_title)
-            if product:
-                peso_total = peso_total + product.peso
-                orderproduct = OrderProduct()
-                orderproduct.order = order
-                orderproduct.user = user
-                orderproduct.product = product
-                orderproduct.quantity = quantity
-                orderproduct.product_price = unit_price
-                orderproduct.ordered = True
-                orderproduct.descuento_unitario = 0
-                orderproduct.precio_unitario_cobrado =  round(float(unit_price) - float(sale_fee),2) #Comision
-                orderproduct.costo = product.costo_prod
-            
-                orderproduct.save()
-                    
-            else:
-                error_items = 1
-                print("Producto no encontrado:", item_title)    
-               
-
-        order, created = Order.objects.update_or_create(
-            order_number=order_id,
-            defaults={
-                'total_peso' : peso_total,
-                'email': request.user.email
-                    }
-        )
-
-        if error_items==1:
+            user = Account.objects.filter(email=request.user).first()
             try:
-                order = Order.objects.get(order_number=order_id)
-                order.delete()
+                OrderProduct.objects.filter(order=order).delete()
             except Order.DoesNotExist:
-                print("La orden no existe y no se puede eliminar.")
-            messages.error(request, f"Producto ML no relacionado.")
+                print("No hay productos")
+
+            for item_data in items:
+                item_id = item_data.get('item_id')
+                item_title = item_data.get('item_title')
+                quantity = item_data.get('quantity')
+                unit_price = item_data.get('unit_price')
+                full_unit_price = item_data.get('full_unit_price')
+                sale_fee = item_data.get('sale_fee')
+                
+                print("Items:",item_title,item_id,quantity,unit_price,full_unit_price,sale_fee)
+                peso_total = 0
+            
+                product = get_producto_ml(item_id,item_title)
+                if product:
+                    peso_total = peso_total + product.peso
+                    orderproduct = OrderProduct()
+                    orderproduct.order = order
+                    orderproduct.user = user
+                    orderproduct.product = product
+                    orderproduct.quantity = quantity
+                    orderproduct.product_price = round(float(unit_price),2)
+                    orderproduct.ordered = True
+                    orderproduct.descuento_unitario = 0
+                    orderproduct.precio_unitario_cobrado =  round(float(unit_price) - float(sale_fee),2) #Comision
+                    orderproduct.costo = product.costo_prod
+                
+                    orderproduct.save()
+                        
+                else:
+                    error_items = 1
+                    print("Producto no encontrado:", item_title)    
+                
+
+            order, created = Order.objects.update_or_create(
+                order_number=order_id,
+                defaults={
+                    'total_peso' : peso_total,
+                    'email': request.user.email
+                        }
+                
+            )
+
+            if error_items==1:
+                try:
+                    order = Order.objects.get(order_number=order_id)
+                    order.delete()
+                except Order.DoesNotExist:
+                    print("La orden no existe y no se puede eliminar.")
+                messages.error(request, f"Producto ML no relacionado.")
+            else:
+                messages.error(request, f"Pedido ingresado con éxito")
         else:
-            messages.error(request, f"Pedido ingresado con éxito")
+            messages.error(request, f"La orden existe pero ya fue cobrada. Deberá eliminar el pago para poder actualizarla")
+        
+        
+       
 
 
 
@@ -919,4 +951,96 @@ def traer_datos_shipping(request,shipping_id):
 
             return JsonResponse({'status': 'success', 'message': 'Datos guardados correctamente'})
     
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+def traer_datos_facturacion(request,orderid):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        print("Shipping:", orderid)
+        
+        
+        url = "https://api.mercadolibre.com/orders/" + str(orderid) +  "/billing_info" 
+
+       
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        
+        payload = {}
+        headers = {
+            'Authorization': access_token,'x-version': '2' #'APP_USR-710125811010660-102410-fc5f755c5fbdf1b370dd274c57b7e838-1998248263'
+        }
+
+       
+        detail_response = requests.request("GET", url, headers=headers, data=payload)
+        
+        if detail_response.status_code == 200:
+            data = detail_response.json()  # Detalles de los artículos
+            
+            billing_info = data["buyer"]["billing_info"]     
+            # Taxes
+            taxpayer_type_id = billing_info["taxes"]["taxpayer_type"]["id"]
+            taxpayer_description = billing_info["taxes"]["taxpayer_type"]["description"]
+            
+            
+            if taxpayer_type_id=='05':
+                name = billing_info["name"]
+                last_name = billing_info["last_name"]
+
+            if taxpayer_type_id=='07' or taxpayer_type_id == '01': #Monotributo / Resp Insc
+                name = billing_info["name"]
+                last_name = "EMPRESA"
+
+            # Identification
+            identification_type = billing_info["identification"]["type"]
+            identification_number = billing_info["identification"]["number"]
+
+            
+
+            # Address
+            address = billing_info["address"]
+            street_name = address["street_name"]
+            street_number = address["street_number"]
+            city_name = address["city_name"]
+            state_code = address["state"]["code"]
+            state_name = address["state"]["name"]
+            zip_code = address["zip_code"]
+            country_id = address["country_id"]
+
+            # Guardar en la base de datos
+            billing_info, created = BillingInfo.objects.update_or_create(
+                order = orderid,
+                name=name,
+                last_name=last_name,
+                identification_type=identification_type,
+                identification_number=identification_number,
+                taxpayer_type_id=taxpayer_type_id,
+                taxpayer_type_description=taxpayer_description,
+                street_name=street_name,
+                street_number=street_number,
+                city_name=city_name,
+                state_code=state_code,
+                state_name=state_name,
+                zip_code=zip_code,
+                country_id=country_id,
+            )
+
+
+            request.session['first_name'] = name
+            request.session['last_name'] = last_name
+            
+            return JsonResponse({'status': 'success', 'message': 'Datos guardados correctamente'})
+            
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

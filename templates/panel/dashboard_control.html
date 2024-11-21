@@ -9,7 +9,7 @@
     <div class="container-fluid">
 
         <!-- Page Heading -->
-        <div class="h2 pb-2 mb-4 text-danger border-bottom border-danger">Panel de Control - Stock</div>
+        <div class="h2 pb-2 mb-4 text-danger border-bottom border-danger">Stock</div>
         <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
         
         
@@ -79,7 +79,7 @@
         
         <!-- Segunda Parte Resultados -->
         <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
-        <div class="h2 pb-2 mb-4 text-danger border-bottom border-danger">Panel de Control - Margen y Utilidad</div>
+        <div class="h2 pb-2 mb-4 text-danger border-bottom border-danger">Margen y Utilidad</div>
         
         <div class="row w-100">
             <!-- Fila 1 -->
@@ -98,7 +98,7 @@
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body text-center">
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Utilidad Bruta Actual</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ margen_utilidad.margen_utilidad_total|format_currency }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{total_ganancia_real|format_currency }}</strong></div>
                     </div>
                 </div>
             </div>
@@ -144,6 +144,75 @@
                 </div>
             </div>
         </div>
+
+
+          <!-- Tercera Parte Resultados -->
+          <div class="d-sm-flex align-items-center justify-content-between mb-4"></div>
+          <div class="h2 pb-2 mb-4 text-danger border-bottom border-danger">Resumen Pedidos</div>
+          
+          <div class="row w-100">
+              <!-- Fila 1 -->
+              <div class="col-4 mb-4">
+                  <!-- Artículos con Stock -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas Cobrado </div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion|format_currency }}</strong></div>
+                      </div>
+                  </div>
+              </div>
+          
+              <div class="col-4 mb-4">
+                  <!-- Artículos con Stock <= 3 -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas Meli</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion_meli|format_currency }}</strong></div>
+                      </div>
+                  </div>
+              </div>
+          
+              <div class="col-4 mb-4">
+                  <!-- Artículos Activos -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas web</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion_web|format_currency }}</strong></div>
+                      </div>
+                  </div>
+              </div>
+          
+              <!-- Fila 2 -->
+              <div class="col-4 mb-4">
+                  <!-- Artículos en Pérdida -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3"></div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong></strong></div>
+                      </div>
+                  </div>
+              </div>
+          
+              <div class="col-4 mb-4">
+                  <!-- Stock en Unidades -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad Ventas MELI</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ cant_ventas_meli }}</strong></div>
+                      </div>
+                  </div>
+              </div>
+          
+              <div class="col-4 mb-4">
+                  <!-- Otra card si es necesario -->
+                  <div class="card border-left-primary shadow h-100 py-2">
+                      <div class="card-body text-center">
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad ventas WEB</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ cant_ventas_web }}</strong></div>
+                      </div>
+                  </div>
+              </div>
+          </div>
 
     </div>   
 </div>

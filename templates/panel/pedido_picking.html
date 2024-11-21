@@ -27,6 +27,16 @@
             padding: 10px;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         }
+
+  
+
+    .product-name {
+        font-size: 1.2rem; /* Ampliar el tamaño de la letra */
+        line-height: 1.5; /* Interlineado de 1.5 */
+    }
+
+   
+
 </style>
 <div class="card shadow mb-4">
 
@@ -77,31 +87,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Aquí es donde iterarás los artículos -->
                     {% for item in ordenes_detalle %}
-
-                    <tr>
-                        
-                        <td>{{item.quantity|format_integer_def}}</td>
-                        <td>{{item.product.product_name}}
+                    <tr class="product-row">
+                        <td>{{ item.quantity|format_integer_def }}</td>
+                        <td>
+                            <span class="product-name">{{ item.product.product_name }}</span>
                             <p class="text-muted small">
-                                    {% if item.variations.all %}
-                                        {% for i in item.variations.all %}
-                                            {{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
-                                        {% endfor %}
-                                    {% endif %}
-                                </p>
+                                {% if item.variations.all %}
+                                    {% for i in item.variations.all %}
+                                        {{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
+                                    {% endfor %}
+                                {% endif %}
+                            </p>
                         </td>
-                        <td style="text-align: right;"> {{item.product.ubicacion|format_integer_def}}</td>
+                        <td style="text-align: right;">{{ item.product.ubicacion|format_integer_def }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><hr style="border: 1px solid #ddd;"></td>
                     </tr>
                     {% endfor %}
                 </tbody>
+
             </table>
         </div>
     </div>
 </div>
 <br><br><br><br>
-<p>****  FIN ***** </p>
+<p>---  FIN --- </p>
 <footer>
     Página <span id="pageNumber"></span>
 </footer>

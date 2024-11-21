@@ -37,7 +37,7 @@
         </tr>
         <tr>
             <td><label for="date_approved">Date Approved:</label></td>
-            <td><input type="datetime-local" id="date_approved" name="date_approved" value="{{ ventas.results.0.payments.0.date_approved|date:'Y-m-d\TH:i' }}"></td>
+            <td><input type="text" id="date_approved" name="date_approved" value="{{ ventas.results.0.payments.0.date_approved  }}"></td>
         </tr>
     </table>
 

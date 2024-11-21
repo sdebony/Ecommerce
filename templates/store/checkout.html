@@ -121,14 +121,9 @@
                <span style="font-weight: bold;">Gratis</span>
              </div>
            </div>
-         
-         
-         
           
          </div>
        </div>
-
-
 
       <p id="tipo_envio" class="h1 text-center"> {{ tipo_envio }}</p>
       <div id="detalle" class="col form-group">
@@ -144,6 +139,9 @@
           </div>
         </div>
         <hr>
+        <div class="form-row" id="txt_retira_cliente">
+            <span id="text_retiracliente">Gracias por tu compra! Recibimos tu pedido por favor escribinos por Whatsapp para coordinar el retiro de tu pedido. Gracias</span>
+        </div>
         <div class="form-row">
         <div class="form-group col-md-8" id="div_chk_tipoenvio">
             <label>Tipo de Envío</label>
@@ -212,7 +210,7 @@
         </div>
         </div>
         <br>  
-        <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0" required hidden> 
+        <input type="number" name="dir_tipocorreo" id="dir_tipocorreo" class="form-control" value="0"  hidden> 
         <input type="number" name="dir_tipoenvio" id="dir_tipoenvio" class="form-control" value="0" hidden> 
         <input type="number" name="dir_correo" id="dir_correo" class="form-control" value="0" required hidden > 
         <input type="number" name="dir_id" id="dir_id" class="form-control" value="0" hidden  >
@@ -239,7 +237,7 @@
       <tr class="small text-uppercase">
         <th scope="col">Producto</th>
         <th scope="col" width="120">Cantidad</th>
-        <th scope="col" width="120">Precio</th>
+          <th scope="col" width="120">Precio</th>
 
       </tr>
       </thead>
@@ -711,6 +709,8 @@ function mostrarOpcionEnvio() {
             document.getElementById('dir_piso').value = '0';
             document.getElementById('dir_depto').value = '0';
             document.getElementById('div_datos_direccion').style.display = 'none'; 
+            document.getElementById('txt_retira_cliente').style.display = 'none';
+            
             
             textInput.required = true;
             
@@ -733,23 +733,35 @@ function mostrarOpcionEnvio() {
             document.getElementById('div_nombre_suc').readOnly = false; 
 
             document.getElementById('div_datos_direccion').style.display = 'block';
-            
+            document.getElementById('txt_retira_cliente').style.display = 'none';
             //textInput.required = false;
             
 
           }// RETIRA CLIENTE
           if (this.value == 'ret_cliente' ) {
             document.getElementById("tipo_envio").innerText = "Retira Cliente"
+            document.getElementById("div_nombre_suc").style.display = "none";
             document.getElementById("div_chk_tipoenvio").style.display = "none";
-            document.getElementById("div_entrega_dom").style.display = "block";
-            document.getElementById("div_provincia").style.display = "block";
-            document.getElementById("div_cp").style.display = "block";
-            document.getElementById("div_chk_tipoenvio").style.display = "none";
-            document.getElementById("div_datos_suc").style.display = "block";
-            document.getElementById("dir_nombre").style.display = "block";
+            document.getElementById("div_entrega_dom").style.display = "none";
+            document.getElementById("div_provincia").style.display = "none";
+            document.getElementById("div_cp").style.display = "none";
+            document.getElementById("div_datos_suc").style.display = "none";
+            document.getElementById("dir_nombre").style.display = "none";
+            document.getElementById('div_datos_direccion').style.display = 'none';
+            document.getElementById('txt_retira_cliente').style.display = 'block';
             //textInput.required = false;
-          }
+            document.getElementById('dir_calle').value = 'N/A';
+            document.getElementById('dir_nro').value = '0';
+            document.getElementById('dir_piso').value = '0';
+            document.getElementById('dir_depto').value = '0';
+            document.getElementById('dir_provincia').value = '0';
+            document.getElementById('dir_localidad').value = '0';
+            document.getElementById('dir_cp').value = '0';
+            document.getElementById('dir_telefono').value = '0';
+            document.getElementById('dir_correo').value = 3;
+             
           
+          }
           
           
           document.getElementById("div_chk_tipoenvio").style.display = "none";
@@ -760,7 +772,8 @@ function mostrarOpcionEnvio() {
           else{
             document.getElementById('envioClasico').checked  = true;  //PARA OCA O RETIRA CLIENTE SETEO UNO 
           }
-         
+          
+          document.getElementById('direccion').focus();
 
     });
 });

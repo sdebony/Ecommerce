@@ -436,14 +436,14 @@
 									<label>Tipo de Envío</label>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio_RS" id="ca_envioClasico" value="1" 
-										{% if dir_CA_RS.dir_tipoenvio == 1 %} checked {% endif %} required>
+										{% if dir_CA_RS.dir_tipoenvio == 1 %} checked {% endif %} >
 										<label class="form-check-label" for="envioClasico">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Clásico
 										</label>
 									</div>
 									<div class="form-check">
 										<input class="form-check-input" type="radio" name="tipoEnvio_RS" id="envioExpresso" value="2"
-										{% if dir_CA_RS.dir_tipoenvio == 2 %} checked {% endif %} required>
+										{% if dir_CA_RS.dir_tipoenvio == 2 %} checked {% endif %} >
 										<label class="form-check-label" for="envioExpresso">
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Envío Expreso
 										</label>
@@ -464,11 +464,11 @@
 								</div>
 								<div class="form-group col-md-4">
 									<label>Calle</label>
-									<input type="text" name="dir_calle" id="dir_calle" class="form-control" value="{{ dir_CA_RS.dir_calle }}" placeholder="Ingrese la calle" required>
+									<input type="text" name="dir_calle" id="dir_calle" class="form-control" value="{{ dir_CA_RS.dir_calle }}" placeholder="Ingrese la calle" >
 								</div>
 								<div class="form-group col-md-4">
 									<label>Número</label>
-									<input type="text" name="dir_nro" id="dir_nro" class="form-control" value="{{ dir_CA_RS.dir_nro }}" placeholder="Ingrese el número" required>
+									<input type="text" name="dir_nro" id="dir_nro" class="form-control" value="{{ dir_CA_RS.dir_nro }}" placeholder="Ingrese el número" >
 									
 								</div>
 							</div>
@@ -477,7 +477,7 @@
 							<div class="form-row">
 								<div class="form-group col-md-6" id="ca_localidad">
 									<label>Localidad</label>
-									<input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ dir_CA_RS.dir_localidad }}" placeholder="Ingrese la localidad" required>
+									<input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ dir_CA_RS.dir_localidad }}" placeholder="Ingrese la localidad" >
 									
 								</div>
 								
@@ -600,6 +600,7 @@
 function submitFormPadre(event) {
     
 	event.preventDefault(); // Evita el envío automático del formulario
+	alert("HOLA MUNDO");
 
   	const form = document.getElementById('form_padre'); // Obtén el formulario por su ID
     let isValid = true;

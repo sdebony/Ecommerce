@@ -10,7 +10,7 @@ from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from store.models import Product,Variation,Costo,ProductKit
-from orders.models import Order, OrderProduct,Payment,OrderShipping
+from orders.models import Order, OrderProduct,Payment,OrderShipping,OrigenVenta
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
@@ -487,11 +487,37 @@ def dashboard_control(request):
 
        
         # Filtrar los OrderProduct que pertenecen a órdenes con estado > 1
-        orders_validas = Order.objects.exclude(status='New')
+        total_facturacion=0
+        orders_validas = Order.objects.exclude(status='New')        
+        
+        #TOTAL INGRESO REAL DE LO FACTURADO
+        total_facturacion = Order.objects.exclude(status='New').aggregate(
+            total_facturacion=Sum(
+            F('order_total') 
+            )
+            )['total_facturacion']
+
+        origenventa = OrigenVenta.objects.filter(codigo='MELI').first()
+        total_facturacion_meli = Order.objects.filter(origen_venta=origenventa).exclude(status='New').aggregate(
+            total_facturacion_meli=Sum(
+            F('order_total') 
+            )
+            )['total_facturacion_meli']
+
+        cant_ventas_meli = Order.objects.filter(origen_venta=origenventa).exclude(status='New').count()
+
+        origenventa = OrigenVenta.objects.filter(codigo='WEB').first()
+        total_facturacion_web = Order.objects.filter(origen_venta=origenventa).exclude(status='New').aggregate(
+            total_facturacion_web=Sum(
+            F('order_total') 
+            )
+            )['total_facturacion_web']
+
+        cant_ventas_web = Order.objects.filter(origen_venta=origenventa).exclude(status='New').count()
 
         # Obtener los márgenes
         margen_bruto = OrderProduct.objects.filter(order__in=orders_validas).aggregate(
-            total_product_price=Sum((F('precio_unitario_cobrado') - F('descuento_unitario')) * F('quantity')),  # Corrige las operaciones con F()
+            total_product_price=Sum(F('product_price')  * F('quantity')),  # Corrige las operaciones con F()
             total_product_cost=Sum(F('costo') * F('quantity'))
         )
 
@@ -503,20 +529,21 @@ def dashboard_control(request):
             total_articulos_vendidos=Sum('quantity')  # Total de artículos vendidos
         )    
        
+        
 
         total_product_price = margen_bruto['total_product_price']
         total_product_cost = margen_bruto['total_product_cost']
         total_ventas = orders_validas.count()
         total_articulos_vendidos = margen_utilidad['total_articulos_vendidos']
 
-    
+        total_ganancia_real = round(float(total_facturacion) - float(total_product_cost),2)
 
-        print("Cantidad de ventas:",total_ventas,total_articulos_vendidos)
+        print("Cantidad de ventas:",total_ventas,total_articulos_vendidos,total_product_cost)
         
         margen_bruto_total = None
         if total_product_cost:
             if  total_product_cost > 0:
-                margen_bruto_total = round(((total_product_price / total_product_cost) - 1) * 100, 2)  # Redondear a 2 decimales
+                margen_bruto_total = round(((total_facturacion / total_product_cost) - 1) * 100, 2)  # Redondear a 2 decimales
             else:
                 margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
 
@@ -524,9 +551,15 @@ def dashboard_control(request):
             'permisousuario':permisousuario,
             'resultados':resultados,
             'margen_bruto_total':margen_bruto_total,
+            'total_ganancia_real':total_ganancia_real,
             'margen_utilidad':margen_utilidad,
+            'total_facturacion_meli':total_facturacion_meli,
+            'total_facturacion_web':total_facturacion_web,
             'total_ventas':total_ventas,
+            'cant_ventas_meli':cant_ventas_meli,
+            'cant_ventas_web':cant_ventas_web,
             'total_product_price':total_product_price,
+            'total_facturacion':total_facturacion
                  }
         return render (request,"panel/dashboard_control.html",context)
     else:
@@ -1263,7 +1296,14 @@ def panel_pedidos_detalle_edit(request,order_number=None):
             entregado=True
 
         print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
-        
+        store_multi_canal = getattr(settings, 'STORE_MULTI_CANAL', False)
+        if store_multi_canal==False:
+            canal_venta="NO"
+        else:
+            canal_venta= settings.STORE_MULTI_CANAL.upper()
+
+ 
+
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
@@ -1271,7 +1311,8 @@ def panel_pedidos_detalle_edit(request,order_number=None):
             'subtotal': subtotal,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
-            'entregado':entregado
+            'entregado':entregado,
+            "canal_venta":canal_venta
         }
         
         return render(request,'panel/pedido_detalle_edit.html',context) 
@@ -1429,6 +1470,13 @@ def panel_pedidos_save_detalle(request):
     else:
         return render (request,"panel/login.html")
 
+def get_order_total(order_id):
+
+    ordered_products = OrderProduct.objects.filter(order_id=order_id)
+    total = sum([product.product_price * product.quantity for product in ordered_products])
+    print("Total Enc:",total)
+    return round(total, 2)  # Redondea el resultado a 2 decimales
+
 def panel_pedidos_save_enc(request):
 
         print("panel_pedidos_save_enc")
@@ -1446,16 +1494,35 @@ def panel_pedidos_save_enc(request):
             dir_provincia = request.POST.get("dir_provincia")
             dir_telefono = request.POST.get("dir_telefono")
             email = request.POST.get("email")
-            
+            order_total_comisiones = request.POST.get("enc_order_total_comisiones")
+            order_total_impuestos = request.POST.get("enc_order_total_impuestos")
+            order_total_descuentos = request.POST.get("enc_order_total_descuentos")
+            envio = request.POST.get("enc_envio")
+            origen_venta = request.POST.get("enc_origen_venta")
+
+            print("origen_venta",origen_venta)
+            origenventa = OrigenVenta.objects.filter(codigo=origen_venta).first()
+            if not origenventa:
+                canal_venta= settings.STORE_DEF_CANAL  #WEB
+                origenventa = OrigenVenta.objects.filter(codigo=canal_venta).first()
+
+
+
             fecha = datetime.strptime(fecha, '%d/%m/%Y')
             
             order = Order.objects.get(order_number=order_number)
             if order:
+                total = get_order_total(order.id)
+                print("Total Order;",total)
+                total = float(total) - float(order_total_comisiones) - float(order_total_impuestos) - float(order_total_descuentos) - float(envio)
+                print("Nuevo total",total)
+
                 Order_New = Order(
                     id = order.id,
                     order_number=order_number,
                     first_name=first_name,
                     last_name=last_name,
+                    origen_venta = origenventa,
                     email=email,
                     created_at=order.created_at,
                     fecha=fecha,
@@ -1471,10 +1538,13 @@ def panel_pedidos_save_enc(request):
                     dir_cp = order.dir_cp,
                     dir_obs = order.dir_obs,
                     dir_tipocorreo= order.dir_tipocorreo,
-                    order_total = order.order_total,
+                    order_total_comisiones = order_total_comisiones,
+                    order_total_impuestos = order_total_impuestos,
+                    order_total_descuentos = order_total_descuentos,
+                    order_total = round(total,2),
                     dir_correo= order.dir_correo,
                     dir_tipoenvio = order.dir_tipoenvio,
-                    envio = 0,
+                    envio = envio,
                     status = "New",
                     is_ordered=True,
                     ip = request.META.get('REMOTE_ADDR'),
@@ -2188,7 +2258,7 @@ def panel_registrar_pago(request,order_number=None):
         if order_number:
             orden = Order.objects.get(order_number=order_number)
             cuentas = Cuentas.objects.all()
-            total = orden.order_total - orden.envio
+            total = orden.order_total + orden.envio
         context = {
             'orden':orden,
             'cuentas':cuentas,
@@ -2245,6 +2315,11 @@ def panel_confirmar_pago(request,order_number=None):
             order = Order.objects.get(order_number=order_number, is_ordered=True)
             ordered_products = OrderProduct.objects.filter(order_id=order.id)
 
+            descuentos = order.order_total_descuentos
+            impuestos = order.order_total_impuestos
+            comisiones = order.order_total_comisiones
+
+
             order_count_items = ordered_products.count()
 
             if order_count_items <= 0:
@@ -2256,8 +2331,8 @@ def panel_confirmar_pago(request,order_number=None):
                 #subtotal += cart_item.product_price
                 quantity += cart_item.quantity
 
-            total =  float(envio) + float(subtotal)
-           
+            total =  round(float(subtotal)- float(envio)  - float(descuentos) - float(impuestos) - float(comisiones),2)
+             
             #GRABO TRANSACCION DE PAGO
             if order:
                 payment = Payment(
@@ -2774,18 +2849,19 @@ def export_xls(request,modelo=None):
                     row_num=0
                     font_style= xlwt.Style.XFStyle()
                     font_style.font.bold = True
-                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','Costo','Cuenta','descuento_unitario','precio_unitario_cobrado']
+                    columns = ['Pedido','Fecha','Envio','Total','Nombre','Apellido','email','Producto','Cantidad','Precio','Costo','Cuenta','Desc Unit','Precio Unit Cobrado','Origen Venta','Comisiones','Descuentos','Impuestos']
                     for col_num in range(len(columns)):
                         ws.write(row_num,col_num,columns[col_num],font_style)
                     font_style = xlwt.Style.XFStyle()
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
-                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta','descuento_unitario','precio_unitario_cobrado')
+                    rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta','descuento_unitario','precio_unitario_cobrado','order__origen_venta__origen','order__order_total_comisiones','order__order_total_descuentos','order__order_total_impuestos')
                             
                     for row in rows:
                         row_num += 1      
                         for col_num in range(len(row)):              
-                            if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10 or col_num==11 or col_num==12:
+                            #if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10 or col_num==11 or col_num==12 or col_num==13 or col_num==15 or col_num==16 or col_num==17:
+                            if col_num in {2, 3, 8, 9, 10, 11, 12, 13, 15, 16, 17}:
                                 monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,monto)
                             elif col_num==11:
@@ -4832,23 +4908,28 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                     print("ID ORden --> ", id_orden)
                     pago = Payment.objects.get(id=id_pago)
                     id_pago = pago.id
+                    print("id pago:",id_pago)
                     if pago:
-                       
-                        movimiento = Movimientos.objects.get(ordernumber=id_orden)
-                        if movimiento:
-                            
-                            id_mov = movimiento.id
-                            id_cierre = movimiento.idcierre
-
-                            if id_cierre is None or id_cierre == 0:
-                                print("Mov --> ",id_mov )
-                                movimiento.id = id_mov
-                                movimiento.delete()
+                        print("Busco movimientos")
+                        try:
+                            movimiento = Movimientos.objects.get(ordernumber=id_orden)
+                            if movimiento:  
+                                
+                                id_mov = movimiento.id
+                                id_cierre = movimiento.idcierre
+                                print("movimientos")
+                                if id_cierre is None or id_cierre == 0:
+                                    print("Mov --> ",id_mov )
+                                    movimiento.id = id_mov
+                                    movimiento.delete()
+                                else:
+                                    messages.error(request,"No se puede elimiar el pago. el período está cerrado",'red')
+                                    return redirect('panel_pedidos','New')
                             else:
-                                messages.error(request,"No se puede elimiar el pago. el período está cerrado",'red')
-                                return redirect('panel_pedidos','New')
-                        else:
-                            print("Error al eliminar el movimiento")
+                                print("Error al eliminar el movimiento")
+
+                        except:
+                            print("No se encontraton movimientos")
 
                         ordenes.id = id_orden
                         ordenes.payment = pago
@@ -4858,6 +4939,7 @@ def panel_pedidos_eliminar_pago(request,order_number=None):
                         ordenes.save()
                         pago.id = id_pago
                         pago.delete()
+
                     else:
                         print("Error en el medio de pago")
                 else:

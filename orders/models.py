@@ -2,7 +2,7 @@ from django.db import models
 from accounts.models import Account
 
 from store.models import Product, Variation
-
+from django.db.models import Sum
 
 
 class OrigenVenta(models.Model):
@@ -97,10 +97,16 @@ class Order(models.Model):
     def status_id(self):
         return f'{self.status}'
 
-    @classmethod
-    def get_totales(cls):
-        return sum([Order.order_total for Orders in cls.objects.all()])
+    #@classmethod
+    #def get_totales(cls):
+    #    return sum([Order.order_total for Orders in cls.objects.all()])
             
+  
+    @property
+    def total_facturacion(self):
+        if self.status == 'New':
+            return 0  # Excluye las órdenes con estado 'New'
+        return self.order_total - self.order_total_comisiones - self.order_total_descuentos - self.order_total_impuestos
 
     class Meta:
         
