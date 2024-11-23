@@ -15,7 +15,7 @@ from panel.models import ImportDolar
 from django.db.models import Q
 
 from django.conf import settings
-
+from collections import OrderedDict  # Importa OrderedDict
 from datetime import datetime,timezone,timedelta
 
 
@@ -149,14 +149,8 @@ def GuardarDolar(request):
 class Direccion(APIView):
           
     def get(self,request,dir_id):
-       
-        if dir_id==99:
-            user_id = Account.objects.filter(email=settings.EMAIL_HOST_USER).first()
-            
-            if user_id:
-                direccion = get_object_or_404(AccountDirecciones,user=user_id)
-        else:
-            direccion = get_object_or_404(AccountDirecciones,dir_id=dir_id)
+        
+        direccion = get_object_or_404(AccountDirecciones,dir_id=dir_id)
         data = DireccionesSerializer(direccion).data
         
         return Response(data)
@@ -191,6 +185,30 @@ class DireccionesbyTipo(APIView):
         if correo_tipo == "ret_cliente":  #RETIRA CLIENTE
             dir_correo = 3 #
             dir_tipocorreo = 0
+            
+            #Siempre devuelve lo mismo
+            data = [
+                OrderedDict([
+                    ('dir_id', 1),
+                    ('dir_nombre', 'Sucursal Rincon de Milberg'),
+                    ('dir_cp', '1617'),
+                    ('dir_calle', 'N/a'),
+                    ('dir_nro', '0'),
+                    ('dir_piso', '0'),
+                    ('dir_depto', '0'),
+                    ('dir_localidad', 'Buenos Aires'),
+                    ('dir_provincia', 'Buenos Aires'),
+                    ('dir_area_tel', '011'),
+                    ('dir_telefono', '31457537'),
+                    ('dir_obs', ''),
+                    ('dir_tipocorreo', 1),
+                    ('dir_tipoenvio', 0),
+                    ('dir_correo', 1),
+                    ('user', 0),
+                ])
+            ]
+            print(data)
+            return Response(data)
         
         #dir_correo:   1-OCA  #2 Correo Argentino #3 Retira Cliente
         #dir_tipocorreo: #1 Envio a Domicilio  #2 Sucursal Correo 

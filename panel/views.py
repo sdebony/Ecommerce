@@ -481,8 +481,8 @@ def dashboard_control(request):
             productos_disponibles=Count('id', filter=Q(is_available=True)),
             productos_costo_mayor_igual_precio=Count('id', filter=Q(costo_prod__gte=F('price'))),
             productos_activos_sin_costo = Count('id', filter=Q(costo_prod=0) & Q(is_available=True)),    #Costo = 0 y habilitado
-            total_stock=Sum('stock'),
-            costo_stock=Sum(F('costo_prod') * F('stock'))
+            total_stock=Sum('stock', filter=Q(es_kit=False) & Q(is_available=True)),
+            costo_stock=Sum(F('costo_prod') * F('stock'), filter=Q(es_kit=False) & Q(is_available=True))
         )
 
        
@@ -547,6 +547,9 @@ def dashboard_control(request):
             else:
                 margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
 
+        multi_cuentas= settings.STORE_MULTI_CANAL
+
+
         context = {
             'permisousuario':permisousuario,
             'resultados':resultados,
@@ -559,7 +562,8 @@ def dashboard_control(request):
             'cant_ventas_meli':cant_ventas_meli,
             'cant_ventas_web':cant_ventas_web,
             'total_product_price':total_product_price,
-            'total_facturacion':total_facturacion
+            'total_facturacion':total_facturacion,
+            'multi_cuentas':multi_cuentas,
                  }
         return render (request,"panel/dashboard_control.html",context)
     else:
@@ -671,7 +675,7 @@ def panel_product_detalle(request,product_id=None):
             categorias = Category.objects.all()
             variantes = Variation.objects.filter(product=product)
             subcategoria = SubCategory.objects.filter(category=producto.category).all()
-            product_kit = ProductKit.objects.filter(productokit=product_id)
+            product_kit = ProductKitEnc.objects.filter(productokit=product_id)
 
 
         else:

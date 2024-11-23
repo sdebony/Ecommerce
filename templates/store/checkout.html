@@ -458,11 +458,11 @@ function buscardireccion(dir_id)     {
                 if (r.dir_correo==3){
                   document.getElementById("tipo_envio").innerText = "Retira Cliente"
                   document.getElementById("div_chk_tipoenvio").style.display = "none";
-                  document.getElementById("div_entrega_dom").style.display = "block";
-                  document.getElementById("div_provincia").style.display = "block";
+                  document.getElementById("div_entrega_dom").style.display = "none";
+                  document.getElementById("div_provincia").style.display = "none";
                   document.getElementById("div_cp").style.display = "none";
-                  document.getElementById("div_datos_suc").style.display = "block";
-                  document.getElementById("div_nombre_suc").style.display = "block";
+                  document.getElementById("div_datos_suc").style.display = "none";
+                  document.getElementById("div_nombre_suc").style.display = "none";
                   document.getElementById('dir_nombre').readOnly = false; 
                   
                   
@@ -748,7 +748,12 @@ function mostrarOpcionEnvio() {
             document.getElementById("div_datos_suc").style.display = "none";
             document.getElementById("dir_nombre").style.display = "none";
             document.getElementById('div_datos_direccion').style.display = 'none';
-            document.getElementById('txt_retira_cliente').style.display = 'block';
+            document.getElementById('txt_retira_cliente').style.display = 'none';
+            document.getElementById('dir_localidad').style.display = 'none';
+            document.getElementById('dir_telefono').style.display = 'none';
+            document.getElementById('dir_provincia').style.display = 'none';
+
+
             //textInput.required = false;
             document.getElementById('dir_calle').value = 'N/A';
             document.getElementById('dir_nro').value = '0';

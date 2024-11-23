@@ -533,7 +533,7 @@
 							</div>
 							<div class="form-group">
 								<label>Nombre </label>
-								<input type="text" name="dir_nombre" class="form-control" value="{{ dir_RC.dir_nombre }}" placeholder="Ingrese un nombre para identificar." maxlength="50" required>
+								<input type="text" name="dir_nombre" class="form-control" value="Sucursal Rincon de Milberg" placeholder="Ingrese un nombre para identificar." maxlength="50" disabled>
 								
 							</div>
 
@@ -541,27 +541,28 @@
 							<div class="form-row">
 								<div class="form-group col-md-4">
 									<label for="codigoAreaSucursal">Cod Area (011)</label>
-									<input type="text" name="dir_area_tel" class="form-control" value="{{ dir_RC.dir_area_tel }}" placeholder="Codigo de Area" required>
+									<input type="text" name="dir_area_tel" class="form-control" value="011" placeholder="Codigo de Area" disabled>
 								</div>
 								<div class="form-group col-md-8">
 									<label for="telefonoSucursal">Teléfono</label>
-									<input type="text" name="dir_telefono" class="form-control" value="{{ dir_RC.dir_telefono }}" placeholder="Ingrese el telefono de contacto" required>
+									<input type="text" name="dir_telefono" class="form-control" value="31457537" placeholder="Ingrese el telefono de contacto" disabled>
 								</div>
 							</div>
 
-							<!-- Observaciones -->
+							<!-- Observaciones 
 							<div class="form-group">
 								<label>Observaciones</label>
 								<textarea type="textarea" name="dir_obs" rows="2" class="form-control" placeholder="Observaciones">{{ dir_RC.dir_obs }}</textarea>	
 							</div>
-							
-							<!-- Botones -->
+							-->
+							<!-- Botones 
 							<div class="text-right">
 								<button type="submit" name="action" value="save_rc" class="btn btn-primary">Guardar</button>
 								<input type="text" name="dir_id_del" id="dir_id_del" class="form-control" value="{{ dir_retiro.dir_id }}" hidden>
 								<button type="submit"  name="action" value="delete_rc" class="btn btn-danger ">Eliminar</button>			
 								
 							</div>
+							-->
 						</form>
 					</div>
 				</div>
