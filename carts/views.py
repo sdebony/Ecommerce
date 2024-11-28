@@ -366,29 +366,29 @@ def add_cart(request, product_id):
                 cart_item.variations.add(*product_variation)
             #messages.success(request, 'Producto agregado')
             cart_item.save()
+            item_id = cart_item.id
 
             if product.es_kit:
                 print("4 Procesando Kits")
                 # PROCESO KIT
                 itemkit=[]
-                user = request.user  # Usuario actual que realiza la solicitud
+               
+                
                 try:
                     data = json.loads(request.body.decode('utf-8'))
                     itemkit = CartItem.objects.get(product=product, id=item_id)
-                    CartItemKit.objects.filter(user=user,cart=itemkit).delete()
+                    CartItemKit.objects.filter(cart=itemkit).delete()
                     if data:
+                        
                         for item in data:
                             product_id = item.get('productId')
                             cantidad = item.get('cantidad')
-                            
-                            
                             hijos = ProductKit.objects.get(id=product_id)
                             if hijos:
                                 product_id_kit = hijos.productohijo.id
 
                             # Verificar si el producto existe
-                            print("kit Producto_id ",product_id_kit, " Cantidad: ", cantidad)
-                
+                    
                             try:
                                 product = Product.objects.get(id=product_id_kit)
                             except Product.DoesNotExist:
@@ -396,7 +396,6 @@ def add_cart(request, product_id):
                 
 
                             cart_item, created = CartItemKit.objects.get_or_create(
-                                user=user,
                                 product=product,
                                 cart=itemkit,
                                 defaults={'quantity': cantidad}
