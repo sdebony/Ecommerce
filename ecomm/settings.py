@@ -204,11 +204,15 @@ DIAS_DEFAULT_PEDIDOS=90
 DIAS_DEFAULT_MOVIMIENTOS = 90
 
 MONTO_MINIMO=100
-DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
-DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
 
-#DEF_CATEGORY='esferas'  #Eesferas (Slug)
-#DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
+#DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
+#DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
+#DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+#DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
+DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
+DEF_CATEGORY='esferas'  #Eesferas (Slug)
+DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 
 STORE_MULTI_CANAL="SI"
 STORE_DEF_CANAL="WEB"
@@ -216,10 +220,7 @@ STORE_DEF_CANAL="WEB"
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
 
-DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
-DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
-#DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
-#DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
+
 
 #DEF_CEL = '54111565184759'
 DEF_CEL =  '54111558679809'

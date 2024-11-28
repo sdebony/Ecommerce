@@ -1367,7 +1367,7 @@ def panel_pedidos_confirmacion_eliminar(request,order_number=None):
 def panel_pedidos_eliminar(request,order_number=None):
 
     if validar_permisos(request,'PEDIDOS DEL'):
-        print("Eliminar",order_number)
+        print("panel_pedidos_eliminar:",order_number)
         if order_number:
                 ordenes = Order.objects.get(order_number=order_number)
                 if ordenes:
@@ -1380,16 +1380,19 @@ def panel_pedidos_eliminar(request,order_number=None):
                             product.stock += float(cantidad)
                             product.save()
 
-                        if product.es_kit:
-                            # Filtrar todos los kits asociados con el producto dado
-                            kits = ProductKit.objects.filter(productokit=product.id)
-                            with transaction.atomic():
-                                for kit in kits:
-                                    product_hijo = kit.productohijo
-                                    cantidad_a_sumar = kit.cantidad * cantidad
-                                    # Restar la cantidad en stock del producto hijo
-                                    product_hijo.stock += cantidad_a_sumar
-                                    product_hijo.save()    
+                   
+                            if product.es_kit:
+                                items_kits = OrderProductKitItem.objects.filter(order_product=linea.id)
+                                if items_kits:
+                                    for item_kit in items_kits:
+                                    # Redusco Stock de los articulos Kits
+                                  
+                                        product = Product.objects.get(id=item_kit.product.id)
+                                        if product:
+                                            #pesoarticulos += product.peso * item.quantity 
+                                            product.stock = product.stock + item_kit.quantity
+                                            product.save()
+
 
                     if ordenes_detalle:
                         ordenes_detalle.delete()
@@ -1403,7 +1406,7 @@ def panel_pedidos_eliminar(request,order_number=None):
 def panel_pedidos_del_detalle(request,order_number,id_linea):
 
     if validar_permisos(request,'PEDIDOS EDIT'):
-
+        print("panel_pedidos_del_detalle")
         #articulo = Product.objects.filter(product_name=producto).first()
         order = Order.objects.get(order_number=order_number, is_ordered=True)
         ordered_products = OrderProduct.objects.get(order_id=order.id,pk=id_linea)
@@ -1431,6 +1434,21 @@ def panel_pedidos_del_detalle(request,order_number,id_linea):
                 if product:
                     product.stock += float(cantidad)
                     product.save()
+
+                  
+                    if product.es_kit:
+                        items_kits = OrderProductKitItem.objects.filter(order_product=ordered_products)
+                        if items_kits:
+                            for item_kit in items_kits:
+                            # Redusco Stock de los articulos Kits
+                                print("Productos del KIT", item_kit.product.id,item_kit.product.product_name, item_kit.quantity)
+
+                                product = Product.objects.get(id=item_kit.product.id)
+                                if product:
+                                    #pesoarticulos += product.peso * item.quantity 
+                                    product.stock = product.stock + item_kit.quantity
+                                    product.save()
+
 
                 panel_recalcular_totales(order_number)
                 messages.success(request,"Articulo eliminado con exito.")

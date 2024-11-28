@@ -3,6 +3,9 @@
 
 {% block page_content %}
 
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,11 +15,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
+<body>
     <div class="container mt-4">
-        <h1 class="text-center">Seleccionar los articulos del producto:</h1> 
+        <h1 class="text-center">Seleccionar los artículos del producto:</h1>
         <h6 class="text-center">{{ producto_kit.product_name }}</h6>
-        
-        
 
         <!-- Selección de Categoría -->
         <div class="mb-3">
@@ -42,13 +44,21 @@
             <form id="productForm" method="POST" action="{% url 'agregar_producto_al_kit' %}">
                 {% csrf_token %}
                 <input type="text" name="product_padre_id" id="product_padre_id" value="{{ product_padre_id }}" hidden>
+
+                <!-- Botón para seleccionar todos los productos -->
+                <div class="mb-5 text-center">
+                    <input type="checkbox" id="selectAll" class="form-check-input">
+                    <label for="selectAll" class="form-check-label">Seleccionar todos los productos</label>
+                </div>
+
                 <div id="products-container" class="row">
                     <!-- Los productos se cargarán dinámicamente -->
                 </div>
-                <div class="form-row">
-                    <button type="submit" class="btn btn-primary" disabled> Confirmar</button>
-                    <span> &nbsp;&nbsp;&nbsp; </span>
-                    <a href="{% url 'panel_producto_detalle' product_padre_id  %}" class="btn btn-secondary">Cancelar</a>
+
+                <div class="form-row mt-3">
+                    <button type="submit" class="btn btn-primary" disabled>Confirmar</button>
+                    <span>&nbsp;&nbsp;&nbsp;</span>
+                    <a href="{% url 'panel_producto_detalle' product_padre_id %}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
@@ -60,12 +70,10 @@
             const urlCategories = '/api/v1/category/';
             const urlSubCategories = '/api/v1/subcategory/';
             const urlProducts = '/api/v1/products/';
-           ;
 
             // Cargar categorías al cargar la página
             $.get(urlCategories, function (data) {
-                console.log(data); // Verifica el formato de los datos
-                const categories = data; // Esto puede fallar si no hay un campo "categories"
+                const categories = data; // Verifica el formato de los datos
                 if (categories) {
                     categories.forEach(category => {
                         $('#category').append(
@@ -107,14 +115,11 @@
                             $('#products-container').append(`
                                 <div class="col-md-4">
                                     <div class="card mb-3">
-                                        <div class="card mb-3">
-                                            <div class="card-body text-center">
-                                                <h5 class="card-title">${product.product_name}</h5>
-                                                <input type="checkbox" name="products" value="${product.id}" class="form-check-input">
-                                                <label class="form-check-label"> Seleccionar </label>
-                                            </div>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">${product.product_name}</h5>
+                                            <input type="checkbox" name="products" value="${product.id}" class="form-check-input">
+                                            <label class="form-check-label">Seleccionar</label>
                                         </div>
-                                       
                                     </div>
                                 </div>
                             `);
@@ -127,16 +132,26 @@
                 });
             });
 
-          
+            // Evento para el checkbox "Seleccionar todos"
+            $('#selectAll').on('change', function () {
+                const isChecked = $(this).is(':checked');
+                $('input[name="products"]').prop('checked', isChecked);
+            });
+
+            // Habilitar o deshabilitar el botón "Confirmar" según si hay productos seleccionados
+            $('#products-container').on('change', 'input[name="products"]', function () {
+                const anyChecked = $('input[name="products"]:checked').length > 0;
+                $('button[type="submit"]').prop('disabled', !anyChecked);
+            });
+
+            // Enviar el formulario con los productos seleccionados
             $('#productForm').on('submit', function (e) {
                 e.preventDefault(); // Evita la recarga de la página
 
                 const productPadreId = $('#product_padre_id').val(); // Obtén el valor del campo product_padre_id
-
                 const selectedProducts = $('input[name="products"]:checked')
                     .map(function () { return this.value; })
                     .get();
-
 
                 if (selectedProducts.length > 0) {
                     // Enviar datos seleccionados al servidor
@@ -163,6 +178,8 @@
             });
         });
     </script>
+</body>
 
+</html>
 
 {% endblock %}
