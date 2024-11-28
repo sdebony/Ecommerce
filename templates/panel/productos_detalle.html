@@ -153,16 +153,32 @@
                 <form action="{% url 'panel_product_kit' producto.id %}" method="POST" id="frmvariantes">
                     {% csrf_token %}
     
-                    <h4 class="card-title mb-6">Kit Productos </h4>
+                    <h4 class="card-title mb-6">Kit Productos - </h4>
                     <aside class="col-md-12">
                         <div class="form-row">
                             <div class="col form-group">
-                            <label for="">Producto</label>
-                            <input type="number" name="product_id" class="form-control" value="{{producto.id }}" hidden >
-                            <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
+                                <label for="">Producto</label>
+                                <input type="number" name="productkit_id" class="form-control" value="{{product_kit_enc.id }}" hidden >
+                                <input type="number" name="product_id" class="form-control" value="{{producto.id }}" hidden >
+                                <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
                             </div>          
                         </div>
-                        {% if product_kit %}
+                        <div class="form-row">
+                            <div class="col form-group">
+                                <label for="">Cantidad</label>
+                                <input type="any" name="cant_unidades" id="cant_unidades" class="form-control" value="{{ product_kit_enc.cant_unidades }}" required > 
+                            </div>
+                            <div class="col form-group">
+                                <label for="">Cant de variedades</label>
+                                <input type="text" name="cant_variedades" id="cant_variedades" class="form-control" value="{{ product_kit_enc.cant_variedades }}" required >
+                            </div>
+                        </div>
+                        <div class="form-row ">
+                            <div class="col form-group d-flex justify-content-end">
+                                <button type="submit" name="action" value="save" class="btn btn-primary"><span class=""></span> Guardar </button>
+                            </div> 
+                        </div>
+                        {% if product_kit_det %}
                         <div class="form-row">           
                             <table 
                                 id="table"
@@ -177,15 +193,13 @@
                             >
                                 <thead>
                                     <th data-sortable="true" data-field="variation_category">Producto</th>
-                                    <th data-sortable="true" data-field="variation_value">Cantidad</th>
                                     <th >Eliminar</th>
                                     
                                 </thead>
                                 <tbody>
-                                    {% for item in product_kit %}
+                                    {% for item in product_kit_det %}
                                     <tr>   
                                         <td >{{item.productohijo.product_name}}</td> 
-                                        <td >{{item.cantidad}}</td>
                                         <td ><a href="{% url 'panel_productos_kit_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a></td>
                                     
                                     </tr>                               
@@ -193,14 +207,17 @@
                                 </tbody>                        
                             </table>
                         </div>
+                        
                         {% endif %}
                     </div>  
-                        <div class="form-row ">
-                            <div class="col form-group d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary"><span class=""></span> Agregar </button>
-                            </div> 
-                        </div>
-                    </form>
+                    {% if product_kit_enc.id %}
+                    <div class="form-row ">
+                        <div class="col form-group d-flex justify-content-end">
+                            <button type="submit" name="action" value="products" class="btn btn-success"><span class=""></span> Seleccionar Productos </button>
+                        </div> 
+                    </div>
+                    {% endif %}
+                </form>
             </div>
         </div>
         {% endif %}

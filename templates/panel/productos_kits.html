@@ -2,86 +2,167 @@
 {% load custom_filters %}
 
 {% block page_content %}
-<div class="container">
-    <h2>Asociar Productos al Kit: {{ producto_kit.product_name }}</h2>
-    
-    <div class="form-group">
-        <label for="producto_hijo">Buscar Producto Hijo:</label>
-        <input type="text" id="producto_hijo" class="form-control" placeholder="Escribe el nombre del producto" list="productos-suggestions">
-        <datalist id="productos-suggestions"></datalist>
-    </div>
-    
-    <div class="form-group">
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" class="form-control" min="1" value="1">
-    </div>
-    
-    <button id="agregarProductoBtn" class="btn btn-primary">Agregar Producto al Kit</button>
-    
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos por Categoría</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+    <div class="container mt-4">
+        <h1 class="text-center">Seleccionar los articulos del producto:</h1> 
+        <h6 class="text-center">{{ producto_kit.product_name }}</h6>
+        
+        
+
+        <!-- Selección de Categoría -->
+        <div class="mb-3">
+            <label for="category" class="form-label">Categoría:</label>
+            <select id="category" class="form-select">
+                <option value="" selected disabled>Seleccione una categoría</option>
+                <!-- Las opciones se cargarán dinámicamente -->
+            </select>
+        </div>
+
+        <!-- Selección de Subcategoría -->
+        <div class="mb-3">
+            <label for="subcategory" class="form-label">Subcategoría:</label>
+            <select id="subcategory" class="form-select" disabled>
+                <option value="" selected disabled>Seleccione una subcategoría</option>
+                <!-- Las opciones se cargarán dinámicamente -->
+            </select>
+        </div>
+
+        <!-- Listado de Productos -->
+        <div id="product-list" class="mt-4">
+            <h3>Productos disponibles:</h3>
+            <form id="productForm" method="POST" action="{% url 'agregar_producto_al_kit' %}">
+                {% csrf_token %}
+                <input type="text" name="product_padre_id" id="product_padre_id" value="{{ product_padre_id }}" hidden>
+                <div id="products-container" class="row">
+                    <!-- Los productos se cargarán dinámicamente -->
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn btn-primary" disabled> Confirmar</button>
+                    <span> &nbsp;&nbsp;&nbsp; </span>
+                    <a href="{% url 'panel_producto_detalle' product_padre_id  %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         $(document).ready(function () {
-            // Realizar búsqueda en tiempo real
-            $('#producto_hijo').on('input', function () {
-                const term = $(this).val();
-                if (term.length > 2) {
-                    $.ajax({
-                        url: '{% url "buscar_producto_hijo" %}',
-                        data: {'term': term},
-                        dataType: 'json',
-                        success: function (data) {
-                            console.log("Datos recibidos:", data);  // Verifica los datos recibidos
-                            $('#productos-suggestions').empty();
-                            data.forEach(item => {
-                                $('#productos-suggestions').append(
-                                    `<option value="${item.nombre}" data-id="${item.id}">${item.nombre}</option>`
-                                );
-                            });
-                        },
-                        error: function (xhr) {
-                            console.error("Error al buscar productos:", xhr.responseText);
-                        }
+            // URL de la API (adaptar a tu backend en Django)
+            const urlCategories = '/api/v1/category/';
+            const urlSubCategories = '/api/v1/subcategory/';
+            const urlProducts = '/api/v1/products/';
+           ;
+
+            // Cargar categorías al cargar la página
+            $.get(urlCategories, function (data) {
+                console.log(data); // Verifica el formato de los datos
+                const categories = data; // Esto puede fallar si no hay un campo "categories"
+                if (categories) {
+                    categories.forEach(category => {
+                        $('#category').append(
+                            `<option value="${category.id}">${category.category_name}</option>`
+                        );
                     });
+                } else {
+                    alert("No se encontraron categorías");
                 }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("Error al obtener categorías:", textStatus, errorThrown);
+                alert("Error al cargar categorías. Verifica la API.");
             });
 
-            // Agregar producto al kit usando AJAX
-            $('#agregarProductoBtn').click(function () {
-                const productoNombre = $('#producto_hijo').val();
-                const cantidad = $('#cantidad').val();
-              
-                // Obtener el ID del producto seleccionado
-                const productoId = $('#productos-suggestions option').filter(function() {
-                    return $(this).val() === productoNombre;
-                }).data('id');
-                
-                if (productoId && cantidad > 0) {
+            // Cargar subcategorías al seleccionar categoría
+            $('#category').on('change', function () {
+                const categoryId = $(this).val();
+                $('#subcategory').prop('disabled', false).html('<option value="" selected disabled>Seleccione una subcategoría</option>');
+
+                $.get(`${urlSubCategories}${categoryId}`, function (data) {
+                    const subcategories = data;
+                    subcategories.forEach(subcategory => {
+                        $('#subcategory').append(
+                            `<option value="${subcategory.id}">${subcategory.subcategory_name}</option>`
+                        );
+                    });
+                });
+            });
+
+            // Cargar productos al seleccionar subcategoría
+            $('#subcategory').on('change', function () {
+                const subcategoryId = $(this).val();
+                $('#products-container').empty();
+
+                $.get(`${urlProducts}${subcategoryId}`, function (data) {
+                    const products = data;
+                    if (products.length > 0) {
+                        products.forEach(product => {
+                            $('#products-container').append(`
+                                <div class="col-md-4">
+                                    <div class="card mb-3">
+                                        <div class="card mb-3">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">${product.product_name}</h5>
+                                                <input type="checkbox" name="products" value="${product.id}" class="form-check-input">
+                                                <label class="form-check-label"> Seleccionar </label>
+                                            </div>
+                                        </div>
+                                       
+                                    </div>
+                                </div>
+                            `);
+                        });
+                        $('button[type="submit"]').prop('disabled', false);
+                    } else {
+                        $('#products-container').html('<p>No hay productos disponibles en esta subcategoría.</p>');
+                        $('button[type="submit"]').prop('disabled', true);
+                    }
+                });
+            });
+
+          
+            $('#productForm').on('submit', function (e) {
+                e.preventDefault(); // Evita la recarga de la página
+
+                const productPadreId = $('#product_padre_id').val(); // Obtén el valor del campo product_padre_id
+
+                const selectedProducts = $('input[name="products"]:checked')
+                    .map(function () { return this.value; })
+                    .get();
+
+
+                if (selectedProducts.length > 0) {
+                    // Enviar datos seleccionados al servidor
                     $.ajax({
-                        url: '{% url "agregar_producto_al_kit" producto_kit.id %}',
-                        method: 'POST',
+                        url: '{% url "agregar_producto_al_kit" %}',
+                        type: 'POST',
                         data: {
-                            'producto_hijo_id': productoId,
-                            'cantidad': cantidad,
-                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            products: JSON.stringify(selectedProducts), // Convierte a JSON
+                            product_padre_id: productPadreId, // Incluye el product_padre_id
+                            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(), // Agrega CSRF token
                         },
-                        dataType: 'json',
                         success: function (response) {
-                             $('#producto_hijo').val('');
-                            $('#cantidad').val(1);
-
-                            window.location.href = '{% url "panel_producto_detalle" producto_kit.id %}';
+                            if (response.redirect_url) {
+                                window.location.href = response.redirect_url; // Redirige a la URL
+                            }
                         },
-
-                       
-                        error: function (xhr) {
-                            alert('Error al agregar el producto: ' + xhr.responseJSON.message);
+                        error: function (xhr, status, error) {
+                            alert('Error al enviar los productos: ' + error);
                         }
                     });
                 } else {
-                    alert('Selecciona un producto válido y una cantidad mayor a 0.');
+                    alert('Debe seleccionar al menos un producto.');
                 }
             });
         });
     </script>
-</div>
+
+
 {% endblock %}

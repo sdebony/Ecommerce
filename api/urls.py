@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import DireccionesList, Direccion,DireccionesbyTipo,CuentasList,CuentasApi,SubcategoryList,SubcategoryApi,enviar_whatsapp,GuardarDolar
+from .views import DireccionesList, Direccion,DireccionesbyTipo,CuentasList,CuentasApi,SubcategoryList,CategoryList,ProductList, SubcategoryApi,enviar_whatsapp,GuardarDolar
 
 
 
@@ -13,6 +13,9 @@ urlpatterns = [
 
     path('v1/cuentas/',CuentasApi.as_view(),name='cuentas_list'),
     path('v1/cuentas/<int:cuenta>',CuentasList.as_view(),name='cuentas_list'),
+    path('v1/category/',CategoryList.as_view(),name='category_list'),
+    path('v1/products/<int:subcategory>',ProductList.as_view(),name='product_list'),
+    
     path('v1/subcategory/<int:category>',SubcategoryList.as_view(),name='subcategory_list'),
     path('v1/subcategory/',SubcategoryApi.as_view(),name='subcategory_list'),
     path('v1/enviar_whatsapp/', enviar_whatsapp, name='enviar_whatsapp'),

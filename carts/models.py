@@ -26,3 +26,14 @@ class CartItem(models.Model):
 
     def __unicode__(self):
         return self.product
+
+class CartItemKit(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cart    = models.ForeignKey(CartItem, on_delete=models.CASCADE, null=True)
+    quantity = models.IntegerField()
+   
+    def __unicode__(self):
+        return self.product
+    
+  

@@ -144,4 +144,17 @@ class OrderShipping(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     user  = models.ForeignKey(Account, on_delete=models.CASCADE)
     
-    
+
+class OrderProductKitItem(models.Model):
+    order_product = models.ForeignKey(OrderProduct, on_delete=models.CASCADE, related_name="kit_items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="kit_components")
+    quantity = models.IntegerField()  # Cantidad de este componente en el kit
+
+    def __str__(self):
+        return f"{self.product.product_name} (Cantidad: {self.quantity})"    
+
+    class Meta:
+        
+        verbose_name = "Order Product Kit"
+        verbose_name_plural = "Order Products Kits"
+        ordering = ['-order_product',]

@@ -92,13 +92,20 @@
                         <td>{{ item.quantity|format_integer_def }}</td>
                         <td>
                             <span class="product-name">{{ item.product.product_name }}</span>
-                            <p class="text-muted small">
+                            <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
                                 {% if item.variations.all %}
                                     {% for i in item.variations.all %}
                                         {{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
                                     {% endfor %}
                                 {% endif %}
                             </p>
+                            {% for product in products_and_quantities|default:'' %}
+                            <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
+                                    {% if item.id == product.order_product %}
+                                        {{ product.quantity }} x {{ product.product_name }}  <br>
+                                    {% endif %}
+                                </p>
+                            {% endfor %}
                         </td>
                         <td style="text-align: right;">{{ item.product.ubicacion|format_integer_def }}</td>
                     </tr>

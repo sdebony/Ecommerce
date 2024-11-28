@@ -164,14 +164,29 @@ class Costo(models.Model):
         verbose_name = 'Costo'
         verbose_name_plural = 'Costo'
 
-class ProductKit(models.Model):
-    productokit = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kits_padre')
-    productohijo = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='kits_hijo')
-    cantidad = models.FloatField()
+class ProductKitEnc(models.Model):
+    
+    productokit = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cant_unidades = models.FloatField()
+    cant_variedades = models.FloatField()
     
     def __str__(self):
         return str(self.productokit)  # Utiliza str() para evitar errores de tipo
 
     class Meta:
+        verbose_name = 'producto kit encabezado'
+        verbose_name_plural = 'producto kit encabezado'
+
+class ProductKit(models.Model):
+
+    productokit = models.ForeignKey(ProductKitEnc, on_delete=models.CASCADE)
+    productohijo = models.ForeignKey(Product, on_delete=models.CASCADE)
+    
+    
+    def __str__(self):
+        return str(self.productohijo)  # Utiliza str() para evitar errores de tipo
+
+    class Meta:
         verbose_name = 'producto_kit'
         verbose_name_plural = 'producto_kit'
+        unique_together = ('productokit', 'productohijo')

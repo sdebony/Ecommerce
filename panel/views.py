@@ -9,8 +9,8 @@ from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from store.models import Product,Variation,Costo,ProductKit
-from orders.models import Order, OrderProduct,Payment,OrderShipping,OrigenVenta
+from store.models import Product,Variation,Costo,ProductKit, ProductKitEnc
+from orders.models import Order, OrderProduct,Payment,OrderShipping,OrigenVenta,OrderProductKitItem
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
@@ -668,6 +668,13 @@ def panel_product_detalle(request,product_id=None):
     if validar_permisos(request,'PRODUCTO'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        product_kit_det=[]
+        producto = []
+        variantes = []
+        subcategoria=[]
+        product_kit_enc=[]
+
         if product_id:
             product = get_object_or_404(Product, id=product_id)
 
@@ -675,15 +682,15 @@ def panel_product_detalle(request,product_id=None):
             categorias = Category.objects.all()
             variantes = Variation.objects.filter(product=product)
             subcategoria = SubCategory.objects.filter(category=producto.category).all()
-            product_kit = ProductKitEnc.objects.filter(productokit=product_id)
-
+           
+            product_kit_enc = ProductKitEnc.objects.filter(productokit=product_id).first()
+            if product_kit_enc:
+                product_kit_det = ProductKit.objects.filter(productokit=product_kit_enc)
 
         else:
             categorias = Category.objects.all()
-            producto = []
-            variantes = []
-            subcategoria=[]
-            product_kit=[]
+           
+            
 
         try:
             print("panel_product_crud - habilitar_precios_externos")
@@ -699,7 +706,8 @@ def panel_product_detalle(request,product_id=None):
 
         context = {
             'producto':producto,
-            'product_kit':product_kit,
+            'product_kit_enc':product_kit_enc,
+            'product_kit_det':product_kit_det,
             'permisousuario':permisousuario,
             'categorias': categorias,
             'subcategoria':subcategoria,
@@ -803,7 +811,7 @@ def panel_pedidos_detalle(request,order_number=None):
     if validar_permisos(request,'PEDIDOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
+        resultado_final = []
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id).annotate(subtotal=
             Round(
@@ -814,7 +822,15 @@ def panel_pedidos_detalle(request,order_number=None):
         for detalle in ordenes_detalle:
             subtotal = subtotal + detalle.subtotal  # Accede al subtotal de cada elemento
         
-        
+            #Envio detalle de kits al order_recibe para el mail.
+            kits = OrderProductKitItem.objects.filter(order_product=detalle).annotate(
+                product_name=F('product__product_name')
+                ).values('product_name', 'quantity','order_product')  # Selecciona solo el nombre del producto y la cantidad
+
+            # Agregar al resultado final
+            resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
+
+
         idcuenta = ordenes.cuenta
         if idcuenta>0:
             cuenta = Cuentas.objects.get(id=idcuenta)
@@ -843,11 +859,13 @@ def panel_pedidos_detalle(request,order_number=None):
 
         
         print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
+        print("resultado_final --> ",resultado_final)
         
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
             'ordenes_detalle':ordenes_detalle,
+            'products_and_quantities':resultado_final,
             'subtotal': subtotal,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
@@ -865,7 +883,7 @@ def panel_pedidos_imprimir_picking(request,order_number=None):
     if validar_permisos(request,'PEDIDOS'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
+        resultado_final=[]
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
 
@@ -880,11 +898,22 @@ def panel_pedidos_imprimir_picking(request,order_number=None):
 
         # Ahora `ordenes_detalle` estará ordenado según el `orden_picking` de Category y SubCategory.
 
+        #Envio detalle de kits al order_recibe para el mail.
+        for detalle in ordenes_detalle:
+            kits = OrderProductKitItem.objects.filter(order_product=detalle).annotate(
+                product_name=F('product__product_name')
+                ).values('product_name', 'quantity','order_product')  # Selecciona solo el nombre del producto y la cantidad
+
+            # Agregar al resultado final
+            resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
+
+
                    
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
-            'ordenes_detalle':ordenes_detalle
+            'ordenes_detalle':ordenes_detalle,
+            'products_and_quantities':resultado_final
         }
         
         return render(request,'panel/pedido_picking.html',context) 
@@ -1843,12 +1872,32 @@ def panel_product_crud(request):
 def panel_product_kit(request,prod_id):
     
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
-    #if request.method == 'GET':
+    producto_kit = []
     producto_kit = get_object_or_404(Product, id=prod_id)
+    
+    if request.method == 'POST':
+        #Save encabezado
 
+        action = request.POST.get('action')
 
-    return render(request, 'panel/productos_kits.html', {'producto_kit': producto_kit, 'permisousuario': permisousuario})
+        if action == "save":
+            producto_kit = get_object_or_404(Product, id=prod_id)
+            cant_variedades = request.POST.get('cant_variedades')
+            cant_unidades = request.POST.get('cant_unidades')
+
+            
+            ProductKitEnc.objects.update_or_create(
+                productokit=producto_kit,
+                defaults={
+                    'cant_unidades': cant_unidades,
+                    'cant_variedades': cant_variedades
+                }
+            )
+
+            print("Kit grabado con éxito")   
+            return redirect(reverse('panel_producto_detalle', kwargs={'product_id': prod_id}))        
+    
+    return render(request, 'panel/productos_kits.html', {'producto_kit': producto_kit, 'product_padre_id': prod_id, 'permisousuario': permisousuario})
     
 def panel_buscar_producto_hijo(request):
 
@@ -1862,33 +1911,43 @@ def panel_buscar_producto_hijo(request):
         return JsonResponse(results, safe=False)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-def panel_agregar_producto_al_kit(request, producto_id):
+def panel_agregar_producto_al_kit(request):
 
     print("panel_agregar_producto_al_kit")
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
    
     if request.method == 'POST':
         
-        producto_hijo_id = request.POST.get('producto_hijo_id')
-        cantidad = request.POST.get('cantidad')
-        
-        producto_kit = get_object_or_404(Product, id=producto_id)
-        producto_hijo = get_object_or_404(Product, id=producto_hijo_id)
+        product_padre_id = request.POST.get("product_padre_id")
+        data = json.loads(request.POST.get('products', '[]'))
+        # Procesar los productos seleccionados
+        print(f'Productos recibidos: {data}')
+       
+        #Instancio al padre
+        producto_kit = ProductKitEnc.objects.get(productokit=product_padre_id)
 
-        ProductKit.objects.create(productokit=producto_kit, productohijo=producto_hijo, cantidad=cantidad)
+        # Filtrar y eliminar todos los registros relacionados en ProductKit
+        ProductKit.objects.filter(productokit=producto_kit).delete()
+    
+        for producto in data:
+            #Instancio al Hijo
+            print("hijos:",producto)
+            product = Product.objects.get(pk=producto)
+            # Crear o actualizar cada registro
+            ProductKit.objects.update_or_create(
+                productokit=producto_kit,  # Clave primaria o criterio de coincidencia
+                productohijo=product,      # Clave primaria o criterio de coincidencia
+                defaults={}                # Campos adicionales para actualizar (si los hay)
+            )
+            
         print("Kit grabado con éxito")   
         # Suponiendo que tienes una consulta para obtener los permisos del usuario
         # Convertir el QuerySet en una lista de diccionarios
-        permisousuario_data = list(permisousuario.values())
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Producto agregado al kit',
-            'permisousuario': permisousuario_data
-        })
+        return JsonResponse({'redirect_url': reverse('panel_producto_detalle', kwargs={'product_id': product_padre_id})})
+
   
        
-    return JsonResponse({'success': False, 'message': 'Error al agregar el producto'}, status=400)
+    return redirect('panel_catalogo')
 
 def panel_productos_kit_del(request,idkit):
     #El ID corresponde al ID DEL PRODUCTO DE LA TABLA PRODUCTKIT
@@ -1899,10 +1958,11 @@ def panel_productos_kit_del(request,idkit):
 
             producto_kit = ProductKit.objects.get(id=idkit)
             if producto_kit:
-                id_prodPadre = producto_kit.productokit.id
+                id_prodPadre = producto_kit.productokit.productokit
+                print("id_prodPadre",id_prodPadre.id)
                 producto_kit.delete()
                 print("Producto eliminado del kit.",id_prodPadre)
-            return redirect(reverse('panel_producto_detalle', args=[id_prodPadre]))
+            return redirect(reverse('panel_producto_detalle', kwargs={'product_id': id_prodPadre.id}))
             
         except:
             print("Error: IDKIT: " ,idkit)

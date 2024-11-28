@@ -38,13 +38,22 @@
 			{% endif %}
 			<figcaption class="info">
 				<a href="{{cart_item.product.get_url}}" class="title text-dark">{{ cart_item.product.product_name }}</a>
-				<p class="text-muted small">
-					{% if cart_item.variations.all %}
-						{% for item in cart_item.variations.all %}
-							{{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+				{% if cart_item.variations.all %}
+					<p class="text-muted small">
+							{% for item in cart_item.variations.all %}
+								{{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+							{% endfor %}
+					</p>
+				{% endif %}
+				{% if cart_item.product.es_kit %}
+					<p class="text-muted small">
+						{% for product in products_and_quantities|default:'' %}
+							{% if cart_item.id == product.cart %}
+							{{ product.quantity }} x {{ product.product_name }}  <br>
+							{% endif %}
 						{% endfor %}
-					{% endif %}
-				</p>
+					</p>
+    			{% endif %}
 			</figcaption>
 		</figure>
 	</td>
@@ -65,6 +74,7 @@
 							{% endfor %}
 							<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
 					</div>
+					
 				</div> <!-- input-group.// -->
 			</div> <!-- col.// -->
 		</form>

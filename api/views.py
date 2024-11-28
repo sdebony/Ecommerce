@@ -5,11 +5,13 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 
-from .serializers import DireccionesSerializer,CuentasSerializer, SubcategorySerializer
+from .serializers import DireccionesSerializer,CuentasSerializer, SubcategorySerializer,CategorySerializer,ProductSerializer
 from accounts.models import AccountDirecciones,Account
 from contabilidad.models import Cuentas
-from category.models import SubCategory
+from category.models import SubCategory, Category
 from panel.models import ImportDolar
+from store.models import Product
+
 
 
 from django.db.models import Q
@@ -236,6 +238,15 @@ class CuentasApi(APIView):
         data = CuentasSerializer(cuentas,many=True).data
         return Response(data)
 
+class CategoryList(APIView):
+          
+    def get(self,request):
+        print("Category API List")
+        #subcategory = get_object_or_404(SubCategory,Q(category=category))
+        category = Category.objects.filter().all()
+        data = CategorySerializer(category,many=True).data
+        return Response(data)
+
 class SubcategoryList(APIView):
           
     def get(self,request,category):
@@ -243,6 +254,7 @@ class SubcategoryList(APIView):
         #subcategory = get_object_or_404(SubCategory,Q(category=category))
         subcategory = SubCategory.objects.filter(Q(category=category))
         data = SubcategorySerializer(subcategory,many=True).data
+       
         return Response(data)
 
 class SubcategoryApi(APIView):
@@ -253,5 +265,14 @@ class SubcategoryApi(APIView):
         data = SubcategorySerializer(subcategory,many=True).data
         return Response(data)
 
-     
+class ProductList(APIView):
+          
+    def get(self,request,subcategory):
+        print("Product API List")
+        obj_subcategory = get_object_or_404(SubCategory,Q(id=subcategory))
+        ProductList = Product.objects.filter(subcategory=obj_subcategory)
+        data = ProductSerializer(ProductList,many=True).data
+       
+        return Response(data)
+
      

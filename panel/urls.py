@@ -13,9 +13,10 @@ urlpatterns = [
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),
     path('producto/<int:product_id>/', views.panel_product_detalle, name='panel_producto_detalle'),
 
-    path('producto/kit/<int:prod_id>/', views.panel_product_kit, name='panel_product_kit'),
+    path('producto/kit/<int:prod_id>/', views.panel_product_kit, name='panel_product_kit'),  #OK
     path('producto/buscar_producto_hijo/', views.panel_buscar_producto_hijo, name='buscar_producto_hijo'),
-    path('producto/kit/<int:producto_id>/agregar/', views.panel_agregar_producto_al_kit, name='agregar_producto_al_kit'),    
+    #path('producto/kit/<int:producto_id>/agregar/', views.panel_agregar_producto_al_kit, name='agregar_producto_al_kit'),   
+    path('producto/kit/', views.panel_agregar_producto_al_kit, name='agregar_producto_al_kit'),    
     path('producto/kit/<int:idkit>/del/', views.panel_productos_kit_del, name='panel_productos_kit_del'),    
 
 

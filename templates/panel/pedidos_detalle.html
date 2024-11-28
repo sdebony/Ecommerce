@@ -62,6 +62,11 @@
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}
+                  {% if ordenes.dir_correo == 0 %}
+                  <h4><i class="fas fa-user"></i> 
+                    <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
+                  </h4>
+                  {% endif %}
                 </div>
                 <!-- /.col -->
               </div>
@@ -98,7 +103,7 @@
                     <tr>
                       <th>Cantidad</th>
                       <th>Product</th>
-                      <th>Variantes</th>
+                      <th>Variantes / Kits</th>
                       <th>Precio Unit</th>
                       <th>Descuento</th>
                       <th>Subtotal</th>
@@ -112,6 +117,13 @@
                       <td>
                         {% for var in item.variations.all %}
                           {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
+                        {% endfor %}
+                        {% for product in products_and_quantities|default:'' %}
+                        <p class="text-muted small">
+                                {% if item.id == product.order_product %}
+                                    {{ product.quantity }} x {{ product.product_name }}  <br>
+                                {% endif %}
+                            </p>
                         {% endfor %}
                       </td>
                       <td>{{ item.product_price|format_currency }}</td>

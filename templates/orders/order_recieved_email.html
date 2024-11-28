@@ -140,19 +140,28 @@
               {% for item in ordered_products %}
                 <tr>
                     <td>{{item.product.product_name}}
-                        <p class="text-muted small">
                           {% if item.variations.all %}
+                          <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
                             {% for i in item.variations.all %}
                               {{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
                             {% endfor %}
+                            </p>
                           {% endif %}
-                        </p>
+                          {% for product in products_and_quantities|default:'' %}
+                          <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
+                                {% if item.id == product.order_product %}
+                                    {{ product.quantity }} x {{ product.product_name }}  <br>
+                                {% endif %}
+                            </p>
+                            {% endfor %}
+          
                     </td>
 
                     <td>{{item.quantity}}</td>
                     <td>${{item.product_price}}</td>
                     <td>${{item.subtotal}}</td>
                 </tr>
+               
                 {% endfor %}
             </tbody>
         </table>

@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
-from carts.models import CartItem
+from carts.models import CartItem,CartItemKit
 from store.models import ProductKit
+from orders.models import OrderProductKitItem
 from .forms import OrderForm
 import datetime
 import time
 from .models import Order, Payment, OrderProduct,OrigenVenta
 from accounts.models import AccountDirecciones, Account
+from django.db.models import F
 
 
 import json
@@ -235,6 +237,8 @@ def order_cash(request):
         order_number = request.POST.get('order_number')
          
         pesoarticulos=0
+        resultado_final = []
+
         order = Order.objects.get(user=request.user, is_ordered=False, order_number=order_number)
         
         # Move the cart items to Order Product table
@@ -264,24 +268,39 @@ def order_cash(request):
             orderproduct.save()
 
 
-            # Reduce the quantity of the sold products
-           
+            print("Item Kits")
+            # Verifico los articulos KITS y sus componenetes
+            item_kits = CartItemKit.objects.filter(cart=cart_item)
+            if item_kits:
+                for item_kit in item_kits:
+                   #Guardo en OrderProductKits
+                    OrderProductKitItem.objects.create(order_product=orderproduct, product=item_kit.product, quantity=item_kit.quantity)
+                    # Redusco Stock de los articulos Kits
+                    product = Product.objects.get(id=item_kit.product.id)
+                    if product:
+                        #pesoarticulos += product.peso * item.quantity 
+                        product.stock = product.stock - item_kit.quantity
+                        product.save()
+
+            #Envio detalle de kits al order_recibe para el mail.
+            kits = OrderProductKitItem.objects.filter(order_product=orderproduct).annotate(
+                product_name=F('product__product_name')
+                ).values('product_name', 'quantity','order_product')  # Selecciona solo el nombre del producto y la cantidad
+
+            # Agregar al resultado final
+            resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
+
+
+     
+            print(" Fin Item Kits")
+            # Reduce el stock del articulo KIT original
             product = Product.objects.get(id=item.product_id)
             if product:
                 pesoarticulos += product.peso * item.quantity 
                 product.stock = product.stock - item.quantity
                 product.save()
 
-                if product.es_kit:
-                    # Filtrar todos los kits asociados con el producto dado
-                    kits = ProductKit.objects.filter(productokit=product.id)
-                    with transaction.atomic():
-                        for kit in kits:
-                            product_hijo = kit.productohijo
-                            cantidad_a_reducir = kit.cantidad * item.quantity
-                            # Restar la cantidad en stock del producto hijo
-                            product_hijo.stock -= cantidad_a_reducir
-                            product_hijo.save()
+              
                         
             
         #print("total peso Articulos:",pesoarticulos)
@@ -314,6 +333,7 @@ def order_cash(request):
             #Es pago contra recibo
             #payment = Payment.objects.get(payment_id=transID)
             payment = []
+            print("resultado_final",resultado_final)
 
 
             #*************************************
@@ -326,6 +346,7 @@ def order_cash(request):
                 'user': request.user,
                 'order': order,
                 'ordered_products': ordered_products,
+                'products_and_quantities':resultado_final,
                 'order_number': order.order_number,
                 'transID': 'Pendiente', #payment.payment_id,
                 'payment': payment,    #Viaja Vacío

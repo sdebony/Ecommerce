@@ -257,6 +257,7 @@
       						{% endfor %}
       					{% endif %}
       				</p>
+               
       			</figcaption>
       		</figure>
       	</td>
@@ -272,6 +273,17 @@
       	</td>
 
       </tr>
+      {% if cart_item.product.es_kit %}
+      <tr> <td colspan="3">
+      <p class="text-muted small">
+          {% for product in products_and_quantities|default:'' %}
+            {% if cart_item.id == product.cart %}
+            {{ product.quantity }} x {{ product.product_name }}  <br>
+            {% endif %}
+          {% endfor %}
+      </p>
+    </td></tr>
+    {% endif %}
       {% endfor %}
 
       </tbody>

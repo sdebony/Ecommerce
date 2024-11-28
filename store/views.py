@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product, ReviewRating, ProductGallery
+from .models import Product, ReviewRating, ProductGallery, ProductKit,ProductKitEnc
 from category.models import Category,SubCategory
-from carts.models import CartItem
+from carts.models import CartItem,CartItemKit
 from django.db.models import Q,Value
 from django.db.models.functions import Concat
 
@@ -15,7 +15,10 @@ from orders.models import OrderProduct
 
 from django.conf import settings
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 
@@ -142,6 +145,10 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request, 'store/new_store.html', context)
     
 def product_detail(request, category_slug, product_slug):
+
+    
+    
+    print("product_detail: User: ")
     try:
         single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)
         in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
@@ -149,11 +156,14 @@ def product_detail(request, category_slug, product_slug):
         raise e
 
     if request.user.is_authenticated:
+        user=request.user
         try:
             orderproduct = OrderProduct.objects.filter(user=request.user, product_id=single_product.id).exists()
         except OrderProduct.DoesNotExist:
             orderproduct = None
+            user=None
     else:
+        user=None
         orderproduct = None
 
     # Get the reviews
@@ -161,12 +171,46 @@ def product_detail(request, category_slug, product_slug):
 
     # Get the product gallery
     product_gallery = ProductGallery.objects.filter(product_id=single_product.id)
+    
+    cartitemkit=[]
+    if not user:
+        print("Not User, in_car:",in_cart)
+        cartitem = CartItem.objects.filter(product=single_product.id,cart=in_cart).first()
+    else:
+        print("User:",user)
+        cartitem = CartItem.objects.filter(product=single_product.id,user=user).first()
+    if cartitem:
+        print("cartitem product",cartitem)
+        if user:
+            cartitemkit = CartItemKit.objects.filter(cart=cartitem,user=user)
+            print(cartitemkit)
+        else:
+            print("No User")
+            cartitemkit = CartItemKit.objects.filter(cart=cartitem)
+            print(cartitemkit)
+
+    
+    kit=[]
+    productos_kit=[]
+    if single_product.es_kit:
+        try:
+            print("es kit:",single_product)
+            kit = ProductKitEnc.objects.get(productokit=single_product)
+            if kit:
+                productos_kit = ProductKit.objects.filter(productokit=kit)
+        except:
+            pass
+
+   
 
     context = {
         'single_product': single_product,
         'in_cart'       : in_cart,
         'orderproduct': orderproduct,
         'reviews': reviews,
+        'kit':kit,
+        'productos_kit': productos_kit,
+        'cartitemkit':cartitemkit,
         'product_gallery': product_gallery,
     }
     return render(request, 'store/product_detail.html', context)
@@ -212,7 +256,6 @@ def search(request):
     else:   #Default para test mariano 
         return render(request, 'store/new_store.html', context)
 
-
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
     if request.method == 'POST':
@@ -240,3 +283,11 @@ def condiciones (request):
 
     return render (request,"includes/como_comprar.html")
     
+
+
+
+
+
+
+
+
