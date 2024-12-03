@@ -49,8 +49,14 @@
                        
                         {% for venta in ventas.results %}
                         <tr> 
-                            <th><a href="{% url 'meli_ventas_detalle' venta.id %}">{{ venta.id }}</a> </th>
-                            <th>{{ venta.date_created }} </th>
+                            <th><a href="{% url 'meli_ventas_detalle' venta.id %}">{{ venta.id }} </a>
+                            {% if venta.existe_en_bd %}
+                                <span class="badge bg-success text-white">Ingresada</span>
+                            {% else %}
+                                <span class="badge bg-primary text-white">Nueva</span>
+                            {% endif %}
+                             </th>
+                            <th>{{ venta.date_created|format_iso_date }} </th>
                             <th>{{ venta.tags|last  }}</th>
                             <th>{{ venta.total_amount|format_currency }}</th>
                             <th>{{ venta.payments.0.shipping_cost|format_currency }}</th>

@@ -8,6 +8,8 @@ urlpatterns = [
     path('dashboard/cuentas', views.dashboard_cuentas, name='dashboard_cuentas'),
     path('dashboard/resultados/<int:cuenta_id>', views.dashboard_resultados, name='dashboard_resultados'),
     path('dashboard/control', views.dashboard_control, name='dashboard_control'),
+    path('dashboard/resultados', views.dashboard_resumen_ventas, name='dashboard_resumen_ventas'),
+
     #PRODUCTOS
     path('productos/list', views.panel_product_list_category, name="producto_list_category"),
     path('catalogo/', views.panel_product_list, name='panel_catalogo'),

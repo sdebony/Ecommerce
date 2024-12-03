@@ -16,6 +16,7 @@ class Product(models.Model):
     images          = models.ImageField(upload_to='photos/products')
     imgfile         = models.TextField(max_length=300, blank=True)
     stock           = models.IntegerField()
+    stock_minimo    = models.IntegerField(default=0,blank=True)
     is_available    = models.BooleanField(default=True)
     category        = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory     = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
@@ -27,7 +28,7 @@ class Product(models.Model):
     ubicacion       = models.CharField(max_length=10,blank=True)
     precio_TN       = models.FloatField(default=0,blank=True)
     precio_ML       = models.FloatField(default=0,blank=True)
-    sku_meli        = models.CharField(max_length=20,blank=True)  #MLA-1915430118
+    sku_meli        = models.CharField(max_length=420,blank=True)  #MLA-1915430118
     url_meli        = models.CharField(max_length=650,blank=True) #https://articulo.mercadolibre.com.ar/MLA-1915430118-tubo-de-tenis-x-3-pelotas-tenis-head-tour-_JM
     es_kit          = models.BooleanField(default=False)
 

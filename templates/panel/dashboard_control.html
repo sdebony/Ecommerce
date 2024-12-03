@@ -60,7 +60,7 @@
                 <!-- Stock en Unidades -->
                 <div class="card border-left-success shadow h-100 py-2">
                     <div class="card-body text-center">
-                        <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Stock en Unidades</div>
+                        <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Stock Fisico</div>
                         <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ resultados.total_stock }}</strong></div>
                     </div>
                 </div>
@@ -118,8 +118,9 @@
                 <!-- Artículos en Pérdida -->
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body text-center">
-                        <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad de Ventas</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_ventas }}</strong></div>
+                        <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">Cantidad comprada - cantidad vendida</p>
+                        <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Stock Teorico</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ stock_control }}</strong></div>
                     </div>
                 </div>
             </div>
@@ -139,7 +140,7 @@
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body text-center">
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad Articulos vendidos</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ margen_utilidad.total_articulos_vendidos }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_articulos_vendidos }}</strong></div>
                     </div>
                 </div>
             </div>
@@ -187,8 +188,8 @@
                   <!-- Artículos en Pérdida -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3"></div>
-                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong></strong></div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total de Ventas</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_ventas }}</strong></div>
                       </div>
                   </div>
               </div>

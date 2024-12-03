@@ -16,30 +16,30 @@
                             <label for="">Nombre</label>
                                 <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
                                 <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" maxlength="70" required>
-                            </div>
-                            <div class="col form-group">
-                                <label for="">slug</label>
-                                <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
-                            </div>
                         </div>
-                        <div class="col form-group">    
-                            <div class="form-check "> <!-- Puedes usar mb-4 para margen inferior -->
-                                {% if producto.is_available %}
-                                <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
-                                {% else %}
-                                <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
-                                {% endif %}
-                                <label class="form-check-label" for="is_available">Activo</label>
-                            </div>
-                            
-                            <div class="form-check"> <!-- OCULTO HASTA QUE SE APRUEBE EL REQUERIMIENTO -->
-                                {% if producto.es_kit %}
-                                <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="0" checked>
-                                {% else %}
-                                <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="1">
-                                {% endif %}
-                                <label class="form-check-label" for="es_kit">Es KIT</label>
-                            </div>
+                        <div class="col form-group">
+                            <label for="">slug</label>
+                            <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
+                        </div>
+                    </div>
+                    <div class="col form-group">    
+                        <div class="form-check "> <!-- Puedes usar mb-4 para margen inferior -->
+                            {% if producto.is_available %}
+                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
+                            {% else %}
+                            <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
+                            {% endif %}
+                            <label class="form-check-label" for="is_available">Activo</label>
+                        </div>
+                        
+                        <div class="form-check"> <!-- OCULTO HASTA QUE SE APRUEBE EL REQUERIMIENTO -->
+                            {% if producto.es_kit %}
+                            <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="0" checked>
+                            {% else %}
+                            <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="1">
+                            {% endif %}
+                            <label class="form-check-label" for="es_kit">Es KIT</label>
+                        </div>    
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
@@ -64,6 +64,10 @@
                         <div class="col form-group">
                             <label for="">Peso (Gramos)</label>
                             <input type="text" name="peso" class="form-control" value=" {{producto.peso}} " required>
+                        </div>
+                        <div class="col form-group bg-warning text-dark p-2 rounded">
+                            <label for="peso">Stock Mínimo</label>
+                            <input type="text" name="stock_minimo" class="form-control" value="{{ producto.stock_minimo }}" >
                         </div>
                         
                     </div>

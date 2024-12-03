@@ -123,6 +123,13 @@
               {% endif %}
             {% endif %}
             {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD RESUMEN VENTAS' %}
+                  <a class="collapse-item" href="{% url 'dashboard_resumen_ventas' %}" >Resumen Ventas</a>
+              {% endif %}
+            {% endif %}
+            {% endfor %}
           </div>
         </div>
       </li>
@@ -387,7 +394,7 @@
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_search' %}">Buscar Productos</a>
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_publicaciones' %}">Mis Publicaciones</a>
                   <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_ventas' %}">Mis Ventas</a>
-                
+                              
                   {% endif%}
               {% endif %}
             {% endfor %}

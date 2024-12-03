@@ -1,4 +1,5 @@
 from django import template
+from datetime import datetime
 
 import locale
 
@@ -67,3 +68,10 @@ def format_number(value):
         return f"{formatted_value}"
     except (ValueError, TypeError):
         return value
+
+@register.filter
+def format_iso_date(value):
+    try:
+        return datetime.fromisoformat(value.split(".")[0]).strftime('%d-%m-%Y')
+    except Exception:
+        return value  # Devuelve la fecha original si hay un error

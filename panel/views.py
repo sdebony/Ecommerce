@@ -15,7 +15,7 @@ from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
-from compras.models import CompraDolar,ProveedorArticulos
+from compras.models import CompraDolar,ProveedorArticulos,ComprasDet
 from accounts.forms import UserForm, UserProfileForm
 from meli.models import meli_params
 from django.db.models.functions import TruncMonth
@@ -26,6 +26,8 @@ from datetime import timedelta,datetime,timezone
 from decimal import Decimal
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
+from django.db.models import Sum, Avg, F, Q
+
 import requests
 from django.db.models import Case, When, Value, FloatField, ExpressionWrapper, F
 from django.db.models.functions import Coalesce
@@ -35,6 +37,8 @@ from django.db.models.functions import TruncDate
 from time import sleep  # Simular un proceso largo
 from carts.models import CartItem
 from django.http import JsonResponse
+
+from collections import defaultdict
 
 
 from .utils import consultar_costo_envio,consultar_sucursal_bycp,oca_consultar_costo_envio_by_cart,ca_consultar_costo_envio_by_cart  # Asegúrate de que esta función esté disponible
@@ -256,6 +260,12 @@ def dashboard_cuentas(request):
         lim_fecha_desde = datetime(yr,mt,dt)
  
         mt = int(mt) + 1
+        if mt == 13:
+            mt = 1
+            yr=yr+1
+
+       
+
         lim_fecha_hasta = datetime(yr,mt,dt)
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
 
@@ -432,6 +442,10 @@ def dashboard_resultados(request,cuenta_id=None):
         lim_fecha_desde = datetime(yr,mt,dt)
  
         mt = int(mt) + 1
+    
+        if mt == 13:
+            mt = 1
+            yr=yr+1
         lim_fecha_hasta = datetime(yr,mt,dt)
         lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
 
@@ -525,8 +539,7 @@ def dashboard_control(request):
             margen_utilidad_total=Sum(
                 ((F('precio_unitario_cobrado') - F('descuento_unitario')) * F('quantity')) - (F('costo') * F('quantity')),
                 output_field=FloatField()  # Asegura que el resultado sea un campo flotante
-            ),
-            total_articulos_vendidos=Sum('quantity')  # Total de artículos vendidos
+            )
         )    
        
         
@@ -534,7 +547,7 @@ def dashboard_control(request):
         total_product_price = margen_bruto['total_product_price']
         total_product_cost = margen_bruto['total_product_cost']
         total_ventas = orders_validas.count()
-        total_articulos_vendidos = margen_utilidad['total_articulos_vendidos']
+        total_articulos_vendidos = 0
 
         total_ganancia_real = round(float(total_facturacion) - float(total_product_cost),2)
 
@@ -550,11 +563,33 @@ def dashboard_control(request):
         multi_cuentas= settings.STORE_MULTI_CANAL
 
 
+        #STOCK TEORICO  LO COMPRADO MENOS LO VENDIDO
+        # Sumar el total del campo cantidad del modelo ComprasDet
+        compras_total = ComprasDet.objects.aggregate(total=Sum('cantidad'))['total'] or 0
+        print("cantidad comprada",compras_total)
+
+        # Filtrar productos con es_kit=True
+        productos_kit_total = OrderProduct.objects.filter(product__es_kit=True).annotate(
+            unidades_totales=F('quantity') * F('product__productkitenc__cant_unidades')
+        ).aggregate(total=Sum('unidades_totales'))['total'] or 0
+
+        print("vendidas en kit:",productos_kit_total)
+        # Sumar el total de 'quantity' excluyendo los productos con 'product.es_kit = False'
+        orders_total = OrderProduct.objects.filter(product__es_kit=False).aggregate(total=Sum('quantity'))['total'] or 0
+        print("vendidas no kit:",orders_total)
+
+        total_articulos_vendidos = int(productos_kit_total) + int(orders_total)
+        # Generar el resultado en el formato requerido
+        stock_control = int(compras_total) - int(total_articulos_vendidos)
+
+
         context = {
             'permisousuario':permisousuario,
             'resultados':resultados,
+            'stock_control':stock_control,
             'margen_bruto_total':margen_bruto_total,
             'total_ganancia_real':total_ganancia_real,
+            'total_articulos_vendidos':total_articulos_vendidos,
             'margen_utilidad':margen_utilidad,
             'total_facturacion_meli':total_facturacion_meli,
             'total_facturacion_web':total_facturacion_web,
@@ -568,6 +603,52 @@ def dashboard_control(request):
         return render (request,"panel/dashboard_control.html",context)
     else:
         return render (request,"panel/login.html")  
+
+def dashboard_resumen_ventas(request):
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+       
+    if validar_permisos(request,'DASHBOARD RESUMEN VENTAS'):
+        
+        # Obtener datos agregados con la relación origen_venta
+        ventas_mensuales = Order.objects.filter(
+            status__in=["Completed", "Cobrado", "Entregado"]
+        ).annotate(
+            mes=TruncMonth("fecha")
+        ).values(
+            "mes", "origen_venta__origen"  # Usar el campo 'origen' del modelo relacionado
+        ).annotate(
+            total=Sum("order_total")
+        ).order_by("mes")
+
+        # Procesar datos
+        datos_por_mes = defaultdict(lambda: {"Mercado Libre": 0, "Web": 0, "Mercado Libre + Web": 0})
+        for venta in ventas_mensuales:
+            mes = venta["mes"]
+            origen = venta["origen_venta__origen"]  # Usar el nombre del campo origen
+            if origen in ["Mercado Libre", "Web"]:
+                datos_por_mes[mes][origen] += venta["total"]
+                datos_por_mes[mes]["Mercado Libre + Web"] += venta["total"]
+
+        # Preparar listas
+        meses = sorted(datos_por_mes.keys())
+        ventas_mercado_libre = [datos_por_mes[mes]["Mercado Libre"] for mes in meses]
+        ventas_web = [datos_por_mes[mes]["Web"] for mes in meses]
+        ventas_combinadas = [datos_por_mes[mes]["Mercado Libre + Web"] for mes in meses]
+
+        # Contexto para la plantilla
+        context = {
+            'labels': [mes.strftime("%b %Y") for mes in meses],  # Formato: Mes Año
+            'ventas_mercado_libre': ventas_mercado_libre,
+            'ventas_web': ventas_web,
+            'ventas_combinadas': ventas_combinadas,
+            'permisousuario':permisousuario,
+        }
+        
+        return render(request, 'panel/dashboard_resumen_ventas.html', context) 
+       
+    else:
+        return render (request,"panel/login.html")
 
 def panel_product_list_category(request):
     
@@ -1739,6 +1820,7 @@ def panel_product_crud(request):
             price = request.POST.get("price")
             images = request.POST.get("images")
             stock = request.POST.get("stock")
+            stock_minimo = request.POST.get("stock_minimo")
             cat_id = request.POST.get("category")
             subcat_id = request.POST.get("subcategory")
             is_popular = request.POST.getlist("is_popular[]")
@@ -1758,8 +1840,13 @@ def panel_product_crud(request):
             if not ubicacion:
                 ubicacion=''
           
+            if not stock_minimo:
+                stock_minimo=0
+
             if not es_kit:
                 es_kit = False
+            else:
+                es_kit = True
 
             category = Category.objects.get(id=cat_id)
             subcategory = SubCategory.objects.get(id=subcat_id)
@@ -1811,6 +1898,7 @@ def panel_product_crud(request):
                     product_udp.images = images
                     product_udp.imgfile = images
                     product_udp.stock = stock_entero
+                    product_udp.stock_minimo = stock_minimo
                     product_udp.is_available = habilitado
                     product_udp.category = category
                     product_udp.subcategory = subcategory
@@ -1856,6 +1944,7 @@ def panel_product_crud(request):
                             images=images,
                             imgfile = images,
                             stock=stock_entero,
+                            stock_minimo = stock_minimo,
                             is_available=True,
                             category=category,
                             subcategory = subcategory,
@@ -2005,11 +2094,11 @@ def panel_producto_precio_ext(request):
             precio_ml=0
 
         if not sku_meli:
-            sku_meli=None
+            sku_meli=''
         else:
             sku_meli = sku_meli.strip() 
         if not url_meli:
-            url_meli=None
+            url_meli=''
         else:
             url_meli = url_meli.strip() 
 
@@ -5574,58 +5663,66 @@ def panel_pedidos_obtener_linea(request,item=None):
 def panel_reporte_articulos_list(request):
 
     if validar_permisos(request,'REPORTE ARTICULOS'):
-        fecha_1 = request.POST.get("fecha_desde")
-        fecha_2 = request.POST.get("fecha_hasta")     
-        if not fecha_1 and not fecha_2 :
-            fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
-            dias = timedelta(days=90) 
-            fecha_desde = fecha_hasta - dias
-        else:      
-            fecha_desde = datetime.strptime(fecha_1, '%d/%m/%Y')
-            fecha_hasta = datetime.strptime(fecha_2, '%d/%m/%Y')
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+         # Fechas
+        hoy = datetime.today()
+        inicio_rango_6m = hoy - timedelta(days=30*6)  # Hace 6 meses
+        inicio_mes_actual = hoy.replace(day=1)  # Inicio del mes actual
+
+        # Ventas del mes actual
+        ventas_mes_actual = (
+            OrderProduct.objects.filter(
+                order__fecha__gte=inicio_mes_actual,  # Solo el mes actual
+                order__fecha__lte=hoy
+            )
+            .values('product__product_name', 'product__stock', 'product__stock_minimo')
+            .annotate(
+                total_ventas=Sum('quantity')  # Total de ventas del mes actual
+            )
+        )
+
+        # Ventas de los últimos 6 meses (excluyendo el mes actual)
+        ventas_6_meses = (
+            OrderProduct.objects.filter(
+                order__fecha__gte=inicio_rango_6m,  # Desde hace 6 meses
+                order__fecha__lt=inicio_mes_actual  # Hasta antes del mes actual
+            )
+            .values('product__product_name', 'product__stock', 'product__stock_minimo')
+            .annotate(
+                promedio_ventas=Avg('quantity')  # Promedio de ventas de los últimos 6 meses
+            )
+        )
+
+        # Combinar los resultados
+        productos = {}
+        for venta in ventas_mes_actual:
+            productos[venta['product__product_name']] = {
+                'stock': venta['product__stock'],
+                'stock_minimo': venta['product__stock_minimo'],
+                'total_mes_actual': venta['total_ventas'],
+                'promedio_6_meses': 0,  # Valor por defecto si no hay datos en 6 meses
+            }
+
+        for venta in ventas_6_meses:
+            if venta['product__product_name'] in productos:
+                productos[venta['product__product_name']]['promedio_6_meses'] = venta['promedio_ventas']
+            else:
+                productos[venta['product__product_name']] = {
+                    'stock': venta['product__stock'],
+                    'stock_minimo': venta['product__stock_minimo'],
+                    'total_mes_actual': 0,  # Valor por defecto si no hay ventas en el mes actual
+                    'promedio_6_meses': venta['promedio_ventas'],
+                }
                 
-        items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta])
-        items = OrderProduct.objects.filter(order__in=items_pedidos).values('product__product_name').annotate(
-            cantidad=Sum('quantity'),
-            importe=Sum('product_price')).order_by('-cantidad')
-       
 
-        hist_pedidos = []
-
-        for i in range(1, 13): 
-            payments_months = Order.objects.filter(fecha__month = i)
-            month_earnings = round(sum([Order.order_total for Order in payments_months]))
-            hist_pedidos.append(month_earnings)
-
-
+        print(productos)
         
-        yr = int(datetime.today().strftime('%Y'))
-        dt = 1
-        mt = int(datetime.today().strftime('%m'))
-        lim_fecha_desde = datetime(yr,mt,dt)
-        if mt==12:
-            mt=1
-            yr+=1
-        else:
-            mt = int(mt) + 1
-        
-        lim_fecha_hasta = datetime(yr,mt,dt)
-        lim_fecha_hasta = lim_fecha_hasta + timedelta(days=-1)
-      
-       
-        form = []
         context = {
             'permisousuario':permisousuario,
-            'hist_pedidos':hist_pedidos,
-            'items': items,
-            'form': form,
-            'fecha_desde':fecha_desde,
-            'fecha_hasta':fecha_hasta,
-            'lim_fecha_desde':lim_fecha_desde,
-            'lim_fecha_hasta':lim_fecha_hasta
-           
+             'productos': productos
+            #'fecha_desde':fecha_desde,
+            #'fecha_hasta':fecha_hasta
             }
         
 

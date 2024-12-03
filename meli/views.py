@@ -11,6 +11,7 @@ from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product
 
 from datetime import datetime
 from datetime import date
+from django.db.models import Q
 
 import requests
 from django.http import JsonResponse
@@ -452,42 +453,69 @@ def meli_publicaciones(request):
 
         print("Mis publicaciones")
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-       
-        publicaciones=''
+
+        # Obtener todas las publicaciones
         publicaciones = meli_get_all_publicaciones(request)
-        print(publicaciones)
 
-        # Busca los detalles de los artículos
-        url = "https://api.mercadolibre.com/items?ids=" + str(publicaciones)
-        
+        # Divide las publicaciones en chunks de máximo 20
+        publicaciones_lista = publicaciones.split(',')
+        chunk_size = 20
+        publicaciones_chunks = [publicaciones_lista[i:i + chunk_size] for i in range(0, len(publicaciones_lista), chunk_size)]
+
+        # Calcular la cantidad total de publicaciones
+        cantidad_publicaciones = len(publicaciones_lista)
+
+        # Token de autorización
         access_token = meli_get_authorization_code(settings.CLIENTE_ID)
-        
-        payload = {}
         headers = {
-            'Authorization': access_token #'APP_USR-710125811010660-102410-fc5f755c5fbdf1b370dd274c57b7e838-1998248263'
+            'Authorization': access_token
         }
 
-        articulos=[]
-        detail_response = requests.request("GET", url, headers=headers, data=payload)
-        
-        if detail_response.status_code == 200:
-            articulos = detail_response.json()  # Detalles de los artículos
-            
+        articulos = []
 
-        else:
-            print(f"Error al obtener los detalles de los productos: {detail_response.status_code}")
-            print(f"Contenido de la respuesta: {detail_response.text}")
-            messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+        # Iterar sobre los chunks y realizar solicitudes a la API
+        for chunk in publicaciones_chunks:
+            ids_concatenados = ','.join(chunk)  # Concatenar los IDs separados por comas
+            url = f"https://api.mercadolibre.com/items?ids={ids_concatenados}"
+            payload = {}
 
-         
+            detail_response = requests.request("GET", url, headers=headers, data=payload)
 
-        
+            if detail_response.status_code == 200:
+                chunk_data = detail_response.json()  # Obtener los datos del chunk
+                for item in chunk_data:
+                    if 'body' in item:  # Validar que el detalle de la publicación está disponible
+                        publicacion_id = item['body']['id']
+                        
+                        # Buscar el producto en el modelo Product
+                        producto = Product.objects.filter(Q(sku_meli__regex=rf'(^|,){publicacion_id}(,|$)')).first()
+                        
+                       # Obtener el estado de la publicación
+                        estado_publicacion = meli_get_estado_publicacion(request, publicacion_id)
+
+                        # Si el estado es una cadena válida, úsalo; de lo contrario, asigna un valor predeterminado
+                        status = estado_publicacion if estado_publicacion else 'Estado no disponible'
+
+                        # Añadir los datos al resultado
+                        articulos.append({
+                            'publicacion': item['body'],
+                            'producto': producto,  # Será None si no se encuentra
+                            'status': status
+                        })
+            else:
+                print(f"Error al obtener los detalles del chunk: {detail_response.status_code}")
+                print(f"Contenido de la respuesta: {detail_response.text}")
+                messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+
+        # Contexto para la plantilla
         context = {
-            'permisousuario':permisousuario,
-            'articulos':articulos
+            'permisousuario': permisousuario,
+            'articulos': articulos,  # Todos los resultados con información del producto
+            'cantidad_publicaciones': cantidad_publicaciones  # Cantidad total de publicaciones
         }
 
-        return render(request,'meli/meli_publicaciones.html',context) 
+        return render(request, 'meli/meli_publicaciones.html', context)
+        
 
     return render(request,'panel/login.html',)
 
@@ -496,8 +524,8 @@ def meli_get_all_publicaciones(request):
 
     ids_concatenados = ''
            
-    nick_name = settings.NICK_NAME
-    url = "https://api.mercadolibre.com/sites/MLA/search?nickname=" + str(nick_name)
+    seller_id = settings.SELLER_ID
+    url = "https://api.mercadolibre.com/sites/MLA/search?seller_id=" + str(seller_id)
           
     access_token = meli_get_authorization_code(settings.CLIENTE_ID)
     
@@ -514,12 +542,15 @@ def meli_get_all_publicaciones(request):
         articulos = response_json
         # Obtener la lista de IDs
         ids = [result['id'] for result in articulos['results']]
+
         # Concatenar los IDs en un solo string, separados por comas
         ids_concatenados = ','.join(ids)
     else:
         ids_concatenados=''
         messages.error(request,"Error de conexion  en Mercado Libre. - Consulta Productos")
         print("ERROR DE CONEXION - Consulta")
+
+    print("RTA all publicaciones:", ids_concatenados)
 
     return ids_concatenados
 
@@ -562,6 +593,7 @@ def meli_ventas(request):
         if detail_response.status_code == 200:
             ventas = detail_response.json()  # Detalles de los artículos
             # Realizar el cálculo de (total_paid_amount - (quantity * sale_fee)) para cada venta
+            
             for venta in ventas['results']:
                 total_paid_amount = venta['payments'][0]['total_paid_amount']
                 shipping_cost = venta['payments'][0]['shipping_cost']
@@ -575,6 +607,16 @@ def meli_ventas(request):
                 venta['total_comision'] =  (quantity * sale_fee)
                 venta['total_calculado'] = total_amount - (quantity * sale_fee) - shipping_cost 
                 venta['total_amount'] = total_amount
+
+                # Verificar si el `order_id` está en la base de datos
+                order_id = venta['payments'][0].get('order_id')  # Obtener el order_id del pago
+                print("order_id",order_id)
+                if order_id:
+                    existe = Order.objects.filter(order_number=order_id).exists()
+                    venta['existe_en_bd'] = existe  # Agregar esta información a la venta para usarla en la plantilla
+                else:
+                    venta['existe_en_bd'] = False  # Si no hay order_id, asumimos que no existe
+
 
 
         else:
@@ -693,7 +735,8 @@ def get_producto_ml(producto_ml, item_title):
 
         item_title = item_title.replace("Color Amarillo", "").replace("Tubo De Pelotas", "").strip()
         item_title = item_title.replace("Paddel", "Padel")
-        product = Product.objects.filter(sku_meli=producto_ml).first()
+        product = Product.objects.filter(Q(sku_meli__regex=rf'(^|,){producto_ml}(,|$)')).first()
+
         if not product:
             product = Product.objects.filter(product_name__icontains=item_title).first()
 
@@ -860,6 +903,13 @@ def importar_pedido_meli(request):
                     orderproduct.costo = product.costo_prod
                 
                     orderproduct.save()
+
+                    #Descuento Stock producto
+                    productos = Product.objects.get(id=product.id)
+                    if productos:
+                        product.stock = productos.stock - int(quantity)
+                        product.save()
+
                         
                 else:
                     error_items = 1
@@ -1044,3 +1094,113 @@ def traer_datos_facturacion(request,orderid):
             return JsonResponse({'status': 'success', 'message': 'Datos guardados correctamente'})
             
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+def meli_analisis_publicaciones(request,idpublicacion):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        print("Mis publicaciones")
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        # Token de autorización
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        headers = {
+            'Authorization': access_token
+        }
+
+        articulos = []
+
+        url = "https://api.mercadolibre.com/items/" + str(idpublicacion.strip()) + "/price_to_win?version=v2"
+        payload = {}
+        print(url)
+        response = requests.request("GET", url, headers=headers, data=payload)
+        data = response.json()
+        
+        # Procesa los datos para enviarlos al HTML
+        articulos = {
+            "item_id": data.get("item_id"),
+            "current_price": data.get("current_price"),
+            "currency_id": data.get("currency_id"),
+            "price_to_win": data.get("price_to_win"),
+            "boosts": data.get("boosts", []),
+            "status": data.get("status"),
+            "winner": data.get("winner", {})
+        }
+        
+        print(articulos)
+        # Contexto para la plantilla
+        context = {
+            'permisousuario': permisousuario,
+            'product': articulos,  # Todos los resultados con información del producto
+        }
+
+        return render(request, 'meli/meli_analisis_publicaciones.html', context)
+        
+
+    return render(request,'panel/login.html',)
+
+def meli_get_estado_publicacion(request,idpublicacion):
+
+    try:
+        if request.user.is_authenticated:
+            accesousuario =  get_object_or_404(AccountPermition, user=request.user, codigo__codigo ='CONFIG ML')
+            if accesousuario:
+                if accesousuario.modo_ver==False:
+                   print("Sin acceso a ver pedidos")
+                   return render(request,'panel/login.html',)  
+        else:
+            return render(request,'panel/login.html',)  
+    except ObjectDoesNotExist:
+            return render(request,'panel/login.html',)
+
+    
+    if accesousuario.codigo.codigo =='CONFIG ML':
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+        # Token de autorización
+        access_token = meli_get_authorization_code(settings.CLIENTE_ID)
+        headers = {
+            'Authorization': access_token
+        }
+
+        articulos = []
+
+        url = "https://api.mercadolibre.com/items/" + str(idpublicacion.strip()) + "/price_to_win?version=v2"
+        payload = {}
+        response = requests.request("GET", url, headers=headers, data=payload)
+        data = response.json()
+        
+        # Procesa los datos para enviarlos al HTML
+        articulos = {
+            "item_id": data.get("item_id"),
+            "current_price": data.get("current_price"),
+            "currency_id": data.get("currency_id"),
+            "price_to_win": data.get("price_to_win"),
+            "boosts": data.get("boosts", []),
+            "status": data.get("status"),
+            "winner": data.get("winner", {})
+        }
+        
+       
+        if articulos:
+            print(articulos["status"])
+            return articulos["status"]
+        else:    
+            return ""
+        
+
+    return render(request,'panel/login.html',)

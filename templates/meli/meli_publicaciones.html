@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 
 
@@ -19,7 +19,7 @@
               <div class="row no-gutters align-items-center">
                 <div class="col mr-2">        
                     <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Publicaciones </div>
-                  <div class="h5 mb-0 font-weight-bold text-gray-800"> 9 </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ cantidad_publicaciones }} </div>
                 </div>
                 <div class="col-auto">
                   <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
@@ -37,58 +37,101 @@
     <div class="card-body">
         {% if articulos %}
 
-        <table 
-      id="dataTable"
-      data-toggle="table"
-      data-pagination="false"
-      data-search="true"
-      data-show-columns="true"
-      data-show-toggle="true"
-      data-show-fullscreen="false"
-      data-toolbar=".buttons-toolbar"
-      data-locale="es-AR"
-    > 
+        <table
+        id="dataTable"
+        data-toggle="table"
+        data-pagination="false"
+        data-search="true"
+        data-show-columns="true"
+        data-show-toggle="true"
+        data-show-fullscreen="false"
+        data-toolbar=".buttons-toolbar"
+        data-locale="es-AR"> 
        
             <thead class="bg-primary text-white">
                 <tr>
-                    <th data-sortable="true" scope="col">Código</th>
-                    <th data-sortable="true" scope="col">Articulo</th>
-                    <th data-sortable="true" scope="col">Stock</th>
-                    <th data-sortable="true" scope="col">Precio Original</th>
-                    <th data-sortable="true" scope="col">Precio Actual</th>
-                    <th data-sortable="true" scope="col">Vendedor</th>
-                    <th data-sortable="true" scope="col">category_id</th>
-                    <th data-sortable="true" scope="col">Status</th>
-                    <th data-sortable="true" scope="col" data-visible="true">health</th>
-                    <th data-sortable="true" scope="col" data-visible="false">% Interes</th>
+                    <th >Código</th>
+                    <th >Producto Vinculado</th>
+                    <th >Articulo</th>
+                    <th >Stock en Meli</th>
+                    <th >Stock Real</th>
+                    <th >Precio Meli</th>
+                    <th >Precio Real</th>
+                    <th >Status</th>
+                   
+                    
                 </tr>
             </thead>
             <tbody>
                        
                         {% for articulo in articulos %}
-                        <tr>
-                            <th><a href={{articulo.body.permalink}} target="_blank">{{ articulo.body.id }}</a> </th>
-                            <th>{{articulo.body.title }} </th>
-                            <th>{{ articulo.body.initial_quantity }}</th>
-                            {% if articulo.body.original_price %}
-                                <th>$ {{articulo.body.original_price }}</th>
-                            {% else %}
-                                    <th>$ {{articulo.body.base_price }}</th>
-                            {% endif %}    
-                            <th>$ {{articulo.body.price }}</th>
-                            <th> {{articulo.body.seller_id }}</th>
-                            <th>{{articulo.body.category_id}}</a></th>
-                            <th>{{articulo.body.status }} </th>
-                            <th>{{articulo.body.health }} </th>
-                            <th>{{articulo.body.installments.rate}} </th>
-                                
-                            
-                            
-                        </tr>
+                            <tr>
+                              {% if articulo.producto.id %}
+                                <th><a href="{% url 'panel_producto_detalle' articulo.producto.id %}" target="_blank">{{ articulo.publicacion.id }}</a> </th>
+                              
+                              {% else %}
+                                <th><a href="{% url 'panel_catalogo' %}" target="_blank">{{ articulo.publicacion.id }}</a> </th>
+                              
+                              {% endif%}
+                              <th>
+                                {% if articulo.producto %}
+                                    {{ articulo.producto.product_name }}
+                                {% endif %}
+                              </th>
+                              <th>{{articulo.publicacion.title }} </th>
+                              
+                              {% if articulo.publicacion.available_quantity ==  articulo.producto.stock and articulo.producto.stock > 0 or articulo.producto.stock is None %}
+
+                                <th>{{ articulo.publicacion.available_quantity }}</th>
+                                <th>{{ articulo.producto.stock }}</th>
+                              {% else %}
+                                  
+                                <th class="bg-warning text-dark">{{ articulo.publicacion.available_quantity }}</th>
+                                <th class="bg-warning text-dark">{{ articulo.producto.stock }}</th>
+                              {% endif %}
+                              {% if articulo.publicacion.base_price != articulo.producto.precio_ML and articulo.producto.precio_ML > 0 %}
+                          
+                                  {% if articulo.publicacion.original_price %}
+                                        <th class="bg-warning text-dark"> {{articulo.publicacion.original_price|format_currency }}</th>
+                                  {% else %}
+                                        <th class="bg-warning text-dark"> {{articulo.publicacion.base_price|format_currency }}</th>
+                                  {% endif %}    
+                                        <th class="bg-warning text-dark"> {{articulo.producto.precio_ML|format_currency }}</th>
+                                  {% else %}
+
+                                  {% if articulo.publicacion.original_price %}
+                                        <th> {{articulo.publicacion.original_price|format_currency }}</th>
+                                  {% else %}
+                                        <th> {{articulo.publicacion.base_price|format_currency }}</th>
+                                  {% endif %}    
+                                        <th> {{articulo.producto.precio_ML|format_currency }}</th>
+                              {% endif %}      
+                              <th>
+                                {% if articulo.status == "winning" %}
+                                <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                                  <span class="badge bg-success text-white">{{ articulo.status }}</span>
+                                 </a>
+                                 {% elif articulo.status == "not_listed" %}
+                                 <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                                  <span class="badge bg-danger text-white">{{ articulo.status }}</span>
+                                 </a>
+                                 {% elif articulo.status == "sharing_first_place" %}
+                                 <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                                  <span class="badge bg-info text-white">{{ articulo.status }}</span>
+                                 </a>
+                                 {% else %}
+                                 <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                                  <span class="badge bg-warning text-white">{{ articulo.status }}</span>
+                                 </a>
+                                 {% endif %}
+                              </th>
+                              
+                              
+                          </tr>
                         {% endfor %}
                 
                         
-            </thead>
+            </tbody>
         </table>
         {% endif %}
     </div>

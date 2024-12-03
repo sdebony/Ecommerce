@@ -1,5 +1,5 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 {% block page_content %}
 
         <div class="container-fluid">
@@ -7,6 +7,7 @@
             <!-- Page Heading -->
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
                 <h1 class="h3 mb-0 text-gray-800">Reporte de Articulos mas vendidos</h1>
+<!--
                 <form action="{% url 'panel_reporte_articulos_list' %}" enctype="multipart/form-data" method="POST">
                 
                   {% csrf_token %}
@@ -16,13 +17,15 @@
                           <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
                   </div>
                 </form>
-                <!-- Form Export-->
+-->
+                <!-- Form Export
                 <form action="{% url 'export_articulos_vendidos' %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
                     <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde  | date:'d/m/Y' }}" hidden />
                     <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta  | date:'d/m/Y' }}" hidden/>
                     <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>
                 </form>
+-->
             </div>
             <!-- Content Row -->
             
@@ -40,18 +43,22 @@
                                 data-show-columns="false" data-show-toggle="false" data-show-fullscreen="false"
                                 data-toolbar=".buttons-toolbar"  data-locale="es-AR" data-sort-name="quantity" data-sort-order="desc">
                                 <thead>
-                                    <th data-sortable="true" data-field="product_name">Artículo</th>
-                                    <th data-sortable="true" data-field="quantity">Cantidad</th>
-                                    <th data-sortable="true" data-field="stock">Precio de venta</th>
-                                   
+                                    <th data-sortable="true" data-field="Producto">Producto</th>
+                                    <th data-sortable="true" data-field="stock">Stock Actual</th>
+                                    <th data-sortable="true" data-field="stock_minimo">Stock Mínimo</th>
+                                    <th data-sortable="true" data-field="total_mes_actual">Total Venta (Meses Actual)</th>
+                                    <th data-sortable="true" data-field="promedio_6_meses">Promedio de venta (últimos 6 meses)</th>
+
+                               
                                 </thead>
                                 <tbody>
-                                    {% for item in items %}
+                                    {% for producto, datos in productos.items %}
                                     <tr>
-                                        <td>{{item.product__product_name }}</td>
-                                        <td>{{item.cantidad }}</td>
-                                        <td>{{item.importe }}</td>
-                                     
+                                        <td>{{ producto }}</td>
+                                        <td>{{ datos.stock }}</td>
+                                        <td>{{ datos.stock_minimo }}</td>
+                                        <td>{{ datos.total_mes_actual|format_integer_def }}</td>
+                                        <td>{{ datos.promedio_6_meses|format_integer_def }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -62,4 +69,4 @@
               
             </div>
         </div> 
-{% endblock %}
+{% endblock %} 
