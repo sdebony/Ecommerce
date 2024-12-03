@@ -13,6 +13,7 @@ from store.models import Product,Variation,Costo,ProductKit, ProductKitEnc
 from orders.models import Order, OrderProduct,Payment,OrderShipping,OrigenVenta,OrderProductKitItem
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
+from .models import Alerta
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
 from compras.models import CompraDolar,ProveedorArticulos,ComprasDet
@@ -172,13 +173,23 @@ def panel_home(request):
 
     
     if validar_permisos(request,'PANEL'):
+
+        #Alerta.objects.create(usuario=request.user,  # Usuario actual
+        #titulo="Nueva alerta",
+        #mensaje="Esto es un mensaje de prueba para la alerta.",
+        #)
         
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        
+        alertas = Alerta.objects.filter(usuario=request.user, leido=False)
+        cant_alertas = alertas.count()
+
+      
         context = {
-            'permisousuario':permisousuario
+            'permisousuario':permisousuario,
+            'alertas': alertas,
+            'cant_alertas':cant_alertas
             }
-        print("Acceso Panel")
+        print("Acceso Panel Home")
 
         return render (request,"panel/base.html",context)
     else:
@@ -6698,4 +6709,28 @@ def get_customer_correo_arg():
     
     return customer_id
 
+def marcar_como_leida(request, alerta_id):
+
+    #alerta = get_object_or_404(Alerta, id=alerta_id, usuario=request.user)
+    #alerta.leido = True
+    #alerta.save()
+    
+    #return JsonResponse({'success': True}, 'alert':alert)
+
+    # Obtener y marcar la alerta como leída
+    alerta = get_object_or_404(Alerta, id=alerta_id, usuario=request.user)
+    alerta.leido = True
+    alerta.save()
+
+     # Obtener permisos y alertas no leídas
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    alertas = Alerta.objects.filter(usuario=request.user, leido=False)
+
+    # Retornar *querysets* directamente usando su representación como listas
+    return JsonResponse({
+        'success': True,
+        'permisousuario': list(permisousuario.values()),  # Serializar queryset
+        'alertas': list(alertas.values()),               # Serializar queryset
+        'cant_alertas': alertas.count(),
+    })
    

@@ -137,7 +137,8 @@ urlpatterns = [
     path('costo_envio_by_cart/', views.costo_envio_by_cart, name='costo_envio_by_cart'),
     path('edit_dir_entrega/', views.consultar_suc_by_cp, name='consultar_suc_by_cp'),
     
-    
+    #ALERTAS
+    path('panel/alertas/marcar_como_leida/<int:alerta_id>/', views.marcar_como_leida, name='marcar_como_leida'),
     
     
 ]

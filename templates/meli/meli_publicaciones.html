@@ -57,6 +57,7 @@
                     <th >Stock Real</th>
                     <th >Precio Meli</th>
                     <th >Precio Real</th>
+                    <th >Precio Ganador</th>
                     <th >Status</th>
                    
                     
@@ -105,7 +106,8 @@
                                         <th> {{articulo.publicacion.base_price|format_currency }}</th>
                                   {% endif %}    
                                         <th> {{articulo.producto.precio_ML|format_currency }}</th>
-                              {% endif %}      
+                              {% endif %}  
+                              <th> {{ articulo.precio_to_win|format_currency }}</th>
                               <th>
                                 {% if articulo.status == "winning" %}
                                 <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">

@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Sum
+from accounts.models import Account
 
 
 # Create your models here.
@@ -98,3 +99,14 @@ class ImportDolar(models.Model):
     class Meta:
         verbose_name = "ImportDolar"
         verbose_name_plural = "ImportDolar"
+
+class Alerta(models.Model):
+    usuario = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='alertas')
+    titulo = models.CharField(max_length=255)
+    mensaje = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True,null=True)
+    fecha_expiracion = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.titulo

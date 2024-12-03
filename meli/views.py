@@ -491,17 +491,24 @@ def meli_publicaciones(request):
                         producto = Product.objects.filter(Q(sku_meli__regex=rf'(^|,){publicacion_id}(,|$)')).first()
                         
                        # Obtener el estado de la publicación
-                        estado_publicacion = meli_get_estado_publicacion(request, publicacion_id)
-
-                        # Si el estado es una cadena válida, úsalo; de lo contrario, asigna un valor predeterminado
+                        
+                        respuesta = meli_get_estado_publicacion(request, publicacion_id)
+                        
+                        estado_publicacion = respuesta["status"]
+                        precio_to_win = respuesta["price_to_win"]
+                        # Si el estado es una cadena válida, úsal
+                        # o; de lo contrario, asigna un valor predeterminado
                         status = estado_publicacion if estado_publicacion else 'Estado no disponible'
 
                         # Añadir los datos al resultado
                         articulos.append({
                             'publicacion': item['body'],
                             'producto': producto,  # Será None si no se encuentra
-                            'status': status
+                            'status': status,
+                            'precio_to_win':precio_to_win
                         })
+
+                       
             else:
                 print(f"Error al obtener los detalles del chunk: {detail_response.status_code}")
                 print(f"Contenido de la respuesta: {detail_response.text}")
@@ -1197,10 +1204,10 @@ def meli_get_estado_publicacion(request,idpublicacion):
         
        
         if articulos:
-            print(articulos["status"])
-            return articulos["status"]
+            print(articulos["status"],articulos["price_to_win"])
+            return {"status": articulos["status"], "price_to_win": articulos["price_to_win"]}
         else:    
-            return ""
+             return {"status": "", "price_to_win": ""}
         
 
     return render(request,'panel/login.html',)
