@@ -39,6 +39,7 @@
 
         <table
         id="dataTable"
+        style="font-size: 13px;"
         data-toggle="table"
         data-pagination="false"
         data-search="true"
@@ -58,6 +59,7 @@
                     <th >Precio Meli</th>
                     <th >Precio Real</th>
                     <th >Precio Ganador</th>
+                    <th >Gan Precio Ganador</th>
                     <th >Status</th>
                    
                     
@@ -108,6 +110,18 @@
                                         <th> {{articulo.producto.precio_ML|format_currency }}</th>
                               {% endif %}  
                               <th> {{ articulo.precio_to_win|format_currency }}</th>
+                              {% if articulo.ganancia_precio_competencia > 0 %}
+                              <th> <span class="badge bg-success text-white">
+                                    {{ articulo.ganancia_precio_competencia|format_currency }}
+                                  </span>
+                              </th>
+                              {% else %}
+                              <th> 
+                                <span class="badge bg-warning text-white" >
+                                  {{ articulo.ganancia_precio_competencia|format_currency }}
+                                </span>
+                              </th>
+                              {% endif %}
                               <th>
                                 {% if articulo.status == "winning" %}
                                 <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">

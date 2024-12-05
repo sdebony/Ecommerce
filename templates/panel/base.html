@@ -486,7 +486,7 @@
 
         <!-- Topbar -->
         {% block top_bar %}
-        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-6 static-top shadow">
        <!--    Topbar Navbar -->
           <ul class="navbar-nav ml-auto">
             <!-- Nav Item - Alerts -->
@@ -507,14 +507,14 @@
                 {% if alertas %}
                   {% for alerta in alertas %}
                   <a class="dropdown-item d-flex align-items-center" href="#">
-                    <div class="mr-3">
+                    <div class="mr-6">
                       <div class="icon-circle bg-primary">
                         <i class="fas fa-file-alt text-white"></i>
                       </div>
                     </div>
                     <div>
                       <div class="small text-gray-500">{{ alerta.titulo }}</div>
-                      <span class="font-weight-bold">{{ alerta.mensaje }} </span>
+                      <span class="font-weight"  style="font-size: 11px;">{{ alerta.mensaje }} </span><br>
                       <button class="btn-primary marcar-leida" data-id="{{ alerta.id }}">Marcar como leída</button>
                     </div>
                   </a>

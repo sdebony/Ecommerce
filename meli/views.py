@@ -5,7 +5,7 @@ from accounts.models import AccountPermition,UserProfile,Account,BillingInfo
 from meli.models import meli_params
 from django.contrib import messages
 from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product
-
+from contabilidad.models import ConfiguracionParametros
 
 
 
@@ -164,7 +164,7 @@ def meli_save_token(request):
                     token.save()
                     meli_solicitar_refresh_token(request)
 
-                    messages.success(request,"Token guardado con exito.")
+                    messages.success(request,"Token guardado con exito.",str(token.access_token))
                 else:
                     messages.warning(request,"No se ha podido obtener el codigo de autorizacion.")
 
@@ -225,14 +225,7 @@ def meli_solicitar_refresh_token(request):
             user_id = resp["user_id"]
             refreshtoken=resp["refresh_token"]
 
-            print("Nuevos Datos *******")
-            print("")
-            print("Access Token: ", access_token)
-            print("Token Type: ", token_type)
-            print("User ID: ", user_id)
-            print("Refresh Token: ", refreshtoken)
-            print("")
-            print("*************************")
+           
             refresh_token = meli_params.objects.get(client_id=cliente_id)
             if refresh_token:     
                 refresh_token = meli_params(
@@ -249,7 +242,7 @@ def meli_solicitar_refresh_token(request):
                 refresh_token.save()
                 try:
                     print("DATOS:",access_token,token_type,refresh_token,user_id) 
-                    messages.success(request,"REFRESH TOKEN  guardado con exito.")
+                    messages.success(request,"REFRESH TOKEN  guardado con exito.:" + str(access_token))
                 
                 except ObjectDoesNotExist:
                     print("Error: meli_solicitar_refresh_token")
@@ -500,12 +493,16 @@ def meli_publicaciones(request):
                         # o; de lo contrario, asigna un valor predeterminado
                         status = estado_publicacion if estado_publicacion else 'Estado no disponible'
 
+                        precio_sugerido = meli_calcular_comisiones(producto,precio_to_win)
+                       
+
                         # Añadir los datos al resultado
                         articulos.append({
                             'publicacion': item['body'],
                             'producto': producto,  # Será None si no se encuentra
                             'status': status,
-                            'precio_to_win':precio_to_win
+                            'precio_to_win':precio_to_win,
+                            'ganancia_precio_competencia': precio_sugerido
                         })
 
                        
@@ -557,7 +554,7 @@ def meli_get_all_publicaciones(request):
         messages.error(request,"Error de conexion  en Mercado Libre. - Consulta Productos")
         print("ERROR DE CONEXION - Consulta")
 
-    print("RTA all publicaciones:", ids_concatenados)
+   
 
     return ids_concatenados
 
@@ -1132,7 +1129,7 @@ def meli_analisis_publicaciones(request,idpublicacion):
 
         url = "https://api.mercadolibre.com/items/" + str(idpublicacion.strip()) + "/price_to_win?version=v2"
         payload = {}
-        print(url)
+        
         response = requests.request("GET", url, headers=headers, data=payload)
         data = response.json()
         
@@ -1147,7 +1144,8 @@ def meli_analisis_publicaciones(request,idpublicacion):
             "winner": data.get("winner", {})
         }
         
-        print(articulos)
+
+        
         # Contexto para la plantilla
         context = {
             'permisousuario': permisousuario,
@@ -1203,11 +1201,60 @@ def meli_get_estado_publicacion(request,idpublicacion):
         }
         
        
+              
         if articulos:
-            print(articulos["status"],articulos["price_to_win"])
             return {"status": articulos["status"], "price_to_win": articulos["price_to_win"]}
         else:    
              return {"status": "", "price_to_win": ""}
         
 
     return render(request,'panel/login.html',)
+
+def meli_calcular_comisiones(idproducto, precio_competencia):
+
+
+    if precio_competencia is not None:
+    
+    
+        #COMISIONES DE VENTA  3 (Mercado Libre)
+        comision3 = ConfiguracionParametros.objects.get(codigo='COM3')
+        if comision3:
+            com3 = comision3.valor
+        else:
+            com3 = 0
+
+        
+        #COSTO FIJO x VENTA ML
+        costo3_menor = ConfiguracionParametros.objects.get(codigo='CST3_1') # Monte menor a 12000
+        if costo3_menor:
+            costo_menor = costo3_menor.valor
+        else:
+            costo_menor = 0
+
+        costo3_mayor = ConfiguracionParametros.objects.get(codigo='CST3_2') # Monto mayor a 12000
+        if costo3_mayor:
+            costo_mayor = costo3_mayor.valor
+        else:
+            costo_mayor = 0
+
+        precio_sugerido=0
+        costo_fijo = 0
+
+        if precio_competencia >= 12000:
+            costo_fijo = costo_mayor
+        else:
+            costo_fijo = costo_menor
+        
+        impuesto = float(precio_competencia) * 0.06
+
+         #Calculo el valor
+        precio_sugerido = float(precio_competencia) - round(float(precio_competencia) * float(com3) / 100,2)  - costo_fijo - float(impuesto)
+        product_cost = Product.objects.get(id=idproducto.id)
+        if product_cost:
+            costo_producto = product_cost.costo_prod
+        else:
+            costo_producto = 0
+
+        return(round( precio_sugerido-costo_producto ,2))
+    else:
+        return(0)

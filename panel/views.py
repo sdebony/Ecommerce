@@ -169,21 +169,40 @@ def validar_permisos(request,codigo=None):
         print("No tiene permiso para el modulo: ", codigo)
         return False
 
+def panel_verificar_alertas(request):
+
+    
+
+    #Alerta de inventario
+    # Obtener los productos con stock <= stock_minimo y disponibles
+    productos_bajo_stock = Product.objects.filter(stock__lte=F('stock_minimo'), is_available=True)
+    for producto in productos_bajo_stock:
+        print(producto.product_name, producto.stock, producto.stock_minimo)
+        titulo="Alerta Inventario"
+        mensaje="Producto: " + str(producto.product_name) + " Stock Actual: " + str(producto.stock) + " Stock Mínimo: " + str(producto.stock_minimo)
+        mensaje_startswith="Producto: " + str(producto.product_name) + " Stock Actual: "
+        if not Alerta.objects.filter(titulo=titulo, mensaje__startswith=mensaje_startswith).exists():
+            Alerta.objects.create(usuario=request.user,  # Usuario actual
+                titulo=titulo,
+                mensaje=mensaje
+                )
+    return True
+
 def panel_home(request):
 
     
     if validar_permisos(request,'PANEL'):
 
-        #Alerta.objects.create(usuario=request.user,  # Usuario actual
-        #titulo="Nueva alerta",
-        #mensaje="Esto es un mensaje de prueba para la alerta.",
-        #)
-        
-        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        alertas = Alerta.objects.filter(usuario=request.user, leido=False)
-        cant_alertas = alertas.count()
+        if settings.ACTIVAR_ALERTAS == 'SI':
+            panel_verificar_alertas(request)
+            alertas = Alerta.objects.filter(usuario=request.user, leido=False)
+            cant_alertas = alertas.count()
+        else:
+            alertas = []
+            cant_alertas = 0
 
-      
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+              
         context = {
             'permisousuario':permisousuario,
             'alertas': alertas,
