@@ -21,10 +21,13 @@
     {% if not articulos %}
         <div class="alert alert-info">No se encontraron precios de este proveedor</div>
     {% endif %}
+
+
         
 
     <table 
       id="table"
+      style="font-size: 13px;"
       data-toggle="table"
       data-pagination="false"
       data-search="true"
@@ -32,57 +35,112 @@
       data-show-toggle="false"
       data-show-fullscreen="false"
       data-toolbar=".buttons-toolbar"
-      data-locale="es-AR"
-    >
+      data-locale="es-AR">
       <thead>
-        <th data-sortable="false" data-field="imagen">imagen</th>
-        <th data-sortable="true" data-field="codigo_prod_prov">Cod. proveedor</th>
-        <th data-sortable="true" data-field="nombre_articulo">Articulo</th>   
-        <th data-sortable="true" data-field="unidad_medida">Unidad Medida</th>
+       
+       
+        <th data-sortable="true" data-field="nombre_articulo">Nombre Artículo</th>
+        <th data-sortable="true" data-field="marca__marca">Marca</th>
+        <th data-sortable="true" data-field="cantidad_unidad_medida">Cant</th>
         <th data-sortable="true" data-field="precio_compra">Precio Compra</th>
-        <th data-sortable="true" data-field="precio_por_unidad">Precio Compra Unidad</th>
-        <th data-sortable="true" data-field="marca">Marca</th>
-        <th data-sortable="true" data-field="id_product">Articulo</th>
-        <th data-sortable="true" data-field="fecha_actualizacion">Actualizacion</th>
-
-        <th data-sortable="false" data-field="">Acciones</th>
-         
+        <th data-sortable="true" data-field="precio_por_unidad">Precio Unit</th>
+        <th data-sortable="true" data-field="id_product__stock">Stock</th>
+        <th data-sortable="true" data-field="id_product__costo_prod"  data-visible="false">Costo Actual</th>
+        <th data-sortable="true" data-field="nvo_precio_cal">Nuevo Precio</th>
+        <th data-sortable="true" data-field="id_product__precio_ML"> ML</th>
+        <th data-sortable="false" data-field="" style="width: 500px;">Acciones</th>
+       
       </thead>
       <tbody>
-        {% for item in articulos %}
-          <tr>
-            <td>
-                <figure class="itemside align-items-center">
-                    {% if item.imagen %}
-                    <div class="aside"><img src="https://yourfiles.cloud/uploads/{{item.imagen}}" class="img-sm" width="50" height="50"></div>
-                    {% endif %}
-                    
-                </figure>
-            </td>
-            <td><a href="{{ item.link }}" target="_blank"> {{ item.codigo_prod_prov }}</a></td>
-            <td>{{ item.nombre_articulo }}</td> 
-            <td>{{ item.unidad_medida }} ({{item.cantidad_unidad_medida|format_integer_def}})</td> 
-            <td>{{ item.precio_compra|format_currency }}</td> 
-            <td>{{ item.precio_por_unidad|format_currency }}</td> 
-            <td>{{ item.marca }}</td> 
-            {% if item.id_product.id %}
-            <td><a href="{% url 'panel_producto_detalle' item.id_product.id %}">{{ item.id_product }}</a></td>
-            {% else %}
-            <td> Sin relación</td>
-            {% endif %}
-            <td>{{ item.fecha_actualizacion|date:'Y-m-d' }}</td> 
-            <td >         
-              <a href="{% url 'proveedor_articulo' proveedor_id item.codigo_prod_prov  %}" class="href btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
-              <a href="{% url 'vincular_articulo'  %}" class="href btn btn-info btn-circle" title="Vincular"><i class="fa fa-recycle"></i></a>
-              <a href="{% url 'proveedores_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
-          </td>
-          </tr>
+        {% for item in articulos_proveedor %}
+            <tr>
+                <td>{{ item.nombre_articulo }}</td>
+                <td>{{ item.marca__marca }}</td>
+                <td>{{ item.cantidad_unidad_medida }}</td>
+                <td>{{ item.precio_compra|format_currency }}</td>
+                <td id="precio_por_unidad_{{ item.id }}"> {{ item.precio_por_unidad|format_currency }} </td>
+                <td>{{ item.id_product__stock|format_integer_def }}</td>
+                <td>{{ item.id_product__costo_prod|format_currency }}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                        data-id="{{ item.id }}" value="0" step="any" onchange="calcularPrecioFinal(this)">
+                        <span class="badge bg-success text-white" id="precio_final_{{ item.id }}" title="Ganancia calculada tomando el costo del producto de compra. No costo actual">0</span>
+                </td>
+                <td>{{ item.id_product__precio_ML|format_currency }}</td>
+                <td>
+                    <a href="{% url 'proveedor_articulo' item.proveedor_id item.id  %}" class="href btn btn-warning btn-circle btn-sm" title="Modificar">
+                        <i class="fa fa-edit" aria-hidden="true"></i>
+                    </a>
+                    <a href="{% url 'vincular_articulo'  %}" class="href btn btn-info btn-circle btn-sm" title="Vincular">
+                        <i class="fa fa-recycle"></i>
+                    </a>
+                    <a href="{% url 'proveedor_articulo_del' item.id %}" class="href btn btn-danger btn-circle btn-sm" title="Eliminar">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                </td>
+            </tr>
         {% endfor %}
-      </tbody>
-
+    </tbody>
+    
     </table>
   </div>
 </div>
+
+<script>
+  function calcularPrecioFinal(input) {
+    // Obtiene el precio ingresado
+    var precioIngresado = parseFloat(input.value) || 0;
+
+    // Obtiene el id del producto desde el atributo data-id
+    var idProducto = input.getAttribute('data-id');
+    
+    // Encuentra el valor del precio_por_unidad desde la celda correspondiente
+    var precioPorUnidadTexto = document.getElementById('precio_por_unidad_' + idProducto).textContent.trim();
+
+    // Extrae el valor numérico de precio_por_unidad (eliminando cualquier carácter no numérico)
+    var precioPorUnidad = parseFloat(precioPorUnidadTexto.replace(/[^\d.-]/g, '')) || 0;
+
+    // Declara la variable precioFinal
+    var precioFinal;
+
+    // Impuestos 4%
+    impuestos = (precioIngresado * 0.06);
+
+    // Verifica si el precio ingresado es mayor a 11999
+    if (precioIngresado > 11999) {
+        // Si es mayor, se calcula con un aumento de 1800
+        precioFinal = (precioIngresado * 0.155) + 1800 + impuestos;
+    } else {
+        // Si no es mayor, se calcula con un aumento de 900
+        precioFinal = (precioIngresado * 0.155) + 900 + impuestos;
+    }
+
+   
+    //GANANCIA  = VALOR DE VENTA  -  CARGOS + IMPUESTOS - COSTO 
+    precioFinal = precioIngresado - precioPorUnidad - precioFinal;
+
+    // Encuentra el span correspondiente usando el id generado dinámicamente
+    var precioFinalSpan = document.getElementById('precio_final_' + idProducto);
+
+    if (precioFinalSpan) {
+        // Si el precio final es menor a cero, cambia el texto y la clase
+        if (precioFinal < 0) {
+            precioFinalSpan.textContent = "Ganancia: "  + precioFinal.toFixed(2);
+            precioFinalSpan.classList.remove('badge', 'bg-success', 'text-white');
+            precioFinalSpan.classList.add('badge', 'bg-danger', 'text-white');
+        } else {
+            // Si el precio final es positivo, muestra el valor calculado
+            precioFinalSpan.textContent = "Ganancia: " + precioFinal.toFixed(2);
+            precioFinalSpan.classList.remove('badge', 'bg-danger', 'text-white');
+            precioFinalSpan.classList.add('badge', 'bg-success', 'text-white');
+        }
+    }
+}
+
+</script>
+
+
+
 {% endblock %}
 {% block js_page %}
 {% endblock %}

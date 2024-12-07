@@ -581,7 +581,8 @@ def meli_ventas(request):
         
         # Busca los detalles de los artículos
         seller_id = settings.SELLER_ID
-
+        cantidad_ventas = 0
+       
         url = "https://api.mercadolibre.com/orders/search?seller=" + str(seller_id)
         
         access_token = meli_get_authorization_code(settings.CLIENTE_ID)
@@ -599,6 +600,7 @@ def meli_ventas(request):
             # Realizar el cálculo de (total_paid_amount - (quantity * sale_fee)) para cada venta
             
             for venta in ventas['results']:
+                
                 total_paid_amount = venta['payments'][0]['total_paid_amount']
                 shipping_cost = venta['payments'][0]['shipping_cost']
                 quantity = venta['order_items'][0]['quantity']
@@ -614,13 +616,15 @@ def meli_ventas(request):
 
                 # Verificar si el `order_id` está en la base de datos
                 order_id = venta['payments'][0].get('order_id')  # Obtener el order_id del pago
-                print("order_id",order_id)
+                
                 if order_id:
+                    
                     existe = Order.objects.filter(order_number=order_id).exists()
                     venta['existe_en_bd'] = existe  # Agregar esta información a la venta para usarla en la plantilla
+                    cantidad_ventas = cantidad_ventas + 1
                 else:
                     venta['existe_en_bd'] = False  # Si no hay order_id, asumimos que no existe
-
+                   
 
 
         else:
@@ -631,7 +635,9 @@ def meli_ventas(request):
         
         context = {
             'permisousuario':permisousuario,
-            'ventas':ventas
+            'ventas':ventas,
+            'cantidad_ventas':cantidad_ventas
+           
         }
 
         return render(request,'meli/meli_ventas.html',context) 

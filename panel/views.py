@@ -521,7 +521,7 @@ def dashboard_control(request):
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         resultados = Product.objects.aggregate(
             productos_stock_mayor_0=Count('id', filter=Q(stock__gt=0)),
-            productos_stock_menor_igual_3=Count('id', filter=Q(stock__lte=3) & Q(is_available=True)),
+            productos_stock_menor_igual_3=Count('id', filter=Q(stock__lt=F('stock_minimo')) & Q(is_available=True)),
             productos_disponibles=Count('id', filter=Q(is_available=True)),
             productos_costo_mayor_igual_precio=Count('id', filter=Q(costo_prod__gte=F('price'))),
             productos_activos_sin_costo = Count('id', filter=Q(costo_prod=0) & Q(is_available=True)),    #Costo = 0 y habilitado
@@ -558,6 +558,16 @@ def dashboard_control(request):
             )['total_facturacion_web']
 
         cant_ventas_web = Order.objects.filter(origen_venta=origenventa).exclude(status='New').count()
+
+        origenventa = OrigenVenta.objects.filter(codigo='TN').first()
+        total_facturacion_tn = Order.objects.filter(origen_venta=origenventa).exclude(status='New').aggregate(
+            total_facturacion_tn=Sum(
+            F('order_total') 
+            )
+            )['total_facturacion_tn']
+
+        cant_ventas_tn = Order.objects.filter(origen_venta=origenventa).exclude(status='New').count()
+
 
         # Obtener los márgenes
         margen_bruto = OrderProduct.objects.filter(order__in=orders_validas).aggregate(
@@ -623,9 +633,11 @@ def dashboard_control(request):
             'margen_utilidad':margen_utilidad,
             'total_facturacion_meli':total_facturacion_meli,
             'total_facturacion_web':total_facturacion_web,
+            'total_facturacion_tn':total_facturacion_tn,
             'total_ventas':total_ventas,
             'cant_ventas_meli':cant_ventas_meli,
             'cant_ventas_web':cant_ventas_web,
+            'cant_ventas_tn':cant_ventas_tn,
             'total_product_price':total_product_price,
             'total_facturacion':total_facturacion,
             'multi_cuentas':multi_cuentas,
@@ -652,25 +664,30 @@ def dashboard_resumen_ventas(request):
         ).order_by("mes")
 
         # Procesar datos
-        datos_por_mes = defaultdict(lambda: {"Mercado Libre": 0, "Web": 0, "Mercado Libre + Web": 0})
+        datos_por_mes = defaultdict(lambda: {"Mercado Libre": 0, "Web": 0, "Tienda Nube":0, "Mercado Libre + Web + Tienda Nube": 0})
         for venta in ventas_mensuales:
             mes = venta["mes"]
             origen = venta["origen_venta__origen"]  # Usar el nombre del campo origen
-            if origen in ["Mercado Libre", "Web"]:
+            if origen in ["Mercado Libre", "Web", "Tienda Nube"]:
+                print(origen)
                 datos_por_mes[mes][origen] += venta["total"]
-                datos_por_mes[mes]["Mercado Libre + Web"] += venta["total"]
+                datos_por_mes[mes]["Mercado Libre + Web + Tienda Nube"] += venta["total"]
 
         # Preparar listas
         meses = sorted(datos_por_mes.keys())
         ventas_mercado_libre = [datos_por_mes[mes]["Mercado Libre"] for mes in meses]
         ventas_web = [datos_por_mes[mes]["Web"] for mes in meses]
-        ventas_combinadas = [datos_por_mes[mes]["Mercado Libre + Web"] for mes in meses]
+        ventas_tn = [datos_por_mes[mes]["Tienda Nube"] for mes in meses]
+        ventas_combinadas = [datos_por_mes[mes]["Mercado Libre + Web + Tienda Nube"] for mes in meses]
 
+
+        print(ventas_tn,"ventas_tn")
         # Contexto para la plantilla
         context = {
             'labels': [mes.strftime("%b %Y") for mes in meses],  # Formato: Mes Año
             'ventas_mercado_libre': ventas_mercado_libre,
             'ventas_web': ventas_web,
+            'ventas_tn': ventas_tn,
             'ventas_combinadas': ventas_combinadas,
             'permisousuario':permisousuario,
         }

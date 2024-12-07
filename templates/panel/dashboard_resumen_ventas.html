@@ -10,6 +10,7 @@
         const labels = {{ labels|safe }}; // Meses
         const ventasMercadoLibre = {{ ventas_mercado_libre|safe }};
         const ventasWeb = {{ ventas_web|safe }};
+        const ventasTN = {{ ventas_tn|safe }};
         const ventasCombinadas = {{ ventas_combinadas|safe }};
 
         // Configuración del gráfico
@@ -34,7 +35,14 @@
                         borderWidth: 1
                     },
                     {
-                        label: 'Mercado Libre + Web',
+                        label: 'Tn',
+                        data: ventasTN,
+                        backgroundColor: 'rgba(54, 102, 205, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Mercado Libre + Web + TN',
                         data: ventasCombinadas,
                         backgroundColor: 'rgba(75, 192, 192, 0.5)',
                         borderColor: 'rgba(75, 192, 192, 1)',

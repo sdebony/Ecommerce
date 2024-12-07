@@ -153,17 +153,17 @@
           
           <div class="row w-100">
               <!-- Fila 1 -->
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Artículos con Stock -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas Cobrado </div>
-                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion|format_currency }}</strong></div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas Tienda Nube </div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion_tn|format_currency }}</strong></div>
                       </div>
                   </div>
               </div>
           
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Artículos con Stock <= 3 -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
@@ -173,46 +173,65 @@
                   </div>
               </div>
           
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Artículos Activos -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total Ventas web</div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Ventas web</div>
                           <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion_web|format_currency }}</strong></div>
                       </div>
                   </div>
               </div>
+
+              <div class="col-3 mb-3">
+                <!-- Artículos Activos -->
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body text-center">
+                        <div class="text-xl font-weight-bold text-success text-uppercase mb-3">Total Ventas</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_facturacion|format_currency }}</strong></div>
+                    </div>
+                </div>
+            </div>
           
               <!-- Fila 2 -->
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Artículos en Pérdida -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Total de Ventas</div>
-                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_ventas }}</strong></div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Ventas Tienda Nube</div>
+                          <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ cant_ventas_tn }}</strong></div>
                       </div>
                   </div>
               </div>
           
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Stock en Unidades -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad Ventas MELI</div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Ventas MELI</div>
                           <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ cant_ventas_meli }}</strong></div>
                       </div>
                   </div>
               </div>
           
-              <div class="col-4 mb-4">
+              <div class="col-3 mb-3">
                   <!-- Otra card si es necesario -->
                   <div class="card border-left-primary shadow h-100 py-2">
                       <div class="card-body text-center">
-                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Cantidad ventas WEB</div>
+                          <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Ventas WEB</div>
                           <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ cant_ventas_web }}</strong></div>
                       </div>
                   </div>
               </div>
+              <div class="col-3 mb-3">
+                <!-- Otra card si es necesario -->
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body text-center">
+                        <div class="text-xl font-weight-bold text-success text-uppercase mb-3">Total Ventas</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ total_ventas }}</strong></div>
+                    </div>
+                </div>
+            </div>
           </div>
         {% endif %}
     </div>   

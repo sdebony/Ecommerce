@@ -5,16 +5,18 @@ from accounts.models import AccountPermition
 from panel.models import ImportDolar
 from contabilidad.models import Cuentas,Movimientos,Operaciones
 from store.models import Costo
-from category.models import Category,SubCategory
+
 from compras.models import CompraDolar,Proveedores,ProveedorArticulos,Marcas,UnidadMedida,ComprasEnc,ComprasDet
 from panel.views import validar_permisos
 from slugify import slugify
 from django.contrib import messages
+from django.db.models import F, ExpressionWrapper, FloatField, Case, When, Value
 
 from orders.models import Order
 from store.models import Product
 from django.db.models import Subquery, OuterRef, ExpressionWrapper, F, FloatField,Value,CharField
 from django.db.models.functions import Coalesce,Round
+from contabilidad.models import ConfiguracionParametros
 from django.http import JsonResponse, HttpResponseBadRequest
 import json
 import math
@@ -468,24 +470,72 @@ def proveedor_list_articulos(request,prov_id=None):
 
         if request.method == 'GET':
 
+            #COM3 = ConfiguracionParametros.objects.get(codigo='COM3')
+            #COSTO FIJO x VENTA ML
+            #cargofijo = ConfiguracionParametros.objects.get(codigo='CST3_1') # Monte menor a 12000
+
+
             if prov_id:
                 articulos = ProveedorArticulos.objects.filter(proveedor_id=prov_id).order_by('nombre_articulo')
                 proveedor = Proveedores.objects.filter(id=prov_id).first()
                 if proveedor:
                     proveedor_nombre = proveedor.nombre
+                    articulos_proveedor = ProveedorArticulos.objects.select_related('id_product').filter(
+                    proveedor_id=proveedor  # Filtra por el ID del proveedor
+                    ).values(
+                        'id',  #
+                        'proveedor_id', 
+                        'nombre_articulo',
+                        'marca__marca',
+                        'cantidad_unidad_medida',
+                        'precio_compra',
+                        'precio_por_unidad',
+                        'id_product__product_name',
+                        'id_product__stock',
+                        'id_product__costo_prod',
+                        'id_product__precio_ML',
+                    )
+                else:
+                    articulos_proveedor=[]
+                    articulos = [] 
+                    proveedor_nombre=""  
+
             else:
+                articulos_proveedor=[]
                 articulos = [] 
-                proveedor_nombre=""               
+                proveedor_nombre=""  
+
+                 
 
             context = {
                 'articulos': articulos,
                 'proveedor_nombre':proveedor_nombre,
                 'proveedor_id':prov_id,
                 'permisousuario': permisousuario,
+                'articulos_proveedor':articulos_proveedor
             }
             return render(request,'compras/lista_precios_proveedor.html',context)
     else:
       return render(request,'panel/login.html',)
+
+
+#Elimina articulos del proveedor
+def prod_prov_del(request,prod_id=None):
+    
+    if validar_permisos(request,'PROVEEDORES'):
+
+        id_proveedor=0
+        prod_prov = ProveedorArticulos.objects.filter(id=prod_id).first()
+        if prod_prov:
+            id_proveedor = prod_prov.proveedor.id
+            prod_prov.delete()
+   
+      
+        return proveedor_list_articulos(request, id_proveedor)  # Asegúrate de que esta función retorne HttpResponse
+
+
+    else:
+        return render(request,'panel/login.html',)
 
 #Comparacion costos por articulo de cada proveedor
 def proveedor_check_articulos(request):
@@ -578,14 +628,13 @@ def proveedor_check_articulos(request):
     else:
       return render(request,'panel/login.html',)
         
-def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
+def proveedor_articulo(request,prov_id=None,prod_id=None):
 
     if validar_permisos(request,'PROVEEDORES'):
-        print("Edit articulo")
         id_nuevo_prod = 0
 
         if request.method == 'GET':
-            producto = ProveedorArticulos.objects.filter(codigo_prod_prov=codigo_prod_prov,proveedor=prov_id).first()
+            producto = ProveedorArticulos.objects.filter(id=prod_id,proveedor=prov_id).first()
             permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
             marcas = Marcas.objects.filter().all()
             unidades = UnidadMedida.objects.filter().all()
@@ -616,22 +665,27 @@ def proveedor_articulo(request,prov_id=None,codigo_prod_prov=None):
             idprod= request.POST["idprod"]
             prov_id= request.POST["idprov"]
             codigo_prod_prov= request.POST["codigo_prod_prov"]
-            nombre_articulo= request.POST["nombre_articulo"]
-            marca= request.POST["marca"]
-            descripcion= request.POST["descripcion"]
-            unidad_medida= request.POST["unidad_medida"]
+            nombre_articulo= request.POST["nombre_articulo"].strip()
+            marca= request.POST["marca"].strip()
+            descripcion= request.POST["descripcion"].strip()
+            unidad_medida= request.POST["unidad_medida"].strip()
             cantidad_unidad_medida= request.POST["cantidad_unidad_medida"]
             precio_compra= request.POST["precio_compra"]
             precio_por_unidad= request.POST["precio_por_unidad"]
             peso_por_unidad= request.POST["peso_por_unidad"]
             estado= request.POST.getlist("estado[]")
-            imagen= request.POST["imagen"]
-            link= request.POST["link"]
+            imagen= request.POST["imagen"].strip()
+            link= request.POST["link"].strip()
            
             obj_marca = Marcas.objects.filter(marca=marca).first()
             obj_unidad_medida = UnidadMedida.objects.filter(codigo=unidad_medida).first()
             obj_proveedor = Proveedores.objects.filter(id=prov_id).first()
 
+            precio_por_unidad = float(precio_compra) / float(cantidad_unidad_medida)
+            precio_por_unidad = round(precio_por_unidad,2)
+            
+
+          
             if not imagen:
                 imagen = "3fb9e34af7fc5e657276aa22f57cdac0/none.gif"
             
