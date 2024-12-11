@@ -171,13 +171,12 @@ def validar_permisos(request,codigo=None):
 
 def panel_verificar_alertas(request):
 
-    
 
     #Alerta de inventario
     # Obtener los productos con stock <= stock_minimo y disponibles
     productos_bajo_stock = Product.objects.filter(stock__lte=F('stock_minimo'), is_available=True)
     for producto in productos_bajo_stock:
-        print(producto.product_name, producto.stock, producto.stock_minimo)
+       
         titulo="Alerta Inventario"
         mensaje="Producto: " + str(producto.product_name) + " Stock Actual: " + str(producto.stock) + " Stock Mínimo: " + str(producto.stock_minimo)
         mensaje_startswith="Producto: " + str(producto.product_name) + " Stock Actual: "
@@ -529,6 +528,8 @@ def dashboard_control(request):
             costo_stock=Sum(F('costo_prod') * F('stock'), filter=Q(es_kit=False) & Q(is_available=True))
         )
 
+        # Accede a los valores usando las claves
+        print("Stock Fisico:", resultados['total_stock'])
        
         # Filtrar los OrderProduct que pertenecen a órdenes con estado > 1
         total_facturacion=0
@@ -605,7 +606,7 @@ def dashboard_control(request):
 
         #STOCK TEORICO  LO COMPRADO MENOS LO VENDIDO
         # Sumar el total del campo cantidad del modelo ComprasDet
-        compras_total = ComprasDet.objects.aggregate(total=Sum('cantidad'))['total'] or 0
+        compras_total = ComprasDet.objects.filter(id_compra_enc__estado=2).aggregate(total=Sum('cantidad'))['total'] or 0
         print("cantidad comprada",compras_total)
 
         # Filtrar productos con es_kit=True
@@ -620,6 +621,8 @@ def dashboard_control(request):
 
         total_articulos_vendidos = int(productos_kit_total) + int(orders_total)
         # Generar el resultado en el formato requerido
+
+        print("Total Articulos vendidos",total_articulos_vendidos)
         stock_control = int(compras_total) - int(total_articulos_vendidos)
 
 
@@ -856,7 +859,10 @@ def panel_pedidos_list(request,status=None):
         dias_default_pedidos = settings.DIAS_DEFAULT_PEDIDOS  #Rango de fechas desde y hasta para filtros hoy - x dias
 
         fecha_1 = request.POST.get("fecha_desde")
-        fecha_2 = request.POST.get("fecha_hasta")     
+        fecha_2 = request.POST.get("fecha_hasta") 
+
+        
+
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
             dias = timedelta(days=dias_default_pedidos) 
@@ -874,6 +880,8 @@ def panel_pedidos_list(request,status=None):
         cantidad = ordenes.count()
         cantidad_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).count()
         total_new = Order.objects.filter(status='New',fecha__range=[fecha_desde,fecha_hasta]).aggregate(Sum('order_total'))
+
+        print(cantidad_new)
 
         cantidad_cobrado = Order.objects.filter(status='Cobrado',fecha__range=[fecha_desde,fecha_hasta]).count()
         total_cobrado = Order.objects.filter(status='Cobrado',fecha__range=[fecha_desde,fecha_hasta]).aggregate(Sum('order_total'))
@@ -6747,11 +6755,7 @@ def get_customer_correo_arg():
 
 def marcar_como_leida(request, alerta_id):
 
-    #alerta = get_object_or_404(Alerta, id=alerta_id, usuario=request.user)
-    #alerta.leido = True
-    #alerta.save()
-    
-    #return JsonResponse({'success': True}, 'alert':alert)
+    print("PASE POR MARCAR_COMO_LEIDA")
 
     # Obtener y marcar la alerta como leída
     alerta = get_object_or_404(Alerta, id=alerta_id, usuario=request.user)
@@ -6762,6 +6766,8 @@ def marcar_como_leida(request, alerta_id):
     permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
     alertas = Alerta.objects.filter(usuario=request.user, leido=False)
 
+
+
     # Retornar *querysets* directamente usando su representación como listas
     return JsonResponse({
         'success': True,
@@ -6769,4 +6775,97 @@ def marcar_como_leida(request, alerta_id):
         'alertas': list(alertas.values()),               # Serializar queryset
         'cant_alertas': alertas.count(),
     })
-   
+
+def compras_detalle_producto_reporte(request):
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+      
+    # 1. Obtener todos los productos vendidos, incluidos los productos dentro de los kits.
+    productos_vendidos = (
+        OrderProduct.objects.filter(
+            order__status__in=['Accepted', 'Completed', 'Cancelled', 'Cobrado', 'Entregado']
+        )
+        .values(
+            'product_id',  # ID del producto
+            'product__product_name',  # Nombre del producto
+            'product__stock'  # Stock actual del producto
+        )
+        .annotate(
+            total_cantidad_vendida=Sum('quantity')  # Sumar cantidad vendida por producto
+        )
+    )
+    print("Productos Vendidos:", productos_vendidos)
+
+    # 2. Obtener todas las compras realizadas de productos individuales.
+    compras = (
+        ComprasDet.objects.filter(id_compra_enc__estado=2)  # Filtrar compras recibidas
+        .values(
+            'producto__id_product_id',  # ID del producto
+            'producto__id_product__product_name',  # Nombre del producto
+            'producto__id_product__stock'  # Stock actual del producto
+        )
+        .annotate(
+            total_cantidad_comprada=Sum('cantidad')  # Sumar cantidad comprada por producto
+        )
+    )
+    print("Compras:", compras)
+
+    # 3. Preparar los datos finales de productos.
+    productos_comprados = {}
+    
+    for compra in compras:
+        producto_id = compra['producto__id_product_id']
+        productos_comprados[producto_id] = {
+            'nombre': compra['producto__id_product__product_name'],
+            'stock_actual': compra['producto__id_product__stock'],
+            'total_cantidad_comprada': compra['total_cantidad_comprada'],
+            'total_cantidad_vendida': 0,  # Inicialmente 0, se sumarán las ventas más tarde
+        }
+    print("Productos Comprados Iniciales:", productos_comprados)
+
+    # 4. Actualizar las ventas de productos en los productos_comprados.
+    for venta in productos_vendidos:
+        producto_id = venta['product_id']
+        if producto_id in productos_comprados:
+            productos_comprados[producto_id]['total_cantidad_vendida'] = venta['total_cantidad_vendida']
+    print("Productos con Ventas Actualizadas:", productos_comprados)
+
+    # 5. Calcular la cantidad vendida para productos dentro de los kits.
+    for venta in OrderProductKitItem.objects.filter(
+        order_product__order__status__in=['Accepted', 'Completed', 'Cancelled', 'Cobrado', 'Entregado']
+    ):
+        producto_id = venta.product.id  # Producto dentro del kit
+        cantidad_vendida_kit = venta.quantity * venta.order_product.quantity  # Cantidad vendida dentro del kit
+        if producto_id in productos_comprados:
+            productos_comprados[producto_id]['total_cantidad_vendida'] += cantidad_vendida_kit
+    print("Productos con Ventas de Kits Actualizadas:", productos_comprados)
+
+    # 6. Calcular la diferencia final entre lo comprado, lo vendido y el stock actual.
+    for producto_id, datos in productos_comprados.items():
+        datos['diferencia_final'] = (
+            datos['total_cantidad_comprada'] - datos['total_cantidad_vendida'] - datos['stock_actual']
+        )
+    print("Productos con Diferencia Final Calculada:", productos_comprados)
+
+    # 7. Convertir los productos_comprados en una lista para enviarla a la plantilla.
+    productos_finales = [
+        {
+            'producto_id': producto_id,
+            'nombre': datos['nombre'],
+            'stock_actual': datos['stock_actual'],
+            'total_cantidad_comprada': datos['total_cantidad_comprada'],
+            'total_cantidad_vendida': datos['total_cantidad_vendida'],
+            'diferencia_final': datos['diferencia_final'],
+        }
+        for producto_id, datos in productos_comprados.items()
+    ]
+    print("Productos Finales para Plantilla:", productos_finales)
+
+    context = {
+        'permisousuario':permisousuario,
+            'productos': productos_finales
+        }
+    
+
+    # Renderizar los datos en una plantilla HTML
+    return render(request, 'panel/reporte_compras.html', context)

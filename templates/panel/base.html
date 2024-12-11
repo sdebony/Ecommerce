@@ -493,9 +493,9 @@
             <li class="nav-item dropdown no-arrow mx-1">
 
               <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bell fa-fw"></i>
+                <i class="fas fa-bell fa-fw" style="font-size: 1.5rem;"></i>
               
-                <span class="badge badge-danger badge-counter">{{ cant_alertas }}</span>
+                <span class="badge badge-danger badge-counter" style="font-size: 1.0rem;">{{ cant_alertas }}</span>
     
              </a>
 
@@ -506,18 +506,23 @@
                 
                 {% if alertas %}
                   {% for alerta in alertas %}
-                  <a class="dropdown-item d-flex align-items-center" href="#">
-                    <div class="mr-6">
-                      <div class="icon-circle bg-primary">
-                        <i class="fas fa-file-alt text-white"></i>
+                  
+                  <a class="dropdown-item align-items-right" href="#">
+                      <div class="mr-6">
+                          <div class="icon-circle badge-danger">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                          </div>
+                      </div>
+                    <div> 
+                      <div class="small text-gray-800"><strong>{{ alerta.titulo }}</strong></div>
+                      <span class="font-weight"  style="font-size: 11px;">{{ alerta.mensaje }} </span>
+                      <div class="d-flex justify-content-center mt-2">
+                        <button class="btn btn-primary btn-sm rounded-pill marcar-leida" data-id="{{ alerta.id }}">Marcar como leída</button>
+                    
                       </div>
                     </div>
-                    <div>
-                      <div class="small text-gray-500">{{ alerta.titulo }}</div>
-                      <span class="font-weight"  style="font-size: 11px;">{{ alerta.mensaje }} </span><br>
-                      <button class="btn-primary marcar-leida" data-id="{{ alerta.id }}">Marcar como leída</button>
-                    </div>
                   </a>
+                
                   {% endfor %}
                 {% else %}
                   <a class="dropdown-item d-flex align-items-center" href="#">
@@ -766,20 +771,49 @@ $(function () {
 
 </script>
 
+<!-- // Alertas  -->
+
 <script>
   document.querySelectorAll('.marcar-leida').forEach(button => {
       button.addEventListener('click', function() {
           const alertaId = this.dataset.id;
-          fetch(`panel/alertas/marcar_como_leida/${alertaId}/`, {
+
+          const url = `{% url 'marcar_como_leida' 0 %}`.replace('0', alertaId);
+          fetch(url, {
               method: 'POST',
               headers: {
                   'X-CSRFToken': '{{ csrf_token }}',
               },
           })
+
+
           .then(response => response.json())
           .then(data => {
               if (data.success) {
-                  this.closest('li').remove();
+                  // Eliminar la alerta marcada como leída
+                  this.closest('a').remove();
+
+                  // Actualizar el contador de alertas
+                  const badgeCounter = document.querySelector('.badge-counter');
+                  badgeCounter.textContent = data.cant_alertas;
+
+                  // Si no quedan alertas, mostrar el mensaje de "Sin Alertas"
+                  if (data.cant_alertas === 0) {
+                      const alertList = document.querySelector('.dropdown-list');
+                      alertList.innerHTML = `
+                          <a class="dropdown-item d-flex align-items-center" href="#">
+                              <div class="mr-3">
+                                  <div class="icon-circle bg-primary">
+                                      <i class="fas fa-file-alt text-white"></i>
+                                  </div>
+                              </div>
+                              <div>
+                                  <div class="small text-gray-500">Sin Alertas</div>
+                                  <span class="font-weight-bold">Sin Alertas</span>
+                              </div>
+                          </a>
+                      `;
+                  }
               }
           });
       });

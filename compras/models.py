@@ -91,8 +91,7 @@ class ProveedorArticulos(models.Model):
         verbose_name = "ProveedorArticulos"
         verbose_name_plural = "ProveedorArticulos"
         ordering = ['nombre_articulo']
-
-        
+      
 class ComprasEnc(models.Model):
 
     fecha_compra=models.DateField(null=True,blank=True)

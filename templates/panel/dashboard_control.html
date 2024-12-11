@@ -120,7 +120,8 @@
                     <div class="card-body text-center">
                         <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">Cantidad comprada - cantidad vendida</p>
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Stock Teorico</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ stock_control }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>
+                            <a href="{% url 'compras_detalle_producto_reporte' %}">{{ stock_control }}</a></strong></div>
                     </div>
                 </div>
             </div>

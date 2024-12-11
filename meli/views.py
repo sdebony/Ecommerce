@@ -4,8 +4,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import AccountPermition,UserProfile,Account,BillingInfo
 from meli.models import meli_params
 from django.contrib import messages
-from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product
+from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product,OrderProductKitItem
 from contabilidad.models import ConfiguracionParametros
+from store.models import ProductKit,ProductKitEnc
 
 
 
@@ -503,6 +504,7 @@ def meli_publicaciones(request):
                             'status': status,
                             'precio_to_win':precio_to_win,
                             'ganancia_precio_competencia': precio_sugerido
+                            
                         })
 
                        
@@ -917,8 +919,40 @@ def importar_pedido_meli(request):
                     #Descuento Stock producto
                     productos = Product.objects.get(id=product.id)
                     if productos:
-                        product.stock = productos.stock - int(quantity)
-                        product.save()
+                        if productos.es_kit:
+                            print("START KIT ITEM ************")
+                            #Buscar los articulos que lo componen
+                            enc_kit = ProductKitEnc.objects.filter(productokit = productos)
+                            for kit in enc_kit:
+                                cantidad = kit.cant_unidades
+                                id_kit = kit.id
+
+                                producto_kit = ProductKit.objects.get(id=id_kit)
+                                if producto_kit:
+                                    
+                                    producto_hijo = producto_kit.productohijo
+                                     
+                                    #Guardo en OrderProductKits
+                                    OrderProductKitItem.objects.create(order_product=orderproduct, product=producto_hijo, quantity=cantidad)
+                   
+                                    #Bajo Stock Kit
+                                    product.stock = productos.stock - int(quantity) #Cantidad orginal
+                                    product.save()
+                                    #Bajo Stock producto
+                                    stock_prod = Product.objects.get(id=producto_hijo.id)
+                                    if stock_prod:
+                                        stock_prod.stock = stock_prod.stock - int(cantidad) 
+                                        stock_prod.save()
+                                 
+
+
+                            #Restar el stock al prodcuto original
+                            print("END KIT ITEM ************")
+
+                        else:
+                            product.stock = productos.stock - int(quantity)
+                            product.save()
+                        
 
                         
                 else:
@@ -1251,7 +1285,7 @@ def meli_calcular_comisiones(idproducto, precio_competencia):
         else:
             costo_fijo = costo_menor
         
-        impuesto = float(precio_competencia) * 0.06
+        impuesto = float(precio_competencia) * 0.04
 
          #Calculo el valor
         precio_sugerido = float(precio_competencia) - round(float(precio_competencia) * float(com3) / 100,2)  - costo_fijo - float(impuesto)

@@ -20,6 +20,7 @@ from contabilidad.models import ConfiguracionParametros
 from django.http import JsonResponse, HttpResponseBadRequest
 import json
 import math
+from django.db.models import Sum
 
 
 from django.conf import settings
@@ -518,7 +519,6 @@ def proveedor_list_articulos(request,prov_id=None):
     else:
       return render(request,'panel/login.html',)
 
-
 #Elimina articulos del proveedor
 def prod_prov_del(request,prod_id=None):
     
@@ -1004,11 +1004,20 @@ def oc_list(request):
     if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-        oc_compras = ComprasEnc.objects.all()
+        oc_compras = ComprasEnc.objects.all()        
+        oc_detalle_compras = (
+            ComprasDet.objects
+            .filter(id_compra_enc__estado=2)  # Filtra las compras donde ComprasEnc.estado = 2
+            .filter(producto__id_product__isnull=False)  # Asegura que el producto está vinculado a un Product
+            .values('id_compra_enc__id', 'producto__id_product__product_name')  # Incluye ComprasEnc.id y agrupa por el nombre del producto
+            .annotate(total_cantidad=Sum('cantidad'))  # Suma la cantidad para cada producto
+            .order_by('id_compra_enc__id', 'producto__id_product__product_name')  # Ordena por ComprasEnc.id y el nombre del producto
+        )
 
         return render(request, 'compras/lista_ordenes_compra_prov.html', {
             'permisousuario': permisousuario,
             'oc_compras':oc_compras,
+            'oc_detalle_compras':oc_detalle_compras,
         })
 
     else:
@@ -1284,5 +1293,4 @@ def oc_anula_recepcion(request,id_oc=None):
  
     else:
         return render(request,'panel/login.html',)
-
 

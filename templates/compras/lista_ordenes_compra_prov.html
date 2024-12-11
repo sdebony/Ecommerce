@@ -79,6 +79,51 @@
     </table>
   </div>
 </div>
+<div>
+
+  <div class="card-body">
+    {% if not oc_detalle_compras %}
+        <div class="alert alert-info">No se encontraro el detalle de las ordenes</div>
+    {% endif %}
+
+    <div class="alert alert-info">Detalle de Compras - Totales x Articulo</div>
+      <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="id_compra_enc__id">ID OC</th>
+          <th data-sortable="true" data-field="producto__id_product__product_name">producto</th>
+          <th data-sortable="true" data-field="total_cantidad">cantidad</th>
+         
+        
+      </thead>
+      <tbody>
+        {% for item in oc_detalle_compras %}
+          <tr>
+            <td>{{ item.id_compra_enc__id }}</td>
+            <td>{{ item.producto__id_product__product_name }}</td>
+            <td>{{ item.total_cantidad }}</td> 
+            
+
+           
+          
+          
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
 {% endblock %}
 {% block js_page %}
 {% endblock %}

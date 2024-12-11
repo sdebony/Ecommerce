@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 
+
 urlpatterns = [
     path('', views.panel_home, name='panel'),
     path('dashboard/ventas', views.dashboard_ventas, name='dashboard_ventas'),
@@ -109,7 +110,7 @@ urlpatterns = [
     path('reportes/cliente', views.panel_reporte_clientes_list, name='panel_reporte_clientes_list'),
     path('reportes/export/articulo', views.articulos_vendidos_export_xls, name='export_articulos_vendidos'),
     path('reportes/export/cliente', views.clientes_ventas_export_xls, name='export_clientes_ventas'),
-
+    path('reporte-productos/', views.compras_detalle_producto_reporte, name='compras_detalle_producto_reporte'),
 
 
     #CONFIG DOLARES
@@ -138,7 +139,7 @@ urlpatterns = [
     path('edit_dir_entrega/', views.consultar_suc_by_cp, name='consultar_suc_by_cp'),
     
     #ALERTAS
-    path('panel/alertas/marcar_como_leida/<int:alerta_id>/', views.marcar_como_leida, name='marcar_como_leida'),
+    path('marcar_como_leida/<int:alerta_id>/', views.marcar_como_leida, name='marcar_como_leida'),
     
     
 ]

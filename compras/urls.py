@@ -32,7 +32,7 @@ urlpatterns = [
   path('oc/<int:id_oc>', views.oc_detalle, name='oc_detalle'),
   path('oc/ver/<int:id_oc>', views.oc_detalle_ver, name='oc_detalle_ver'),
   path('oc/recibir/<int:id_oc>', views.oc_recibir, name='oc_recibir'),
-   path('oc/anular/<int:id_oc>', views.oc_anula_recepcion, name='oc_anula_recepcion'),
+  path('oc/anular/<int:id_oc>', views.oc_anula_recepcion, name='oc_anula_recepcion'),
   
 
   path('oc/pago/<int:id_oc>', views.oc_registrar_pago, name='oc_registrar_pago'), 

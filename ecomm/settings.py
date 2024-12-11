@@ -77,6 +77,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'ecomm.urls'
 
+APPEND_SLASH = True
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -90,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',
                 'carts.context_processors.counter',
+                'panel.context_processors.alertas_context_processor',
             ],
         },
     },
@@ -220,7 +223,7 @@ STORE_DEF_CANAL="WEB"
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
 STORE_TEMPLATE="2"  #2 Menu original
 
-ACTIVAR_ALERTAS = "SI"
+ACTIVAR_ALERTAS = "NO"
 
 #DEF_CEL = '54111565184759'
 DEF_CEL =  '54111558679809'
