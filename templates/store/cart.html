@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 
@@ -34,7 +34,15 @@
 	<td>
 		<figure class="itemside align-items-center">
 			{% if cart_item.product.images.url %}
-			<div class="aside"><img src="https://yourfiles.cloud/uploads/{{cart_item.product.imgfile}}" class="img-sm"></div>
+			<div class="aside">
+				<img src="https://yourfiles.cloud/uploads/{{cart_item.product.imgfile}}" class="img-sm">
+				{% if cart_item.porcentaje_desc > 0 %}
+				<!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
+				<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.0rem; padding: 0.5rem 1rem;">
+					{{ cart_item.porcentaje_desc | format_integer_def  }} %
+				</span>
+				{% endif %}
+			</div>
 			{% endif %}
 			<figcaption class="info">
 				<a href="{{cart_item.product.get_url}}" class="title text-dark">{{ cart_item.product.product_name }}</a>
@@ -105,6 +113,10 @@
 			  <dt>Sub Total:</dt>
 			  <dd class="text-right">$ {{total}}</dd>
 			</dl>
+			<dl class="dlist-align">
+				<dt>Descuento:</dt>
+				<dd class="text-right">$ {{descuento}}</dd>
+			  </dl>
 			<dl class="dlist-align">
 			  <dt>Envio:</dt>
 			  <dd class="text-right">  

@@ -4,7 +4,7 @@ from category.models import Category,SubCategory
 from carts.models import CartItem,CartItemKit
 from django.db.models import Q,Value
 from django.db.models.functions import Concat
-
+from store.models import ReglaDescuento
 from carts.views import _cart_id
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse
@@ -16,13 +16,13 @@ from orders.models import OrderProduct
 from django.conf import settings
 from django.shortcuts import render
 from django.http import JsonResponse
-import json
+from django.db.models import Q
+from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 
 
-
-
 def store(request, category_slug=None,subcategory_slug=None):
+   
     categories = None
     products = None
     product_count=0
@@ -45,6 +45,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     if category_slug != None:
         if subcategory_slug != None and "todos" not in subcategory_slug.lower():
             print("Subcategoria seleccionada")
+            print("TEST TEST TEST TEST TEST TEST TEST TEST ")
             categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
             subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
             subcategories = SubCategory.objects.filter(category=categories)
@@ -104,9 +105,6 @@ def store(request, category_slug=None,subcategory_slug=None):
         product_count = products.count()
 
 
-        
-
-
         paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
         page = request.GET.get('page')
         paged_products = paginator.get_page(page)
@@ -120,6 +118,34 @@ def store(request, category_slug=None,subcategory_slug=None):
     else:
         category_name = ""
 
+    
+    # Obtenemos todas las reglas de descuento activas
+    #reglas_descuento = ReglaDescuento.objects.filter(activo=True)
+
+    # Recorrer los productos y agregar el campo 'tiene_descuento'
+    for producto in paged_products:
+        # Inicializamos el campo tiene_descuento como False
+        tiene_descuento = False
+        
+
+        # Verificamos si alguna regla de descuento es aplicable al producto
+        mejor_descuento = obtener_mejor_descuento(producto, 1)
+
+        # Extraer los valores de promo y tipo_descuento
+        descuento = mejor_descuento["descuento"]
+        porcenteje_descuento = mejor_descuento["porcenteje_descuento"]
+        if descuento > 0:
+            tiene_descuento = True
+        else:
+            tiene_descuento = False
+        
+        # Ahora puedes usar promo y tipo_descuento como variables independientes
+        print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
+        
+        # Agregar el campo 'tiene_descuento' al producto
+        producto.tiene_descuento = tiene_descuento
+        producto.descuento = descuento
+        producto.porcenteje_descuento = porcenteje_descuento
     
     context = {
         'products': paged_products,
@@ -143,7 +169,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request,'store/new_store2.html', context)
     else:   #Default para test mariano 
         return render(request, 'store/new_store.html', context)
-    
+
 def product_detail(request, category_slug, product_slug):
 
     
@@ -282,12 +308,103 @@ def submit_review(request, product_id):
 def condiciones (request):
 
     return render (request,"includes/como_comprar.html")
+ 
+def obtener_mejor_descuento(producto, cantidad):
+    """
+    Devuelve el mejor descuento aplicable a un producto y cantidad, considerando tanto reglas por productos
+    como por categorías/subcategorías, usando relaciones ManyToMany.
     
+    :param producto: Producto al que se desea aplicar el descuento.
+    :param cantidad: Cantidad del producto.
+    :return: El valor del mejor descuento y el tipo ('PORCENTAJE' o 'FIJO').
+    """
+    ahora = datetime.now()
 
+    # Filtrar reglas activas
+    reglas = ReglaDescuento.objects.filter(
+        activo=True,
+        fecha_inicio__lte=ahora,
+        fecha_fin__gte=ahora,
+    )
 
+    mejor_descuento = None
+    mejor_valor = 0
+    porcenteje_descuento = 0
 
+    # Evaluar todas las reglas activas
+    for regla in reglas:
+        # Convertir tipo_descuento a mayúsculas para comparación consistente
+        tipo_descuento = regla.tipo_descuento.upper()
 
+        # Variables para el descuento
+        descuento_actual = 0
+        
+        # Descuento por porcentaje
+        if tipo_descuento == 'PORCENTAJE':
+            if regla.productos.filter(id=producto.id).exists():
+                # Si la regla aplica a este producto específico
+                if regla.cantidad_minima <= int(cantidad):
+                    porcenteje_descuento = regla.valor_descuento
+                    descuento_actual = (producto.price * int(cantidad)) * (regla.valor_descuento / 100)
+                    
+            elif regla.categoria.exists() and regla.subcategoria.exists():
+                # Si la regla aplica a la combinación de categorías y subcategorías
+                if producto.category in regla.categoria.all() and producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        porcenteje_descuento = regla.valor_descuento
+                        descuento_actual = (producto.price * int(cantidad)) * (regla.valor_descuento / 100)
+                        
+            elif regla.productos.exists() and (regla.categoria.exists() or regla.subcategoria.exists()):
+                # Si tiene productos específicos y además una categoría/subcategoría asociada
+                if producto.category in regla.categoria.all() or producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        porcenteje_descuento = regla.valor_descuento
+                        descuento_actual = (producto.price * int(cantidad)) * (regla.valor_descuento / 100)
+                        
+            elif not regla.productos.exists() and (regla.categoria.exists() or regla.subcategoria.exists()):
+                # Si no tiene productos pero tiene categoría o subcategoría asociada
+                if producto.category in regla.categoria.all() or producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        porcenteje_descuento = regla.valor_descuento
+                        descuento_actual = (producto.price * int(cantidad)) * (regla.valor_descuento / 100)
+                       
+        # Descuento fijo
+        elif tipo_descuento == 'FIJO':
+            if regla.productos.filter(id=producto.id).exists():
+                # Si la regla aplica a este producto específico
+                if regla.cantidad_minima <= int(cantidad):
+                    descuento_actual = regla.valor_descuento
+                    
+            elif regla.categoria.exists() and regla.subcategoria.exists():
+                # Si la regla aplica a la combinación de categorías y subcategorías
+                if producto.category in regla.categoria.all() and producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        descuento_actual = regla.valor_descuento
+                        
+            elif regla.productos.exists() and (regla.categoria.exists() or regla.subcategoria.exists()):
+                # Si tiene productos específicos y además una categoría/subcategoría asociada
+                if producto.category in regla.categoria.all() or producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        descuento_actual = regla.valor_descuento                    
+            elif not regla.productos.exists() and (regla.categoria.exists() or regla.subcategoria.exists()):
+                # Si no tiene productos pero tiene categoría o subcategoría asociada
+                if producto.category in regla.categoria.all() or producto.subcategory in regla.subcategoria.all():
+                    if regla.cantidad_minima <= int(cantidad):
+                        descuento_actual = regla.valor_descuento
+                        
+        # Si encontramos un mejor descuento, lo asignamos
+       
+        if descuento_actual > mejor_valor:
+            mejor_valor = descuento_actual
+            mejor_descuento = regla
+        
+ 
 
-
-
-
+    # Retornar el mejor descuento encontrado
+    return {
+        "descuento": mejor_valor,
+        "porcenteje_descuento":porcenteje_descuento,
+        "tipo_descuento": mejor_descuento.tipo_descuento if mejor_descuento else None,
+        "regla_descuento": mejor_descuento.nombre if mejor_descuento else None,
+        "id_regla_descuento": mejor_descuento.id if mejor_descuento else None,
+    }

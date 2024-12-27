@@ -39,10 +39,18 @@ urlpatterns = [
     path('producto/habilitar/<int:product_id>/<int:estado>', views.panel_producto_habilitar, name='panel_producto_habilitar'),
     path('producto/import/del/<int:product_id>', views.panel_importar_productos_del, name='panel_importar_productos_del'),
     path('producto/search/<str:keyword>/<str:order_number>', views.search_lookup, name='search_lookup'),
+    path('producto/search', views.panel_buscar_productos, name='panel_buscar_productos'),
+    
+
     path('producto/precios', views.panel_lista_precios, name='panel_lista_de_precios'),
     path('producto/precios/ext/', views.panel_producto_precio_ext,name='panel_producto_precio_ext'),
+    #DESCUENTOS
     
-    
+    path('producto/descuentos/', views.panel_listar_reglas_descuento, name='listar_reglas_descuento'),
+    path('producto/descuentos/crear/', views.panel_crear_regla_descuento, name='crear_regla_descuento'),
+    path('producto/descuentos/editar/<int:pk>/', views.panel_editar_regla_descuento, name='editar_regla_descuento'),
+    path('producto/descuentos/eliminar/<int:pk>/', views.panel_eliminar_regla_descuento, name='eliminar_regla_descuento'),
+
     #CATEGORIAS
     path('categoria/', views.panel_categoria_list, name='panel_categoria'),
     path('categoria/<int:categoria_id>', views.panel_categoria_detalle, name='panel_categoria_detalle'),

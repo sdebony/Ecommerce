@@ -3,6 +3,7 @@ from category.models import Category,SubCategory
 from django.urls import reverse
 from accounts.models import Account
 from django.db.models import Avg, Count
+from django.utils import timezone
 
 
 # Create your models here.
@@ -191,3 +192,74 @@ class ProductKit(models.Model):
         verbose_name = 'producto_kit'
         verbose_name_plural = 'producto_kit'
         unique_together = ('productokit', 'productohijo')
+
+class ReglaDescuento(models.Model):
+    TIPOS_DESCUENTO = [
+        ('porcentaje', 'Porcentaje'),  # Descuento en porcentaje
+        ('fijo', 'Monto Fijo'),        # Rango Ventas Mayores a 100 y menores a 200 ... Se toma monto_desde y monto hasta
+    ]
+
+    nombre = models.CharField(max_length=200)
+    tipo_descuento = models.CharField(
+        max_length=20, 
+        choices=TIPOS_DESCUENTO, 
+        default='porcentaje'
+    )
+    valor_descuento = models.FloatField()
+    cantidad_minima = models.IntegerField(
+        default=0, 
+        blank=True, 
+        null=True
+    )
+    fecha_inicio = models.DateTimeField(
+        blank=True, 
+        null=True
+    )
+    fecha_fin = models.DateTimeField(
+        blank=True, 
+        null=True
+    )
+    activo = models.BooleanField(default=True)
+    categoria = models.ManyToManyField(Category,  blank=True)    
+    subcategoria = models.ManyToManyField(SubCategory,  blank=True)
+    productos = models.ManyToManyField(Product, blank=True)
+    monto_desde = models.FloatField()
+    monto_hasta = models.FloatField()
+    acumulable = models.BooleanField(default=False)
+   
+    # Método para verificar si el descuento es aplicable
+
+    #def obtener_nombre_descuento(self,producto):
+    #
+    #    if not self.es_aplicable(producto, 0):
+    #        return 0
+    #
+    #    if self.tipo_descuento.strip().upper() == 'PORCENTAJE':
+    #        return str(self.valor_descuento) + ' %' 
+    #    #elif self.tipo_descuento.strip().upper() == 'FIJO':  #El fijo es por rango de venta final no se muestra en los articulos
+    #    #    return "$ -" + str(self.valor_descuento) + " OFF" 
+    #
+    #    return 0
+
+
+    # Método para calcular el descuento
+    #def calcular_descuento(self, producto, cantidad):
+    #    """
+    #    Calcula el descuento total aplicable basado en el tipo y valor del descuento.
+    #    """
+    #    if not self.es_aplicable(producto, cantidad):
+    #        return 0
+
+    #    if self.tipo_descuento == 'porcentaje':
+    #        return producto.price * (self.valor_descuento / 100) * cantidad
+    #    elif self.tipo_descuento == 'fijo':
+    #        return self.valor_descuento * cantidad
+
+    #    return 0
+
+    def __str__(self):
+        return self.nombre
+    class Meta:
+        verbose_name = "Regla de Descuento"
+        verbose_name_plural = "Reglas de Descuento"
+        ordering = ['nombre']

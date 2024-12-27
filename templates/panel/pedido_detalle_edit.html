@@ -191,6 +191,12 @@
                           <input type="text" name="edit_precio" id="edit_precio" class="form-control" value="{{ edit_precio }}" enabled>
                       {% endif %} 
                   </div>
+                  <div class="col form-group">  
+                    {% if edit_precio %}  
+                        <label>Descueno:</label>
+                        <input type="text" name="edit_descuento" id="edit_descuento" class="form-control" value="{{ edit_descuento }}" enabled> 
+                    {% endif %}
+                  </div>
                   <div class="col form-group"> 
                           {% if edit_item_subtotal %}
                           <label>Subtotal:</label>
@@ -393,21 +399,33 @@ function calcular_detalle()
       cant = cant==="" ? 0 : +cant;
       cant = cant<0 ? 0 : cant;
 
+      desc =$('#edit_descuento').val();
+      desc = parseFloat(desc)
+      desc = desc==="" ? 0 : +desc;
+      desc = desc<0 ? 0 : desc;
+
+
       prec =$('#edit_precio').val();
       prec = parseFloat(prec)
       prec = prec==="" ? 0 : +prec;
       prec = prec<0 ? 0 : prec;
+      
+      
 
       stotal = cant * prec;
+      tot_desc = cant * desc;
+      stotal = stotal - tot_desc;
      
       $('#edit_quantity').val(cant);
       $('#edit_precio').val(prec);
+      $('#edit_descuento').val(desc);
       
       $('#edit_subtotal').val(stotal);
       
 
       console.log("Cantidad " + cant);
       console.log("prec " + prec);
+      console.log("desc " + desc);
       console.log("subtotal " + $('#edit_subtotal').val());
    
 
@@ -441,7 +459,7 @@ function calcular_detalle()
   {% endif %}
 
 
-$('#edit_quantity,#edit_precio').change(function(){
+$('#edit_quantity,#edit_precio,#edit_descuento').change(function(){
             calcular_detalle();
         });
 

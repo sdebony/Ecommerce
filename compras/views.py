@@ -5,12 +5,15 @@ from accounts.models import AccountPermition
 from panel.models import ImportDolar
 from contabilidad.models import Cuentas,Movimientos,Operaciones
 from store.models import Costo
+from category.models import Category, SubCategory
 
 from compras.models import CompraDolar,Proveedores,ProveedorArticulos,Marcas,UnidadMedida,ComprasEnc,ComprasDet
 from panel.views import validar_permisos
 from slugify import slugify
 from django.contrib import messages
 from django.db.models import F, ExpressionWrapper, FloatField, Case, When, Value
+from collections import defaultdict
+
 
 from orders.models import Order
 from store.models import Product
@@ -515,6 +518,8 @@ def proveedor_list_articulos(request,prov_id=None):
                 'permisousuario': permisousuario,
                 'articulos_proveedor':articulos_proveedor
             }
+            print("lista_precios_proveedor")
+
             return render(request,'compras/lista_precios_proveedor.html',context)
     else:
       return render(request,'panel/login.html',)
@@ -546,85 +551,56 @@ def proveedor_check_articulos(request):
         if request.method == 'GET':
             permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
 
-            # Subquery para obtener el proveedor con el menor precio_por_unidad
-            subquery_proveedor_articulos = ProveedorArticulos.objects.filter(
-                id_product=OuterRef('pk'),
-                precio_por_unidad__gt=1  # Condición para que el precio por unidad sea mayor a 1
-            ).order_by('precio_por_unidad')
+            # Obtenemos todos los productos con sus respectivos proveedores y precios
+            productos = Product.objects.all()  # Obtener todos los productos
+            proveedores = Proveedores.objects.all()  # Obtener todos los proveedores
+            productos_con_proveedores = {}
 
-            # Hacer la consulta principal con los datos del proveedor y el precio por unidad
-            productos = Product.objects.annotate(
-                proveedor=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('proveedor__nombre')[:1]), 
-                    Value(None, output_field=CharField())
-                ),
-                nombre_articulo=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('nombre_articulo')[:1]), 
-                    Value(None, output_field=CharField())
-                ),
-                precio_por_unidad=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('precio_por_unidad')[:1]), 
-                    Value(0, output_field=FloatField())
-                )
-            ).values('product_name', 'stock','costo_prod', 'proveedor', 'nombre_articulo', 'precio_por_unidad')
+            # Iteramos sobre cada producto
+            for producto in productos:
+                proveedores_dict = {}
+                # Buscamos los artículos relacionados con el producto
+                articulos = ProveedorArticulos.objects.filter(id_product=producto)
 
-            
+                # Si no hay artículos relacionados, los valores estarán vacíos para cada proveedor
+                for proveedor in proveedores:
+                    articulo = articulos.filter(proveedor=proveedor).first()  # Obtenemos el primer artículo del proveedor
 
+                    if articulo:
+                        proveedores_dict[proveedor.nombre] = {
+                            "nombre_articulo": articulo.nombre_articulo,
+                            "cantidad_unidad_medida": articulo.cantidad_unidad_medida,
+                            "precio_compra": articulo.precio_compra,
+                            "precio_por_unidad": articulo.precio_por_unidad,
+                        }
+                    else:
+                        # Si no hay relación con el proveedor, se llenan los campos con vacíos
+                        proveedores_dict[proveedor.nombre] = {
+                            "nombre_articulo": "",
+                            "cantidad_unidad_medida": "",
+                            "precio_compra": "",
+                            "precio_por_unidad": "",
+                        }
+
+                # Añadimos los datos del producto junto con los proveedores
+                productos_con_proveedores[producto.id] = {
+                    "product_name": producto.product_name,
+                    "stock": producto.stock,
+                    "costo_prod": producto.costo_prod,
+                    "proveedores": proveedores_dict,
+                }
+                
+                
+
+           
             context = {
-                'productos': productos,
+                'productos_con_proveedores': productos_con_proveedores,
+                "proveedores": proveedores,
                 'permisousuario': permisousuario,
             }
             return render(request,'compras/lista_comparecion_proveedores.html',context)
 
-        if request.method == 'POST':
-
-            permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
-            # Subquery para obtener el proveedor con el menor precio_por_unidad
-            subquery_proveedor_articulos = ProveedorArticulos.objects.filter(
-                id_product=OuterRef('pk'),
-                precio_por_unidad__gt=1  # Condición para que el precio por unidad sea mayor a 1
-            ).order_by('precio_por_unidad')
-
-            # Hacer la consulta principal con los datos del proveedor y el precio por unidad
-            productos = Product.objects.annotate(
-                proveedor=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('proveedor__nombre')[:1]), 
-                    Value(None, output_field=CharField())
-                ),
-                nombre_articulo=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('nombre_articulo')[:1]), 
-                    Value(None, output_field=CharField())
-                ),
-                precio_por_unidad=Coalesce(
-                    Subquery(subquery_proveedor_articulos.values('precio_por_unidad')[:1]), 
-                    Value(0, output_field=FloatField())
-                )
-            ).values('product_name', 'costo_prod', 'proveedor', 'nombre_articulo', 'precio_por_unidad')
-
-            #GUARDO EN LA TABLA DE IMPORT COSTO PARA SER ACTUALIZADA DESDE EL MODULO COSTOS DONDE ACTUALIZA LA TABLA PRODUCTO
-            if productos:
-                for prod in productos:
-                    if prod['precio_por_unidad'] > 0:
-                        prod_slug = slugify(prod['product_name']).lower()
-                        product = Product.objects.filter(slug=prod_slug).first()
-
-                        costos = Costo (
-                            producto=product,
-                            costo=prod['precio_por_unidad'],
-                            fecha_actualizacion=datetime.today(),
-                            usuario=request.user,
-                        )
-                        print(prod['product_name'],prod['precio_por_unidad'])
-                        costos.save()
-            
-            context = {
-                'productos': productos,
-                'permisousuario': permisousuario,
-            }
-            return render(request,'compras/lista_comparecion_proveedores.html',context)
-
-
+   
     else:
       return render(request,'panel/login.html',)
         
@@ -778,7 +754,9 @@ def proveedor_articulo(request,prov_id=None,prod_id=None):
                     proveedor_nombre = proveedor.nombre
             else:
                 articulos = [] 
-                proveedor_nombre=""               
+                proveedor_nombre="" 
+
+                       
 
             context = {
                 'articulos': articulos,
@@ -786,6 +764,7 @@ def proveedor_articulo(request,prov_id=None,prod_id=None):
                 'proveedor_id':prov_id,
                 'permisousuario': permisousuario,
             }
+            
             return render(request,'compras/lista_precios_proveedor.html',context)
 
             

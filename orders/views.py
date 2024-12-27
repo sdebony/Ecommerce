@@ -130,12 +130,14 @@ def place_order(request, total=0, quantity=0,):
             print("Costo de envio:",  envio)
             total = total if total is not None else 0.0
             envio = envio if envio is not None else 0.0
+            order_total_descuentos = 0
             grand_total = 0
             for cart_item in cart_items:
-                total += (cart_item.product.price * cart_item.quantity)
+                total += (cart_item.precio_real * cart_item.quantity)
+                order_total_descuentos += (cart_item.desc_unit * cart_item.quantity) 
                 quantity += cart_item.quantity
             
-            grand_total = total + envio
+            grand_total = total + envio - order_total_descuentos
             
 
             # Store all the billing information inside Order table
@@ -144,9 +146,8 @@ def place_order(request, total=0, quantity=0,):
             
             data.origen_venta = origen_venta
             data.order_total_comisiones = 0
-            data.order_total_descuentos = 0
             data.order_total_impuestos = 0
-
+            data.order_total_descuentos = order_total_descuentos
 
             data.first_name = form.cleaned_data['first_name']
             data.last_name = form.cleaned_data['last_name']
@@ -191,6 +192,7 @@ def place_order(request, total=0, quantity=0,):
                 'cart_items': cart_items,
                 'total': total,
                 'envio': envio,
+                'order_total_descuentos':order_total_descuentos,
                 'grand_total': grand_total,
             }
             print("order",order)
@@ -207,17 +209,21 @@ def place_order(request, total=0, quantity=0,):
 def order_complete(request):
     order_number = request.GET.get('order_number')
     transID = request.GET.get('payment_id')
-
+    descuentos=0
+    print("order_complete")
     try:
+        print("try ...order_complete")
         order = Order.objects.get(order_number=order_number, is_ordered=True)
         ordered_products = OrderProduct.objects.filter(order_id=order.id)
 
         subtotal = 0
         for i in ordered_products:
-            subtotal += i.product_price * i.quantity
+            subtotal += i.precio_unitario_cobrado * i.quantity
+            descuentos += i.descuento_unitario * i.quantity 
+            
     
         payment = Payment.objects.get(payment_id=transID)
-
+        print("Descuentos",descuentos)
         context = {
             'order': order,
             'ordered_products': ordered_products,
@@ -225,8 +231,10 @@ def order_complete(request):
             'transID': payment.payment_id,
             'payment': payment,
             'subtotal': subtotal,
+            'descuentos':descuentos,
         }
         return render(request, 'orders/order_complete.html', context)
+
     except (Payment.DoesNotExist, Order.DoesNotExist):
         return redirect('home')
 
@@ -253,11 +261,11 @@ def order_cash(request):
             orderproduct.product_price = item.product.price
             orderproduct.ordered = True
 
-            orderproduct.descuento_unitario = 0
-            orderproduct.precio_unitario_cobrado =  item.product.price
+            orderproduct.descuento_unitario = item.desc_unit
+            orderproduct.precio_unitario_cobrado =  item.precio_con_desc
             
             costo = costo_producto(item.product_id)
-            orderproduct.costo = costo
+            orderproduct.costo = round(costo,2)
             orderproduct.save()
             
             
@@ -323,17 +331,22 @@ def order_cash(request):
             print("order status", order.is_ordered)
 
             order = Order.objects.get(order_number=order_number, is_ordered=True)
-            ordered_products = OrderProduct.objects.filter(order_id=order.id)
+            ordered_products = OrderProduct.objects.filter(order_id=order.id).annotate(
+                    subtotal_line=F('quantity') * F('precio_unitario_cobrado'),
+                    total_discount=F('descuento_unitario') * F('quantity')
+                )
 
             subtotal = 0
+            descuentos=0
             for i in ordered_products:
                 subtotal += i.product_price * i.quantity
+                descuentos += i.descuento_unitario * i.quantity 
                 
 
             #Es pago contra recibo
             #payment = Payment.objects.get(payment_id=transID)
             payment = []
-            print("resultado_final",resultado_final)
+            print("descuentos",descuentos)
 
 
             #*************************************
@@ -351,6 +364,7 @@ def order_cash(request):
                 'transID': 'Pendiente', #payment.payment_id,
                 'payment': payment,    #Viaja Vacío
                 'subtotal': subtotal,
+                'descuentos':descuentos,
                 })
             to_email =  request.user.email
             cc_email =  settings.DEF_CC_MAIL  #'lifche.argentina@gmail.com' #santidebony@hotmail.com
@@ -374,9 +388,10 @@ def order_cash(request):
                 'order': order,
                 'ordered_products': ordered_products,
                 'order_number': order.order_number,
-                 'transID': 'Pendiente', #payment.payment_id,
+                'transID': 'Pendiente', #payment.payment_id,
                 'payment': payment,    #Viaja Vacío
                 'subtotal': subtotal,
+                'descuentos':descuentos,
             }
             print("Order Complete")
             return render(request, 'orders/order_complete.html', context)

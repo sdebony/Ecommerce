@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from store.models import Product, Variation,ProductKitEnc
-from .models import Cart, CartItem,CartItemKit
-from store.models import ProductKit
+from .models import Cart, CartItem,CartItemKit,CartItemDescuento
+from store.models import ProductKit,ReglaDescuento
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from accounts.models import UserProfile,AccountDirecciones
@@ -12,6 +12,7 @@ import json
 from django.db.models import F
 # Create your views here.
 from django.conf import settings
+
 
 def _cart_id(request):
     cart = request.session.session_key
@@ -81,6 +82,7 @@ def add_cart(request, product_id):
                     item.quantity = 1
                 item.save()
                 #messages.success(request, 'Producto agregado: (' + str(quantity) + ') x ' + product_info)
+            
             else:
                 item = CartItem.objects.create(product=product, quantity=1, user=current_user)
                 if len(product_variation) > 0:
@@ -88,8 +90,14 @@ def add_cart(request, product_id):
                     item.variations.add(*product_variation)
                 item.save()
             
-
-            # PROCESO KIT
+            #Aplico Descuento si corresponde
+            precio_con_descuento=0
+            b_descuento = calcular_y_guardar_descuentos(item_id)
+            if b_descuento:
+                precio_con_descuento = b_descuento["precio_con_desc"]
+            else:
+                precio_con_descuento = product.price
+                            
             # PROCESO KIT
             if product.es_kit:
                 print("1 . Procesando kits....")
@@ -153,11 +161,17 @@ def add_cart(request, product_id):
                quantity = 1
             else:
                 quantity = float(quantity)
-            #print("2. cantidad:",quantity)
+
+            
+
+            
             cart_item = CartItem.objects.create(
                 product = product,
                 quantity = quantity, #1 inicial
                 user = current_user,
+                precio_real = 0,
+                sub_total_linea = 0
+
             )
             item_id = cart_item.id
             print("item_id",item_id)
@@ -167,6 +181,9 @@ def add_cart(request, product_id):
             cart_item.save()
 
              # PROCESO KIT
+            #Aplico Descuento si corresponde
+            b_descuento = calcular_y_guardar_descuentos(item_id)
+
             if product.es_kit:
                 print("2 Procesando Kits")
                 itemkit=[]
@@ -207,9 +224,6 @@ def add_cart(request, product_id):
 
                 except:
                     pass
-
-
-
 
             messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
             #messages.success(request, 'Producto agregado')
@@ -287,6 +301,10 @@ def add_cart(request, product_id):
                     item.quantity = 1
                 item.save()
 
+            #Aplico Descuento si corresponde
+            b_descuento = calcular_y_guardar_descuentos(item_id)
+            
+
             if product.es_kit:
                 print("3 Procesando Kits")
                 # PROCESO KIT
@@ -356,10 +374,21 @@ def add_cart(request, product_id):
             if not quantity:
                 quantity = 1
 
+            #Aplico Descuento si corresponde
+            precio_con_descuento=0
+            b_descuento = calcular_y_guardar_descuentos(item_id)
+            if b_descuento:
+                precio_con_descuento = b_descuento["precio_con_desc"]
+            else:
+                precio_con_descuento = product.price
+
+
             cart_item = CartItem.objects.create(
                 product = product,
-                quantity = float(quantity),
+                quantity = int(quantity),
                 cart = cart,
+                precio_real = product.price,
+                sub_total_linea = float(precio_con_descuento) * int(quantity)
             )
             if len(product_variation) > 0:
                 cart_item.variations.clear()
@@ -446,14 +475,17 @@ def cart(request, total=0, quantity=0, cart_items=None):
     try:
         envio = 0
         grand_total = 0
+        descuento=0
         resultado_final = []
         if request.user.is_authenticated:
             cart_items = CartItem.objects.filter(user=request.user, is_active=True)
         else:
             cart = Cart.objects.get(cart_id=_cart_id(request))
             cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
+            descuento += (cart_item.desc_unit * cart_item.quantity)
             quantity += cart_item.quantity
             kits = CartItemKit.objects.filter(cart=cart_item).annotate(
                 product_name=F('product__product_name')
@@ -463,12 +495,13 @@ def cart(request, total=0, quantity=0, cart_items=None):
             resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
            
         
-        grand_total = total + envio
+        grand_total = total + envio - descuento
     except ObjectDoesNotExist:
         pass #just ignore
 
     context = {
         'total': total,
+        'descuento': descuento,
         'quantity': quantity,
         'cart_items': cart_items,
         'products_and_quantities':resultado_final,
@@ -540,6 +573,7 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         return redirect('cart')
 
 def validate_cart_items(cartitem_queryset):
+
     # Calcular la cantidad total de unidades en CartItem
     total_cartitem_units = 0
     for item in cartitem_queryset:
@@ -555,3 +589,82 @@ def validate_cart_items(cartitem_queryset):
 
     # Comparar los valores
     return total_cartitem_units == total_cartitemkit_quantity
+
+def calcular_y_guardar_descuentos(itemid):
+
+    from store.views import obtener_mejor_descuento  # Importación local
+
+    precio_con_desc=0
+    
+    item_cart = CartItem.objects.get(id=itemid)
+    if item_cart:
+        producto = item_cart.product
+        quantity = item_cart.quantity
+
+        descuento_unit=0
+        precio_con_descuento=0
+        subtotal_linea=0
+        precio_prod = item_cart.product.price
+        product = Product.objects.get(id=item_cart.product.id)
+
+        # PROCESO PROMOCIONES
+        descuento = obtener_mejor_descuento(producto,quantity)
+        monto_descuento = descuento["descuento"]  #TOTAL
+        nombre_descuento = descuento["regla_descuento"]
+        porcentaje_descuento = descuento["porcenteje_descuento"]
+        tipo_descuento = descuento["tipo_descuento"]
+        id_regla_desc = descuento["id_regla_descuento"]
+      
+        # Ahora puedes usar promo y tipo_descuento como variables independientes
+        print(f"monto_descuento: {monto_descuento}, Nombre descuento: {nombre_descuento}, porcentaje_descuento: {porcentaje_descuento}, tipo_descuento: {tipo_descuento}")
+       
+        if monto_descuento > 0:
+            #Grabo la info )
+            
+            regla_descuento = ReglaDescuento.objects.get(id=id_regla_desc) if id_regla_desc else None
+            descuento_unit = float(monto_descuento) / int(quantity)
+            descuento_total = float(monto_descuento) 
+
+            precio_prod = product.price
+
+
+            # Crear y guardar el registro
+            cart_item_descuento, create = CartItemDescuento.objects.update_or_create(
+                cartitemid=item_cart,
+                product=product,
+                defaults={
+                    'quantity':int(quantity),
+                    'descuento_unit':float(descuento_unit),
+                    'descuento_total':float(descuento_total),
+                    'porcentaje_descuento':int(porcentaje_descuento),
+                    'regladescuento':regla_descuento
+                    }
+                )
+
+            precio_con_descuento = float(precio_prod)- float(descuento_unit)
+            subtotal_linea = float(precio_con_descuento) * int(quantity)
+            # Guardar el registro en la base de datos
+            cart_item_descuento.save()
+
+        else:
+            descuento_unit=0
+            precio_prod = item_cart.product.price
+            precio_con_descuento=precio_prod
+            subtotal_linea= float(precio_con_descuento) * int(quantity)
+            
+
+        cart_item, created = CartItem.objects.update_or_create(
+        id=itemid,
+        product=product,
+        defaults={
+            'desc_unit': float(descuento_unit),
+            'precio_con_desc': float(precio_con_descuento),
+            'sub_total_linea': float(subtotal_linea),
+            'precio_real':float(precio_prod)
+            
+                }
+            )
+
+
+            
+        return {"precio_con_desc": precio_con_desc}

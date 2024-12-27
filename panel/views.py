@@ -9,7 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from store.models import Product,Variation,Costo,ProductKit, ProductKitEnc
+from store.models import Product,Variation,Costo,ProductKit, ProductKitEnc,ReglaDescuento
 from orders.models import Order, OrderProduct,Payment,OrderShipping,OrigenVenta,OrderProductKitItem
 from category.models import Category, SubCategory #,Orden_picking
 from accounts.models import Account, UserProfile    
@@ -146,6 +146,12 @@ def search_lookup(request,keyword=None,order_number=None):
         'order_number':order_number,
     }
     return render(request, 'panel/productos_lookup.html' , context)
+
+def panel_buscar_productos(request):
+    query = request.GET.get('q', '')  # Obtener término de búsqueda
+    productos = Product.objects.filter(product_name__icontains=query)[:20]  # Limitar resultados a 20
+    data = [{"id": prod.id, "product_name": prod.product_name} for prod in productos]
+    return JsonResponse(data, safe=False)
 
 def validar_permisos(request,codigo=None):
     
@@ -592,12 +598,15 @@ def dashboard_control(request):
 
         total_ganancia_real = round(float(total_facturacion) - float(total_product_cost),2)
 
+        print("total_facturacion",total_facturacion)
+        print("total_product_cost",total_product_cost)
+
         print("Cantidad de ventas:",total_ventas,total_articulos_vendidos,total_product_cost)
         
         margen_bruto_total = None
         if total_product_cost:
             if  total_product_cost > 0:
-                margen_bruto_total = round(((total_facturacion / total_product_cost) - 1) * 100, 2)  # Redondear a 2 decimales
+                margen_bruto_total = round(((total_ganancia_real / total_facturacion)) * 100, 2)  # Redondear a 2 decimales
             else:
                 margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
 
@@ -613,6 +622,7 @@ def dashboard_control(request):
         productos_kit_total = OrderProduct.objects.filter(product__es_kit=True).annotate(
             unidades_totales=F('quantity') * F('product__productkitenc__cant_unidades')
         ).aggregate(total=Sum('unidades_totales'))['total'] or 0
+
 
         print("vendidas en kit:",productos_kit_total)
         # Sumar el total de 'quantity' excluyendo los productos con 'product.es_kit = False'
@@ -951,12 +961,15 @@ def panel_pedidos_detalle(request,order_number=None):
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id).annotate(subtotal=
             Round(
-                Sum('product_price')*Sum('quantity'),2
+                Sum('precio_unitario_cobrado')*Sum('quantity'),2
                 ))
 
-        subtotal=0     
+        subtotal=0
+        subtotal_sin_desc=0
         for detalle in ordenes_detalle:
             subtotal = subtotal + detalle.subtotal  # Accede al subtotal de cada elemento
+            subtotal_sin_desc = subtotal_sin_desc + round(float(detalle.quantity) * float(detalle.product_price),2)
+
         
             #Envio detalle de kits al order_recibe para el mail.
             kits = OrderProductKitItem.objects.filter(order_product=detalle).annotate(
@@ -966,7 +979,7 @@ def panel_pedidos_detalle(request,order_number=None):
             # Agregar al resultado final
             resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
 
-
+        
         idcuenta = ordenes.cuenta
         if idcuenta>0:
             cuenta = Cuentas.objects.get(id=idcuenta)
@@ -994,15 +1007,13 @@ def panel_pedidos_detalle(request,order_number=None):
             canal_venta= settings.STORE_MULTI_CANAL.upper()
 
         
-        print("ordenes.status",ordenes.status,pago_pendiente,subtotal)
-        print("resultado_final --> ",resultado_final)
         
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
             'ordenes_detalle':ordenes_detalle,
             'products_and_quantities':resultado_final,
-            'subtotal': subtotal,
+            'subtotal': subtotal_sin_desc,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
             'entregado':entregado,
@@ -1447,7 +1458,7 @@ def panel_pedidos_detalle_edit(request,order_number=None):
     if validar_permisos(request,'PEDIDOS EDIT'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-
+        print("panel_pedidos_detalle_edit")
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id)
         subtotal = ordenes.order_total - ordenes.envio
@@ -1600,11 +1611,12 @@ def panel_pedidos_save_detalle(request):
 
        
         if request.method =="POST":
-            
+            print("panel_pedidos_save_detalle")
             order_number = request.POST.get("edit_order_number")
             id_linea = request.POST.get("edit_item_id")
             cantidad = float(request.POST.get("edit_quantity"))
             precio = request.POST.get("edit_precio")
+            descuento = request.POST.get("edit_descuento")
 
             
 
@@ -1636,8 +1648,8 @@ def panel_pedidos_save_detalle(request):
                                 payment = ordered_products.payment,
                                 user =ordered_products.user,
                                 product=ordered_products.product,
-                                descuento_unitario = 0,
-                                precio_unitario_cobrado =precio,    #Precio Unitario Cobrado sin impuestos ni comisiones
+                                descuento_unitario = descuento,
+                                precio_unitario_cobrado =float(precio) - float(descuento),    #Precio Unitario Cobrado sin impuestos ni comisiones
                                 ordered=ordered_products.ordered,
                                 created_at = ordered_products.created_at,
                                 updated_at = datetime.today(),
@@ -1660,7 +1672,7 @@ def panel_pedidos_save_detalle(request):
 def get_order_total(order_id):
 
     ordered_products = OrderProduct.objects.filter(order_id=order_id)
-    total = sum([product.product_price * product.quantity for product in ordered_products])
+    total = sum([product.precio_unitario_cobrado * product.quantity for product in ordered_products])
     print("Total Enc:",total)
     return round(total, 2)  # Redondea el resultado a 2 decimales
 
@@ -1702,7 +1714,8 @@ def panel_pedidos_save_enc(request):
                 total = get_order_total(order.id)
                 print("Total Order;",total)
                 total = float(total) - float(order_total_comisiones) - float(order_total_impuestos) - float(order_total_descuentos) - float(envio)
-                print("Nuevo total",total)
+                total = round(total,2)
+                print("Nuevo total",total,order_total_comisiones,order_total_impuestos,order_total_descuentos,envio)
 
                 Order_New = Order(
                     id = order.id,
@@ -1731,6 +1744,8 @@ def panel_pedidos_save_enc(request):
                     order_total = round(total,2),
                     dir_correo= order.dir_correo,
                     dir_tipoenvio = order.dir_tipoenvio,
+                    fecha_tracking = order.fecha_tracking, 
+                    nro_tracking = order.nro_tracking,
                     envio = envio,
                     status = "New",
                     is_ordered=True,
@@ -1772,6 +1787,209 @@ def panel_productos_variantes(request):
             return redirect('panel_producto_detalle', str(product_id)) 
     else:
         return render (request,"panel/login.html")
+
+def panel_crear_regla_descuento(request):
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    categorias = Category.objects.all()  # Obtener todas las categorías
+    productos = Product.objects.filter(is_available=True)
+
+
+    if request.method == 'POST':
+       
+        print("Crear Reglas POST")
+        nombre = request.POST.get('nombre')
+        tipo_descuento = request.POST.get('tipo_descuento')
+        valor = request.POST.get('valor')
+        #categoria_id = request.POST.get('categoria')
+        #subcategoria_id = request.POST.get('subcategoria')
+        cantidad_minima = request.POST.get('cantidad_minima')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        activo = request.POST.get('activo') == 'on'
+
+        monto_desde = request.POST.get('monto_desde') 
+        monto_hasta = request.POST.get('monto_hasta') 
+        acumulable = request.POST.get('acumulable') == 'off'
+
+        productos = request.POST.get('productosSeleccionados', '')
+        categorias_ids = request.POST.getlist('categorias')  # Lista de IDs de categorías
+        subcategorias_ids = request.POST.getlist('subcategorias')  # Lista de IDs de subcategorías
+       
+        
+        if productos:
+            productos_lista = productos.split(',')
+            productos = Product.objects.filter(id__in=productos_lista)
+        
+            print("productosSeleccionados:", productos_lista)  # Aquí deberías ver los IDs de los productos
+        else:
+            print("No se seleccionaron productos.")
+
+        
+        print("categorias_ids",categorias_ids)
+
+        # Primero, crea la instancia de ReglaDescuento sin el campo `productos`
+        regla_descuento = ReglaDescuento.objects.create(
+            nombre=nombre,
+            tipo_descuento=tipo_descuento,
+            valor_descuento=valor if valor else 0,
+            #categoria=categoria,
+            #subcategoria=subcategoria,
+            cantidad_minima=cantidad_minima if cantidad_minima else 0,
+            monto_desde=monto_desde if monto_desde else 0,
+            monto_hasta=monto_hasta if monto_hasta else 0,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            activo=activo,
+            acumulable=acumulable
+        )
+        # Luego, agrega los productos seleccionados a la relación ManyToMany
+        regla_descuento.productos.add(*productos)  # Usar add() para agregar los productos seleccionados
+        # Asociar categorías, subcategorías y productos
+        if categorias_ids:
+            categorias = Category.objects.filter(id__in=categorias_ids)
+            regla_descuento.categoria.set(categorias)
+
+        if subcategorias_ids:
+            subcategorias = SubCategory.objects.filter(id__in=subcategorias_ids)
+            regla_descuento.subcategoria.set(subcategorias)
+
+        
+        messages.success(request, 'Regla de descuento creada exitosamente.')
+        return redirect('listar_reglas_descuento')
+
+    context = {
+        'permisousuario':permisousuario,
+        'categorias':categorias,
+        'productos':productos
+    }
+    
+    return render(request, 'panel/producto_descuento_add.html',context)
+    
+def panel_editar_regla_descuento(request, pk):
+
+    regla = get_object_or_404(ReglaDescuento, pk=pk)
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    categorias = Category.objects.all()  # Obtener todas las categorías
+    productos = Product.objects.filter(is_available=True)
+    regla_prod = regla.productos.all()
+    categorias_con_subcategorias = []
+    product=None
+  
+    for categoria in regla.categoria.all():
+        subcategorias = regla.subcategoria.filter(category=categoria)
+        if subcategorias.exists():
+            for subcategoria in subcategorias:
+                # Añadimos los ID y nombre como un par
+                categorias_con_subcategorias.append({
+                    'categoria_id': categoria.id,
+                    'categoria_nombre': categoria.category_name,
+                    'subcategoria_id': subcategoria.id,
+                    'subcategoria_nombre': subcategoria.subcategory_name
+                })
+        else:
+            # Añadimos solo la categoría si no tiene subcategoría
+            categorias_con_subcategorias.append({
+                'categoria_id': categoria.id,
+                'categoria_nombre': categoria.category_name,
+                'subcategoria_id': None,
+                'subcategoria_nombre': None
+            })
+
+
+
+    if request.method == 'POST':
+
+        monto_desde = request.POST.get('monto_desde')  if request.POST.get('monto_desde') else 0
+        monto_hasta = request.POST.get('monto_hasta')  if request.POST.get('monto_hasta') else 0
+        acumulable = request.POST.get('acumulable') 
+
+        if acumulable=='on':
+            acumulable = True
+        else:
+            acumulable = False
+
+        
+        categorias = request.POST.getlist('categorias[]')
+        subcategorias = request.POST.getlist('subcategorias[]')
+        productos_seleccionados = request.POST.get('productosSeleccionados','')
+        
+        print("productos_seleccionados",productos_seleccionados)
+        
+        if productos_seleccionados:
+            producto_ids = productos_seleccionados.split(',')
+            product = Product.objects.filter(id__in=producto_ids)
+
+            print("product_list ----->>>>>>>>",producto_ids)
+
+        
+          
+
+        regla.nombre = request.POST.get('nombre')
+        regla.tipo_descuento = request.POST.get('tipo_descuento')
+        regla.valor_descuento = request.POST.get('valor')
+        regla.cantidad_minima = request.POST.get('cantidad_minima') if request.POST.get('cantidad_minima') else 0
+        regla.fecha_inicio = request.POST.get('fecha_inicio')
+        regla.fecha_fin = request.POST.get('fecha_fin')
+        regla.activo = request.POST.get('activo') == 'on'
+        regla.monto_desde = monto_desde
+        regla.monto_hasta = monto_hasta
+        regla.acumulable = acumulable
+
+        if product:
+            regla.productos.clear()
+            regla.productos.add(*product)    
+        if categorias:
+            regla.categoria.clear()
+            regla.categoria.add(*categorias)   
+        if subcategorias:
+            regla.subcategoria.clear()
+            regla.subcategoria.add(*subcategorias)  
+
+        regla.save()
+        messages.success(request, 'Regla de descuento actualizada exitosamente.')
+        return redirect('listar_reglas_descuento')
+    
+    
+    context = {
+        'regla': regla,
+        'permisousuario':permisousuario,
+        'categorias':categorias,
+        'productos':productos,
+        'regla_prod':regla_prod,
+        'categorias_con_subcategorias':categorias_con_subcategorias
+    }
+
+    return render(request, 'panel/producto_descuento_add.html', context)
+
+def panel_eliminar_regla_descuento(request, pk):
+    regla = get_object_or_404(ReglaDescuento, pk=pk)
+
+    if request.method == 'POST':
+        regla.delete()
+        messages.success(request, 'Regla de descuento eliminada exitosamente.')
+        return redirect('listar_reglas_descuento')
+
+    return render(request, 'panel/producto_descuento_del.html', {'regla': regla})
+
+def panel_listar_reglas_descuento(request):
+    reglas = ReglaDescuento.objects.all()
+    categorias = Category.objects.all()  # Obtener todas las categorías
+    subcategorias = SubCategory.objects.all()  # Obtener todas las subcategorías
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+
+    for regla in reglas:
+        print(regla.fecha_inicio)
+
+    
+    context = {
+        'categorias': categorias,
+        'subcategorias': subcategorias,
+        'reglas':reglas,
+        'permisousuario':permisousuario
+    }
+
+    return render(request, 'panel/producto_descuento_list.html',context)
 
 def panel_productos_del(request,product_id):
     
@@ -5523,12 +5741,12 @@ def panel_movimiento_eliminar(request,idmov=None):
 def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
     
     if validar_permisos(request,'PEDIDOS EDIT'):
-
+            print("panel_pedidos_modificar")
             if quantity == 0:
                 messages.error(request, "La cantidad no puede ser cero.")
                 return redirect('pedidos/detalle/edit/' + order_number)
 
-
+            
             producto = Product.objects.filter(pk=item).first()
             if producto:
 
@@ -5537,12 +5755,14 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                 
                 try:
                     if order_number:
+                        print("order number",order_number)
                         pedido = Order.objects.get(order_number=order_number)
                         if pedido:
                             id_pedido = pedido.id
                             #Si existe elimino el registro
                             existe = OrderProduct.objects.filter(order_id=id_pedido,product=producto).exists()
                             if existe:
+                                print("Existe")
                                 articulos = OrderProduct.objects.filter(order_id=id_pedido).first()
                                 articulos = OrderProduct (
                                     id = articulos.id,
@@ -5551,6 +5771,7 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     product = producto,
                                     quantity = articulos.quantity + float(quantity),
                                     product_price = product_price,
+                                    precio_unitario_cobrado=product_price,
                                     updated_at =  datetime.today(),
                                     created_at = articulos.created_at,
                                     costo = articulos.costo
@@ -5565,25 +5786,65 @@ def panel_pedidos_modificar(request,order_number=None,item=None,quantity=None):
                                     product.stock = float(saldo)
                                     product.save()
                                    
-
                             else:    
-                                
+                                print("No existe")
                                 articulos = OrderProduct (
                                     order = pedido,
                                     user = request.user,
                                     product = producto,
                                     quantity = quantity,
                                     product_price = product_price,
+                                    precio_unitario_cobrado=product_price,
                                     updated_at =  datetime.today(),
                                     costo = product_costo
                                 )
                                 articulos.save()
+
                                 #SI EL ARTICULO NO EXISTE RESTO ACTUAL AL STOCK 
                                 product = Product.objects.get(id=item)
                                 if product:
                             
                                     product.stock -= float(quantity)
                                     product.save()
+
+
+                                if producto.es_kit:
+                                    print("Es Kit. articulos.id:", articulos.id)
+
+                                    #Guardo en OrderProductKits
+                                    #Busco datos  del KIT
+                                    kits = ProductKitEnc.objects.filter(productokit=item).first()
+                                    if kits:
+                                        cantidad = kits.cant_unidades
+                                        id_enc_kit = kits.id
+                                        item_kits = ProductKit.objects.filter(productokit=id_enc_kit)    
+                                        for item_kit in item_kits:
+                                            #Busco Componenetes
+                                            
+                                            orderproduct = OrderProduct.objects.get(id=articulos.id)
+                                            OrderProductKitItem.objects.create(order_product=orderproduct,product=item_kit.productohijo, quantity=cantidad)
+                                            # Redusco Stock de los articulos Kits
+                                            product = Product.objects.get(id=item_kit.productohijo)
+                                            if product:
+                                                #pesoarticulos += product.peso * item.quantity 
+                                                product.stock = product.stock - cantidad
+                                                product.save()
+
+
+
+
+                                    items_kits = OrderProductKitItem.objects.filter(order_product=articulos.id)
+                                    if items_kits:
+                                        for item_kit in items_kits:
+                                        # Redusco Stock de los articulos Kits
+                                            print("Productos del KIT", item_kit.product.id,item_kit.product.product_name, item_kit.quantity)
+
+                                            product = Product.objects.get(id=item_kit.product.id)
+                                            if product:
+                                                #pesoarticulos += product.peso * item.quantity 
+                                                product.stock = product.stock - item_kit.quantity
+                                                product.save()
+                                
 
                             
                             panel_recalcular_totales(order_number)
@@ -5608,6 +5869,10 @@ def panel_recalcular_totales(order_number=None):
     if pedido:
         pesoarticulos=0
         id_pedido = pedido.id
+        #  SE RECALCULAN ....  descuentos = pedido.order_total_descuentos
+        descuentos=0
+        impuestos = pedido.order_total_impuestos
+        comisiones = pedido.order_total_comisiones
         print("order_number",order_number)
         order_product = OrderProduct.objects.filter(order=id_pedido)
         print("items",order_product)
@@ -5617,8 +5882,13 @@ def panel_recalcular_totales(order_number=None):
                 #Recalculo el pese de los productos
                 product = Product.objects.get(id=i.product_id)
                 pesoarticulos += product.peso * i.quantity 
+                descuentos = descuentos + (i.descuento_unitario * i.quantity)
                 
-
+            print("Total Descuento: ",descuentos)
+            subtotal =  float(subtotal) - float(impuestos) - float(comisiones) - float(descuentos)
+            subtotal = round(subtotal,2)
+            print("Total Final: ",subtotal)
+            print(" Restas imp, com, desc" , impuestos, comisiones, descuentos  )
             pedido = Order(
                 pk = id_pedido,
                 order_number = order_number,
@@ -5628,7 +5898,10 @@ def panel_recalcular_totales(order_number=None):
                 fecha = pedido.fecha,
                 user = pedido.user,
                 payment = pedido.payment, 
-                
+                order_total_comisiones=  pedido.order_total_comisiones,
+                order_total_descuentos=  descuentos,
+                order_total_impuestos=  pedido.order_total_impuestos,
+                origen_venta = pedido.origen_venta,
                 first_name = pedido.first_name, 
                 last_name  =pedido.last_name, 
                 email  = pedido.email,
@@ -5641,6 +5914,8 @@ def panel_recalcular_totales(order_number=None):
                 dir_obs  = pedido.dir_obs,
                 dir_tipocorreo  = pedido.dir_tipocorreo,
                 order_note  = pedido.order_note,
+                fecha_tracking = pedido.fecha_tracking, 
+                nro_tracking = pedido.nro_tracking,
            
                 status = "New",
                 ip  = pedido.ip,
@@ -5657,6 +5932,7 @@ def panel_pedidos_obtener_linea(request,item=None):
 
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        
 
         item_line = OrderProduct.objects.filter(id=item).first()
         if item_line:
@@ -5665,6 +5941,7 @@ def panel_pedidos_obtener_linea(request,item=None):
             item_subtotal = float(item_line.product_price) * float(item_line.quantity)
             product = item_line.product.id
             order_number = item_line.order.order_number
+            descuento_unitario = item_line.descuento_unitario
 
             producto = Product.objects.filter(pk=product).first()
             if producto:
@@ -5693,6 +5970,7 @@ def panel_pedidos_obtener_linea(request,item=None):
         print("item_subtotal",item_subtotal)
         print("precio",precio)
         print("nombre_producto",nombre_producto)
+        print("descuento_unitario ", descuento_unitario)
 
         context = {
             'edit_order_number':order_number,
@@ -5700,6 +5978,7 @@ def panel_pedidos_obtener_linea(request,item=None):
             'edit_quantity':quantity,
             'edit_item_subtotal': item_subtotal,
             'edit_precio':precio,
+            'edit_descuento': descuento_unitario,
             'edit_product_name':nombre_producto,
             'edit_item_id':item,
             'ordenes':ordenes,
@@ -6794,7 +7073,7 @@ def compras_detalle_producto_reporte(request):
             total_cantidad_vendida=Sum('quantity')  # Sumar cantidad vendida por producto
         )
     )
-    print("Productos Vendidos:", productos_vendidos)
+    #print("Productos Vendidos:", productos_vendidos)
 
     # 2. Obtener todas las compras realizadas de productos individuales.
     compras = (
@@ -6808,7 +7087,7 @@ def compras_detalle_producto_reporte(request):
             total_cantidad_comprada=Sum('cantidad')  # Sumar cantidad comprada por producto
         )
     )
-    print("Compras:", compras)
+    #print("Compras:", compras)
 
     # 3. Preparar los datos finales de productos.
     productos_comprados = {}
@@ -6821,14 +7100,14 @@ def compras_detalle_producto_reporte(request):
             'total_cantidad_comprada': compra['total_cantidad_comprada'],
             'total_cantidad_vendida': 0,  # Inicialmente 0, se sumarán las ventas más tarde
         }
-    print("Productos Comprados Iniciales:", productos_comprados)
+    #print("Productos Comprados Iniciales:", productos_comprados)
 
     # 4. Actualizar las ventas de productos en los productos_comprados.
     for venta in productos_vendidos:
         producto_id = venta['product_id']
         if producto_id in productos_comprados:
             productos_comprados[producto_id]['total_cantidad_vendida'] = venta['total_cantidad_vendida']
-    print("Productos con Ventas Actualizadas:", productos_comprados)
+    #print("Productos con Ventas Actualizadas:", productos_comprados)
 
     # 5. Calcular la cantidad vendida para productos dentro de los kits.
     for venta in OrderProductKitItem.objects.filter(
@@ -6836,16 +7115,17 @@ def compras_detalle_producto_reporte(request):
     ):
         producto_id = venta.product.id  # Producto dentro del kit
         cantidad_vendida_kit = venta.quantity * venta.order_product.quantity  # Cantidad vendida dentro del kit
+       
         if producto_id in productos_comprados:
             productos_comprados[producto_id]['total_cantidad_vendida'] += cantidad_vendida_kit
-    print("Productos con Ventas de Kits Actualizadas:", productos_comprados)
+    #print("Productos con Ventas de Kits Actualizadas:", productos_comprados)
 
     # 6. Calcular la diferencia final entre lo comprado, lo vendido y el stock actual.
     for producto_id, datos in productos_comprados.items():
         datos['diferencia_final'] = (
             datos['total_cantidad_comprada'] - datos['total_cantidad_vendida'] - datos['stock_actual']
         )
-    print("Productos con Diferencia Final Calculada:", productos_comprados)
+    #print("Productos con Diferencia Final Calculada:", productos_comprados)
 
     # 7. Convertir los productos_comprados en una lista para enviarla a la plantilla.
     productos_finales = [
@@ -6859,7 +7139,7 @@ def compras_detalle_producto_reporte(request):
         }
         for producto_id, datos in productos_comprados.items()
     ]
-    print("Productos Finales para Plantilla:", productos_finales)
+    #print("Productos Finales para Plantilla:", productos_finales)
 
     context = {
         'permisousuario':permisousuario,

@@ -75,3 +75,10 @@ def format_iso_date(value):
         return datetime.fromisoformat(value.split(".")[0]).strftime('%d-%m-%Y')
     except Exception:
         return value  # Devuelve la fecha original si hay un error
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    Obtiene un valor de un diccionario usando una clave.
+    """
+    return dictionary.get(key, None)

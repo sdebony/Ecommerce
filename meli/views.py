@@ -489,24 +489,32 @@ def meli_publicaciones(request):
                         respuesta = meli_get_estado_publicacion(request, publicacion_id)
                         
                         estado_publicacion = respuesta["status"]
-                        precio_to_win = respuesta["price_to_win"]
+                        precio_to_win = respuesta["price_to_win"]  
+                        winner_price = respuesta["winner_price"]
+                        #winner = respuesta["winner"]
                         # Si el estado es una cadena válida, úsal
                         # o; de lo contrario, asigna un valor predeterminado
                         status = estado_publicacion if estado_publicacion else 'Estado no disponible'
-
-                        precio_sugerido = meli_calcular_comisiones(producto,precio_to_win)
+  
                        
-
+                        if producto:
+                            precio_sugerido = meli_calcular_comisiones(producto,precio_to_win)
+                        else:
+                            precio_sugerido=0
+                            producto=None
+                            
                         # Añadir los datos al resultado
                         articulos.append({
                             'publicacion': item['body'],
                             'producto': producto,  # Será None si no se encuentra
                             'status': status,
                             'precio_to_win':precio_to_win,
-                            'ganancia_precio_competencia': precio_sugerido
+                            'ganancia_precio_competencia': precio_sugerido,
+                            'winner_price':winner_price
                             
                         })
 
+                       
                        
             else:
                 print(f"Error al obtener los detalles del chunk: {detail_response.status_code}")
@@ -579,67 +587,100 @@ def meli_ventas(request):
 
         print("Mis Ventas")
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-       
-        
+         
         # Busca los detalles de los artículos
         seller_id = settings.SELLER_ID
         cantidad_ventas = 0
-       
-        url = "https://api.mercadolibre.com/orders/search?seller=" + str(seller_id)
-        
+
+        url_base = f"https://api.mercadolibre.com/orders/search?seller={seller_id}"
         access_token = meli_get_authorization_code(settings.CLIENTE_ID)
         
         payload = {}
         headers = {
-            'Authorization': access_token #'APP_USR-710125811010660-102410-fc5f755c5fbdf1b370dd274c57b7e838-1998248263'
+            'Authorization': access_token
         }
 
-        ventas=[]
-        detail_response = requests.request("GET", url, headers=headers, data=payload)
-        
-        if detail_response.status_code == 200:
-            ventas = detail_response.json()  # Detalles de los artículos
-            # Realizar el cálculo de (total_paid_amount - (quantity * sale_fee)) para cada venta
+        ventas = []
+        offset = 0
+        limit = 50  # MercadoLibre usualmente tiene un límite por página (verifica la documentación exacta)
+
+        while True:
+            url = f"{url_base}&offset={offset}&limit={limit}"
+            detail_response = requests.request("GET", url, headers=headers, data=payload)
             
-            for venta in ventas['results']:
+            if detail_response.status_code == 200:
+                data = detail_response.json()
                 
-                total_paid_amount = venta['payments'][0]['total_paid_amount']
-                shipping_cost = venta['payments'][0]['shipping_cost']
-                quantity = venta['order_items'][0]['quantity']
-                sale_fee = venta['order_items'][0]['sale_fee']
+                if "results" in data:
+                    for venta in data['results']:
+                        # Realizar cálculos para cada venta
+                        total_paid_amount = venta['payments'][0]['total_paid_amount']
+                        shipping_cost = venta['payments'][0]['shipping_cost']
+                        quantity = venta['order_items'][0]['quantity']
+                        sale_fee = venta['order_items'][0]['sale_fee']
 
-                total_amount = sum(payment["total_paid_amount"] for payment in venta["payments"])
-               
+                        total_amount = sum(payment["total_paid_amount"] for payment in venta["payments"])
+                        
+                        # Calcular comisiones y totales
+                        venta['total_comision'] = (quantity * sale_fee)
+                        venta['total_calculado'] = total_amount - (quantity * sale_fee) - shipping_cost
+                        venta['total_amount'] = total_amount
+
+                        
+                        order_id = venta['payments'][0].get('order_id')  # Obtener el order_id del pago
+                        
+                        #print("Pack_id",pack_id, "order_id",order_id)
+                        if order_id:
+                            existe = Order.objects.filter(order_number=order_id).exists()
+                            venta['existe_en_bd'] = existe
+                        else:
+                            venta['existe_en_bd'] = False
+
+                        ventas.append(venta)
+
+                # Verificar si hay más datos
+                total = data.get('paging', {}).get('total', 0)
+                offset += limit
                 
-                # Realizar el cálculo
-                venta['total_comision'] =  (quantity * sale_fee)
-                venta['total_calculado'] = total_amount - (quantity * sale_fee) - shipping_cost 
-                venta['total_amount'] = total_amount
+                if offset >= total:
+                    print("Fin")
+                    break
 
-                # Verificar si el `order_id` está en la base de datos
-                order_id = venta['payments'][0].get('order_id')  # Obtener el order_id del pago
-                
-                if order_id:
-                    
-                    existe = Order.objects.filter(order_number=order_id).exists()
-                    venta['existe_en_bd'] = existe  # Agregar esta información a la venta para usarla en la plantilla
-                    cantidad_ventas = cantidad_ventas + 1
-                else:
-                    venta['existe_en_bd'] = False  # Si no hay order_id, asumimos que no existe
-                   
-
-
-        else:
-            print(f"Error al obtener los detalles de los productos: {detail_response.status_code}")
-            print(f"Contenido de la respuesta: {detail_response.text}")
-            messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+            else:
+                print(f"Error en la solicitud: {detail_response.status_code}")
+                break
 
         
+
+        # Procesar las ventas obtenidas
+        for venta in ventas:
+            if "payments" in venta and len(venta["payments"]) > 0:
+                total_paid_amount = venta["payments"][0].get("total_paid_amount", 0)
+                shipping_cost = venta["payments"][0].get("shipping_cost", 0)
+                quantity = venta["order_items"][0].get("quantity", 0)
+                sale_fee = venta["order_items"][0].get("sale_fee", 0)
+
+                total_amount = sum(payment.get("total_paid_amount", 0) for payment in venta["payments"])
+
+                # Calcular y agregar datos adicionales
+                venta["total_comision"] = quantity * sale_fee
+                venta["total_calculado"] = total_amount - (quantity * sale_fee) - shipping_cost
+                venta["total_amount"] = total_amount
+                order_id = venta['payments'][0].get('order_id')  # Obtener el order_id del pago
+                venta["existe_en_bd"] = Order.objects.filter(order_number=order_id).exists() if order_id else False
+                # Imprimir resultados o procesarlos
+
+        cantidad_ventas = len(ventas)
+        print(f"Total de ventas obtenidas: {len(ventas)}")
+
+          
+
         context = {
             'permisousuario':permisousuario,
             'ventas':ventas,
-            'cantidad_ventas':cantidad_ventas
-           
+            'cantidad_ventas':cantidad_ventas,
+            'access_token':access_token,
+            
         }
 
         return render(request,'meli/meli_ventas.html',context) 
@@ -883,11 +924,56 @@ def importar_pedido_meli(request):
             )
 
             
+            #Si existe vuelvo a incorporar el stock anterior
+            if existing_order:
+                print("INI SUBO EL STOCK DE LOS ARTICULOS ORIGINALES ")
+                #Subo stock de lo anteriormente descontado
+                order_prod = OrderProduct.objects.filter(order = order)
+                if order_prod:
+                    for order_item in order_prod:
+                        print("Detalle del pedido original ****:")
+                        #Descuento Stock producto
+                        productos = Product.objects.get(id=order_item.product.id)
+                        cantidad = order_item.quantity
+                        print("Subo Stock :",productos,cantidad,productos.stock )
+                        productos.stock = productos.stock + int(cantidad)
+                        productos.save()
+                        print("Nuevo Stock :",productos,cantidad,productos.stock )
+                        if productos:
+                            if productos.es_kit:
+                                print("START KIT ITEM ************")
+                               
+                                #Guardo en OrderProductKits
+                                linea_articulo = order_item.id
+                                print("ID linea Order Det = ",linea_articulo)
+                                
+                                order_prod_kit = OrderProductKitItem.objects.filter(order_product=linea_articulo)
+                                if order_prod_kit:
+                                    for prod_kit in order_prod_kit:
+                                        #Subo Stock producto
+                                        print("Componente del KIT:", prod_kit.product.id)
+                                        stock_prod = Product.objects.get(id=prod_kit.product.id)
+                                        if stock_prod:
+                                            print("Subo Stock producto", stock_prod.product_name, int(cantidad * quantity),stock_prod.stock)
+                                            stock_prod.stock = stock_prod.stock + int(cantidad * quantity) 
+                                            stock_prod.save()
+                                            print("Nuevo Stock producto", stock_prod.product_name, stock_prod.stock)
+                                        #Restar el stock al prodcuto original
+                                print("END KIT ITEM ************")
+
+                print("FIN SUBO EL STOCK DE LOS ARTICULOS ORIGINALES ")
+
+            
+            #Elimino el detalle para cargar lo nuevo
             user = Account.objects.filter(email=request.user).first()
+            envio = order.envio
+            print("Costo de envio:",envio)
             try:
                 OrderProduct.objects.filter(order=order).delete()
             except Order.DoesNotExist:
                 print("No hay productos")
+
+            #FIN ACTUALIZACION STOCK PRODUCTOS
 
             for item_data in items:
                 item_id = item_data.get('item_id')
@@ -911,7 +997,11 @@ def importar_pedido_meli(request):
                     orderproduct.product_price = round(float(unit_price),2)
                     orderproduct.ordered = True
                     orderproduct.descuento_unitario = 0
-                    orderproduct.precio_unitario_cobrado =  round(float(unit_price) - float(sale_fee),2) #Comision
+                    #Precio unitario cobrado = Cantidad por precio - envio - comision / cantidad
+                    precio_unit_cobrado = round(float(quantity) * float(unit_price),2) - float(envio) 
+                    precio_unit_cobrado = round(float(precio_unit_cobrado) - float(sale_fee) * float(quantity),2) #Comision
+                    precio_unit_cobrado = float(precio_unit_cobrado) / float(quantity)
+                    orderproduct.precio_unitario_cobrado =  round(float(precio_unit_cobrado),2) 
                     orderproduct.costo = product.costo_prod
                 
                     orderproduct.save()
@@ -919,6 +1009,12 @@ def importar_pedido_meli(request):
                     #Descuento Stock producto
                     productos = Product.objects.get(id=product.id)
                     if productos:
+                        #Resto el articulo Original 
+                        print("RESTO cantidad Articulo Original Actual", product.stock )
+                        product.stock = productos.stock - int(quantity)
+                        product.save()
+                        print("RESTO cantidad Articulo Original",product.stock )
+                        
                         if productos.es_kit:
                             print("START KIT ITEM ************")
                             #Buscar los articulos que lo componen
@@ -928,32 +1024,24 @@ def importar_pedido_meli(request):
                                 id_kit = kit.id
 
                                 producto_kit = ProductKit.objects.get(id=id_kit)
-                                if producto_kit:
-                                    
-                                    producto_hijo = producto_kit.productohijo
-                                     
+                                if producto_kit:                    
+                                    producto_hijo = producto_kit.productohijo             
                                     #Guardo en OrderProductKits
                                     OrderProductKitItem.objects.create(order_product=orderproduct, product=producto_hijo, quantity=cantidad)
-                   
-                                    #Bajo Stock Kit
-                                    product.stock = productos.stock - int(quantity) #Cantidad orginal
-                                    product.save()
-                                    #Bajo Stock producto
+                                    #Bajo Stock producto KIT
                                     stock_prod = Product.objects.get(id=producto_hijo.id)
                                     if stock_prod:
-                                        stock_prod.stock = stock_prod.stock - int(cantidad) 
+                                        
+                                        cantidad_total = int(cantidad) * int(quantity) 
+                                        print("RESTO Articulo Kit Stock Actual", cantidad_total, stock_prod.product_name)
+                                        stock_prod.stock = stock_prod.stock - int(cantidad_total) 
                                         stock_prod.save()
-                                 
+                                        print("RESTO Articulo Kit Stock Nuevo", product.stock )
+                                        
 
 
                             #Restar el stock al prodcuto original
                             print("END KIT ITEM ************")
-
-                        else:
-                            product.stock = productos.stock - int(quantity)
-                            product.save()
-                        
-
                         
                 else:
                     error_items = 1
@@ -1229,6 +1317,14 @@ def meli_get_estado_publicacion(request,idpublicacion):
         response = requests.request("GET", url, headers=headers, data=payload)
         data = response.json()
         
+        # Verifica si "winner" tiene datos válidos
+        winner_price=0
+        winner = data.get('winner', {})
+       
+        if winner:
+            winner_price = winner.get('price', '0')
+            print(f"El precio del ganador es: {winner_price}")
+
         # Procesa los datos para enviarlos al HTML
         articulos = {
             "item_id": data.get("item_id"),
@@ -1237,13 +1333,14 @@ def meli_get_estado_publicacion(request,idpublicacion):
             "price_to_win": data.get("price_to_win"),
             "boosts": data.get("boosts", []),
             "status": data.get("status"),
-            "winner": data.get("winner", {})
+            "winner_price": winner_price,  # Manejo seguro de winner.price
+            
+
         }
         
-       
-              
+        
         if articulos:
-            return {"status": articulos["status"], "price_to_win": articulos["price_to_win"]}
+            return {"status": articulos["status"], "price_to_win": articulos["price_to_win"], "winner_price": winner_price}
         else:    
              return {"status": "", "price_to_win": ""}
         
@@ -1288,6 +1385,7 @@ def meli_calcular_comisiones(idproducto, precio_competencia):
         impuesto = float(precio_competencia) * 0.04
 
          #Calculo el valor
+        print("idproducto - meli_calcular_comisiones",idproducto)
         precio_sugerido = float(precio_competencia) - round(float(precio_competencia) * float(com3) / 100,2)  - costo_fijo - float(impuesto)
         product_cost = Product.objects.get(id=idproducto.id)
         if product_cost:

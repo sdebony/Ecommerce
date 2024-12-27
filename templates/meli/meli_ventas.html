@@ -48,7 +48,7 @@
             <tbody>
 
                        
-                        {% for venta in ventas.results %}
+                        {% for venta in ventas %}
                         <tr> 
                             <th><a href="{% url 'meli_ventas_detalle' venta.id %}">{{ venta.id }} </a>
                             {% if venta.existe_en_bd %}

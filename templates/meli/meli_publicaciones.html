@@ -39,6 +39,7 @@
                     <th>Stock Real</th>
                     <th>Precio Meli</th>
                     <th>Precio Real</th>
+                    <th>Precio Ganador</th>
                     <th>Para Ganar</th>
                     <th>Si igualo</th>
                     <th>Estado</th>
@@ -46,80 +47,88 @@
             </thead>
             <tbody>
                 {% for articulo in articulos %}
-                <tr>
-                    <th><a href="{% url 'panel_producto_detalle' articulo.producto.id %}" target="_blank">{{ articulo.publicacion.id }}</a></th>
-                    <th>{{ articulo.producto.product_name }}</th>
-                    <th>
-                      <a href="#" 
-                         data-bs-toggle="modal" 
-                         data-bs-target="#modalForm" 
-                         data-title="{{ articulo.publicacion.title }}" 
-                         data-base-price="{{ articulo.publicacion.base_price }}"
-                         data-costo="{{ articulo.producto.costo_prod }}"
-                         onclick="event.preventDefault();">
-                         {{ articulo.publicacion.title }}
-                      </a>
-                    </th>
-                    <th>{{ articulo.producto.costo_prod|format_currency }}</th>
-                    {% if articulo.publicacion.available_quantity ==  articulo.producto.stock and articulo.producto.stock > 0 or articulo.producto.stock is None %}
-                      <th>{{ articulo.publicacion.available_quantity }}</th>
-                      <th>{{ articulo.producto.stock }}</th>
-                    {% else %}
-                        
-                      <th class="bg-warning text-dark">{{ articulo.publicacion.available_quantity }}</th>
-                      <th class="bg-warning text-dark">{{ articulo.producto.stock }}</th>
-                    {% endif %}
-                    {% if articulo.publicacion.base_price != articulo.producto.precio_ML and articulo.producto.precio_ML > 0 %}
-                          
-                        {% if articulo.publicacion.original_price %}
-                              <th class="bg-warning text-dark"> {{articulo.publicacion.original_price|format_currency }}</th>
+                  {% if articulo.status != "not_listed" %}
+                    <tr>
+                        {% if articulo.producto %}
+                        <th><a href="{% url 'panel_producto_detalle' articulo.producto.id %}" target="_blank">{{ articulo.publicacion.id }}</a></th>
+                        <th>{{ articulo.producto.product_name }}</th>
                         {% else %}
-                              <th class="bg-warning text-dark"> {{articulo.publicacion.base_price|format_currency }}</th>
-                        {% endif %}    
-                              <th class="bg-warning text-dark"> {{articulo.producto.precio_ML|format_currency }}</th>
-                        {% else %}
-
-                        {% if articulo.publicacion.original_price %}
-                            <th> {{articulo.publicacion.original_price|format_currency }}</th>
-                          {% else %}
-                            <th> {{articulo.publicacion.base_price|format_currency }}</th>
-                        {% endif %}    
-                        <th> {{articulo.producto.precio_ML|format_currency }}</th>
-                      
-                    {% endif %}  
-                    <th> {{ articulo.precio_to_win|format_currency }}</th>
-                    {% if articulo.ganancia_precio_competencia > 0 %}
-                    <th> <span class="badge bg-success text-white">
-                          {{ articulo.ganancia_precio_competencia|format_currency }}
-                        </span>
-                    </th>
-                    {% else %}
-                    <th> 
-                      <span class="badge bg-warning text-white" >
-                        {{ articulo.ganancia_precio_competencia|format_currency }}
-                      </span>
-                    </th>
-                    {% endif %}
-                    <th>
-                      {% if articulo.status == "winning" %}
-                      <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
-                        <span class="badge bg-success text-white">{{ articulo.status }}</span>
-                        </a>
-                        {% elif articulo.status == "not_listed" %}
-                        <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
-                        <span class="badge bg-danger text-white">{{ articulo.status }}</span>
-                        </a>
-                        {% elif articulo.status == "sharing_first_place" %}
-                        <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
-                        <span class="badge bg-info text-white">{{ articulo.status }}</span>
-                        </a>
-                        {% else %}
-                        <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
-                        <span class="badge bg-warning text-white">{{ articulo.status }}</span>
-                        </a>
+                        <th>{{ articulo.publicacion.id }}</th>
+                        <th>Articulo no encontrado</th>
                         {% endif %}
-                    </th>
-                </tr>
+                        <th>
+                          <a href="#" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalForm" 
+                            data-title="{{ articulo.publicacion.title }}" 
+                            data-base-price="{{ articulo.publicacion.base_price }}"
+                            data-costo="{{ articulo.producto.costo_prod }}"
+                            onclick="event.preventDefault();">
+                            {{ articulo.publicacion.title }}
+                          </a>
+                        </th>
+                        <th>{{ articulo.producto.costo_prod|format_currency }}</th>
+                        {% if articulo.publicacion.available_quantity ==  articulo.producto.stock and articulo.producto.stock > 0 or articulo.producto.stock is None %}
+                          <th>{{ articulo.publicacion.available_quantity }}</th>
+                          <th>{{ articulo.producto.stock }}</th>
+                        {% else %}
+                            
+                          <th class="bg-warning text-dark">{{ articulo.publicacion.available_quantity }}</th>
+                          <th class="bg-warning text-dark">{{ articulo.producto.stock }}</th>
+                        {% endif %}
+                        {% if articulo.publicacion.base_price != articulo.producto.precio_ML and articulo.producto.precio_ML > 0 %}
+                              
+                            {% if articulo.publicacion.original_price %}
+                                  <th class="bg-warning text-dark"> {{articulo.publicacion.original_price|format_currency }}</th>
+                            {% else %}
+                                  <th class="bg-warning text-dark"> {{articulo.publicacion.base_price|format_currency }}</th>
+                            {% endif %}    
+                                  <th class="bg-warning text-dark"> {{articulo.producto.precio_ML|format_currency }}</th>
+                            {% else %}
+
+                            {% if articulo.publicacion.original_price %}
+                                <th> {{articulo.publicacion.original_price|format_currency }}</th>
+                              {% else %}
+                                <th> {{articulo.publicacion.base_price|format_currency }}</th>
+                            {% endif %}    
+                            <th> {{articulo.producto.precio_ML|format_currency }}</th>
+                          
+                        {% endif %}  
+                        <th> {{ articulo.winner_price|format_currency }}</th>
+                        <th> {{ articulo.precio_to_win|format_currency }}</th>
+                        {% if articulo.ganancia_precio_competencia > 0 %}
+                        <th> <span class="badge bg-success text-white">
+                              {{ articulo.ganancia_precio_competencia|format_currency }}
+                            </span>
+                        </th>
+                        {% else %}
+                        <th> 
+                          <span class="badge bg-warning text-white" >
+                            {{ articulo.ganancia_precio_competencia|format_currency }}
+                          </span>
+                        </th>
+                        {% endif %}
+                        <th>
+                          {% if articulo.status == "winning" %}
+                          <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-success text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% elif articulo.status == "not_listed" %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-danger text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% elif articulo.status == "sharing_first_place" %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-info text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-warning text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% endif %}
+                        </th>
+                    </tr>
+                  {% endif %}
                 {% endfor %}
             </tbody>
         </table>

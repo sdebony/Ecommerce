@@ -133,6 +133,7 @@
                     <th>Producto</th>
                     <th>Cantidad</th>
                     <th>Precio Unitario</th>
+                    <th>Descuento</th>
                     <th>Subtotal</th>
                 </tr>
             </thead>
@@ -159,7 +160,8 @@
 
                     <td>{{item.quantity}}</td>
                     <td>${{item.product_price}}</td>
-                    <td>${{item.subtotal}}</td>
+                    <td>${{ item.total_discount }}</td>
+                    <td>${{item.subtotal_line}}</td>
                 </tr>
                
                 {% endfor %}

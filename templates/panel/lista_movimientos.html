@@ -39,6 +39,7 @@
 
       <table 
       id="table"
+      style="font-size: 13px;"
       data-toggle="table"
       data-pagination="false"
       data-search="true"
@@ -84,8 +85,8 @@
             <td >         
                 {% if not item.ordernumber   %}
                   {% if not item.idtransferencia %}
-                    <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
-                    <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                    <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle btn-sm" title="Editar"><i class="far fa-edit"> </i></a>
+                    <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle btn-sm" title="Eliminar"><i class="far fa-trash-alt"></i></a>
                   {% endif %}
                 {% endif %}
 

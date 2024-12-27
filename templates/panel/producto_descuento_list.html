@@ -1,0 +1,63 @@
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+
+<div class="container mt-5">
+    <h2>Reglas de Descuento</h2>
+    <a href="{% url 'crear_regla_descuento' %}" class="btn btn-primary mb-3">Crear nueva regla</a>
+    <table class="table table-bordered"  style="font-size: 13px;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Cant. Mínima</th>
+                <th>Fecha Desde</th>
+                <th>Fecha Hasta</th>
+            <!--    <th>Categoria</th>
+                <th>Sub Categoria</th>
+            -->    <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for regla in reglas %}
+            <tr>
+                <td>{{ regla.id }}</td>
+                <td>{{ regla.nombre }}</td>
+                <td>{{ regla.tipo_descuento }}</td>
+                <td>{{ regla.valor_descuento }}</td>
+                <td>{{ regla.cantidad_minima }}</td>
+                <td>{{ regla.fecha_inicio  | date:"d/m/Y" }}</td>
+                <td>{{ regla.fecha_fin | date:"d/m/Y" }}</td>
+            <!--    <td>{{ regla.categoria }}</td>
+                <td>{{ regla.subcategoria }}</td>
+            -->    <td>
+                    {% if regla.activo %}
+                    <i class="href btn btn-success btn-circle btn-sm">On</i>
+                    {% else %}
+                    <i class="href btn btn-danger btn-circle btn-sm">Off</i>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <a href="{% url 'editar_regla_descuento' regla.id %}" class="btn btn-warning btn-circle btn-sm"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'eliminar_regla_descuento' regla.id %}" class="btn btn-danger btn-circle btn-sm"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No hay reglas de descuento.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}

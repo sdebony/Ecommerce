@@ -173,6 +173,14 @@
                         <a class="collapse-item" href="{% url 'panel_lista_de_precios' %}" >Lista de Precios</a>
                       {% endif %}
                   {% endif %}
+
+                  <!-- DESCUENTOS -->
+                   <!-- LISTA DE PRECIOS-->
+                   {% if items.modo_ver %}
+                   {% if items.codigo.codigo == 'DESCUENTOS' %}
+                     <a class="collapse-item" href="{% url 'listar_reglas_descuento' %}" >Configuracion Descuentos</a>
+                   {% endif %}
+               {% endif %}
                 {% endfor %} 
                 
                 
