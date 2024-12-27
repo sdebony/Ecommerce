@@ -961,7 +961,8 @@ def panel_pedidos_detalle(request,order_number=None):
         ordenes = Order.objects.get(order_number=order_number)
         ordenes_detalle = OrderProduct.objects.filter(order_id=ordenes.id).annotate(subtotal=
             Round(
-                Sum('precio_unitario_cobrado')*Sum('quantity'),2
+                #Sum('product_price' - 'descuento_unitario')*Sum('quantity'),2
+                Sum((F('product_price') - F('descuento_unitario')) * F('quantity')), 2
                 ))
 
         subtotal=0
@@ -1013,7 +1014,8 @@ def panel_pedidos_detalle(request,order_number=None):
             'permisousuario':permisousuario,
             'ordenes_detalle':ordenes_detalle,
             'products_and_quantities':resultado_final,
-            'subtotal': subtotal_sin_desc,
+            'subtotal': subtotal,
+            'subtotal_sin_desc':subtotal_sin_desc,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
             'entregado':entregado,
@@ -1672,7 +1674,7 @@ def panel_pedidos_save_detalle(request):
 def get_order_total(order_id):
 
     ordered_products = OrderProduct.objects.filter(order_id=order_id)
-    total = sum([product.precio_unitario_cobrado * product.quantity for product in ordered_products])
+    total = sum([product.product_price * product.quantity for product in ordered_products])
     print("Total Enc:",total)
     return round(total, 2)  # Redondea el resultado a 2 decimales
 

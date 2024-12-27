@@ -217,7 +217,7 @@ DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
 DEF_CATEGORY='esferas'  #Eesferas (Slug)
 DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 
-STORE_MULTI_CANAL="NO"
+STORE_MULTI_CANAL="SI"
 STORE_DEF_CANAL="WEB"
 
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
