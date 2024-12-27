@@ -1813,9 +1813,10 @@ def panel_crear_regla_descuento(request):
         acumulable = request.POST.get('acumulable') == 'off'
 
         productos = request.POST.get('productosSeleccionados', '')
-        categorias_ids = request.POST.getlist('categorias')  # Lista de IDs de categorías
-        subcategorias_ids = request.POST.getlist('subcategorias')  # Lista de IDs de subcategorías
-       
+        #categorias_ids = request.POST.getlist('categorias')  # Lista de IDs de categorías
+        #subcategorias_ids = request.POST.getlist('subcategorias')  # Lista de IDs de subcategorías
+        categorias = request.POST.getlist('categorias[]')
+        subcategorias = request.POST.getlist('subcategorias[]')
         
         if productos:
             productos_lista = productos.split(',')
@@ -1826,7 +1827,6 @@ def panel_crear_regla_descuento(request):
             print("No se seleccionaron productos.")
 
         
-        print("categorias_ids",categorias_ids)
 
         # Primero, crea la instancia de ReglaDescuento sin el campo `productos`
         regla_descuento = ReglaDescuento.objects.create(
@@ -1846,14 +1846,14 @@ def panel_crear_regla_descuento(request):
         # Luego, agrega los productos seleccionados a la relación ManyToMany
         regla_descuento.productos.add(*productos)  # Usar add() para agregar los productos seleccionados
         # Asociar categorías, subcategorías y productos
-        if categorias_ids:
-            categorias = Category.objects.filter(id__in=categorias_ids)
-            regla_descuento.categoria.set(categorias)
+        if categorias:
+            regla_descuento.categoria.clear()
+            regla_descuento.categoria.add(*categorias)   
+        if subcategorias:
+            regla_descuento.subcategoria.clear()
+            regla_descuento.subcategoria.add(*subcategorias)  
 
-        if subcategorias_ids:
-            subcategorias = SubCategory.objects.filter(id__in=subcategorias_ids)
-            regla_descuento.subcategoria.set(subcategorias)
-
+        regla_descuento.save()
         
         messages.success(request, 'Regla de descuento creada exitosamente.')
         return redirect('listar_reglas_descuento')

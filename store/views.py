@@ -265,6 +265,33 @@ def search(request):
         products = Product.objects.filter(is_available=True).order_by('product_name')
         product_count = products.count()
             
+    
+    for producto in products:
+        # Inicializamos el campo tiene_descuento como False
+        tiene_descuento = False
+        
+
+        # Verificamos si alguna regla de descuento es aplicable al producto
+        mejor_descuento = obtener_mejor_descuento(producto, 1)
+
+        # Extraer los valores de promo y tipo_descuento
+        descuento = mejor_descuento["descuento"]
+        porcenteje_descuento = mejor_descuento["porcenteje_descuento"]
+        if descuento > 0:
+            tiene_descuento = True
+        else:
+            tiene_descuento = False
+        
+        # Ahora puedes usar promo y tipo_descuento como variables independientes
+        print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
+        
+        # Agregar el campo 'tiene_descuento' al producto
+        producto.tiene_descuento = tiene_descuento
+        producto.descuento = descuento
+        producto.porcenteje_descuento = porcenteje_descuento
+   
+
+    
     context = {
         'products': products,
         'product_count': product_count,

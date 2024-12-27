@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 
@@ -82,27 +82,27 @@
                                           				</p>
                                                 </td>
                                                 <td class="text-center">{{item.quantity}}</td>
-                                                <td class="text-center">$ {{item.product_price}}</td>
+                                                <td class="text-center">$ {{item.product_price |format_currency }}</td>
                                             </tr>
                                           {% endfor %}
                                         </tbody>
                                         <tfoot>
                                             <tr>
                                                 <th colspan="2" class="text-right">Sub Total:</th>
-                                                <th class="text-center">${{subtotal}} </th>
+                                                <th class="text-center">${{subtotal|format_currency }} </th>
                                             </tr>
                                             <tr>
                                                 <th colspan="2" class="text-right">Descuento:</th>
-                                                <th class="text-center">${{ descuentos }} </th>
+                                                <th class="text-center">${{ descuentos|format_currency  }} </th>
                                             </tr>
                                             <tr>
                                                 <th colspan="2" class="text-right">Envio:</th>
-                                                <th class="text-center">$ {{ order.envio}} </th>
+                                                <th class="text-center">$ {{ order.envio|format_currency }} </th>
                                             </tr>
 
                                             <tr>
                                                 <th colspan="2" class="text-right">Total:</th>
-                                                <th class="text-center">${{order.order_total}} </th>
+                                                <th class="text-center">${{order.order_total|format_currency }} </th>
                                             </tr>
                                         </tfoot>
                                     </table>

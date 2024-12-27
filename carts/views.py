@@ -374,6 +374,21 @@ def add_cart(request, product_id):
             if not quantity:
                 quantity = 1
 
+            cart_item = CartItem.objects.create(
+                product = product,
+                quantity = int(quantity),
+                cart = cart,
+                precio_real = product.price,
+                sub_total_linea = float(product.price) * int(quantity)
+            )
+            if len(product_variation) > 0:
+                cart_item.variations.clear()
+                cart_item.variations.add(*product_variation)
+            #messages.success(request, 'Producto agregado')
+            cart_item.save()
+            item_id = cart_item.id
+            
+            
             #Aplico Descuento si corresponde
             precio_con_descuento=0
             b_descuento = calcular_y_guardar_descuentos(item_id)
@@ -382,21 +397,8 @@ def add_cart(request, product_id):
             else:
                 precio_con_descuento = product.price
 
-
-            cart_item = CartItem.objects.create(
-                product = product,
-                quantity = int(quantity),
-                cart = cart,
-                precio_real = product.price,
-                sub_total_linea = float(precio_con_descuento) * int(quantity)
-            )
-            if len(product_variation) > 0:
-                cart_item.variations.clear()
-                cart_item.variations.add(*product_variation)
-            #messages.success(request, 'Producto agregado')
-            cart_item.save()
-            item_id = cart_item.id
-
+            print("Descuento:", precio_con_descuento)
+            
             if product.es_kit:
                 print("4 Procesando Kits")
                 # PROCESO KIT

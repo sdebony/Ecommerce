@@ -111,21 +111,21 @@
 		<div class="card-body">
 			<dl class="dlist-align">
 			  <dt>Sub Total:</dt>
-			  <dd class="text-right">$ {{total}}</dd>
+			  <dd class="text-right">{{total|format_currency}}</dd>
 			</dl>
 			<dl class="dlist-align">
 				<dt>Descuento:</dt>
-				<dd class="text-right">$ {{descuento}}</dd>
+				<dd class="text-right">{{descuento|format_currency}}</dd>
 			  </dl>
 			<dl class="dlist-align">
 			  <dt>Envio:</dt>
 			  <dd class="text-right">  
-			  	<span id="costo_envio" class="text-right" style="font-weight: bold;">$ {{envio}}</span>
+			  	<span id="costo_envio" class="text-right" style="font-weight: bold;">{{envio|format_currency}}</span>
 			</dd>
 			</dl>
 			<dl class="dlist-align">
 			  <dt>Total:</dt>
-			  <dd class="text-right text-dark b"><strong>$ {{grand_total}}</strong></dd>
+			  <dd class="text-right text-dark b"><strong>{{grand_total|format_currency}}</strong></dd>
 			</dl>
 			<hr>
 			
