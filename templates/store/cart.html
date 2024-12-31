@@ -36,12 +36,11 @@
 			{% if cart_item.product.images.url %}
 			<div class="aside">
 				<img src="https://yourfiles.cloud/uploads/{{cart_item.product.imgfile}}" class="img-sm">
-				{% if cart_item.porcentaje_desc > 0 %}
-				<!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
-				<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.0rem; padding: 0.5rem 1rem;">
-					{{ cart_item.porcentaje_desc | format_integer_def  }} %
-				</span>
-				{% endif %}
+				{% for descuento in cart_item.porcentaje_desc %}
+					<span class="badge rounded-pill bg-primary" style="font-size: 1.0rem; padding: 0.5rem 1rem;"  title="{{ descuento.nombre  }}">
+						{{ descuento.porcentaje }} %
+					</span>
+				{% endfor %}
 			</div>
 			{% endif %}
 			<figcaption class="info">
@@ -90,7 +89,7 @@
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">$ {{ cart_item.sub_total }}</var>
+			<var class="price">$ {{ cart_item.sub_total|format_currency }}</var>
 			<small class="text-muted"> $ {{ cart_item.product.price }} Unidad </small>
 		</div> <!-- price-wrap .// -->
 	</td>

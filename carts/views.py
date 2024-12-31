@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Sum, F
 import json
-from django.db.models import F
+from datetime import datetime
 # Create your views here.
 from django.conf import settings
 
@@ -51,19 +51,23 @@ def add_cart(request, product_id):
                     product_variation.append(variation)
                 except:
                     pass
-      
-       
-        
+           
         is_cart_item_exists = CartItem.objects.filter(product=product, user=current_user).exists()
         #Si ya existe el producto
         if is_cart_item_exists:
+            
+            print("Proudcto Existe en carrito")
             cart_item = CartItem.objects.filter(product=product, user=current_user)
             ex_var_list = []
             id = []
+            
             for item in cart_item:
                 existing_variation = item.variations.all()
                 ex_var_list.append(list(existing_variation))
                 id.append(item.id)
+                cart_id = item.cart
+                print("cart_id",cart_id)
+
             
             if product_variation in ex_var_list:
                 # increase the cart item quantity
@@ -84,19 +88,13 @@ def add_cart(request, product_id):
                 #messages.success(request, 'Producto agregado: (' + str(quantity) + ') x ' + product_info)
             
             else:
-                item = CartItem.objects.create(product=product, quantity=1, user=current_user)
+                item = CartItem.objects.create(product=product, quantity=1, user=current_user,cart=cart)
                 if len(product_variation) > 0:
                     item.variations.clear()
                     item.variations.add(*product_variation)
                 item.save()
             
-            #Aplico Descuento si corresponde
-            precio_con_descuento=0
-            b_descuento = calcular_y_guardar_descuentos(item_id)
-            if b_descuento:
-                precio_con_descuento = b_descuento["precio_con_desc"]
-            else:
-                precio_con_descuento = product.price
+            item = CartItem.objects.filter(product=product,user=current_user)
                             
             # PROCESO KIT
             if product.es_kit:
@@ -153,24 +151,25 @@ def add_cart(request, product_id):
 
                 except:
                     pass
+            
+            #Calcula los descuentos por compras superiores a la regla.
+            calcular_descuento_carrito(request)
             messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
            
         else:
+            print("Proudcto NO EXISTE en carrito")
             item_id=""
             if not quantity:
                quantity = 1
             else:
                 quantity = float(quantity)
-
-            
-
             
             cart_item = CartItem.objects.create(
                 product = product,
                 quantity = quantity, #1 inicial
                 user = current_user,
-                precio_real = 0,
-                sub_total_linea = 0
+                precio_real = product.price,
+                sub_total_linea = float(product.price) * int(quantity)
 
             )
             item_id = cart_item.id
@@ -180,10 +179,8 @@ def add_cart(request, product_id):
                 cart_item.variations.add(*product_variation)
             cart_item.save()
 
-             # PROCESO KIT
-            #Aplico Descuento si corresponde
-            b_descuento = calcular_y_guardar_descuentos(item_id)
 
+             # PROCESO KIT
             if product.es_kit:
                 print("2 Procesando Kits")
                 itemkit=[]
@@ -224,7 +221,9 @@ def add_cart(request, product_id):
 
                 except:
                     pass
-
+            
+            #Aplico Descuento si corresponde
+            calcular_descuento_carrito(request)
             messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
             #messages.success(request, 'Producto agregado')
         if volver_store=="0":
@@ -260,16 +259,20 @@ def add_cart(request, product_id):
 
         try:
             cart = Cart.objects.get(cart_id=_cart_id(request)) # get the cart using the cart_id present in the session
+            
         except Cart.DoesNotExist:
             cart = Cart.objects.create(
                 cart_id = _cart_id(request)
             )
         cart.save()
-        messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
+        cart_id = cart.id
+        #messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
 
         is_cart_item_exists = CartItem.objects.filter(product=product, cart=cart).exists()
         if is_cart_item_exists:
+            print("Usuario No logueado, existe producto en carrito.",cart)
             cart_item = CartItem.objects.filter(product=product, cart=cart)
+            
             # existing_variations -> database
             # current variation -> product_variation
             # item_id -> database
@@ -279,6 +282,7 @@ def add_cart(request, product_id):
                 existing_variation = item.variations.all()
                 ex_var_list.append(list(existing_variation))
                 id.append(item.id)
+                cart_id = item.cart.id
 
             #print(ex_var_list)
 
@@ -288,22 +292,18 @@ def add_cart(request, product_id):
                 item_id = id[index]
                 item = CartItem.objects.get(product=product, id=item_id)
                
-                #print("4. cantidad:",quantity)
+                print("4. cantidad:",quantity)
                 if quantity==None:
                     quantity=1
 
                 if quantity:
                     if item.quantity == float(quantity):
-                        item.quantity = quantity
+                        item.quantity = int(quantity) + 1  #Esto es para cuando presiona el mas
                     else:
                         item.quantity = float(quantity)
                 else:
                     item.quantity = 1
                 item.save()
-
-            #Aplico Descuento si corresponde
-            b_descuento = calcular_y_guardar_descuentos(item_id)
-            
 
             if product.es_kit:
                 print("3 Procesando Kits")
@@ -359,18 +359,29 @@ def add_cart(request, product_id):
                 except:
                     pass        
                         
-                      
+                calcular_descuento_carrito(request)      
                 messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
                
             else:
-                item = CartItem.objects.create(product=product, quantity=1, cart=cart)
+                print("No es KIT ... Continuo")
+                #item = CartItem.objects.create(product=product, quantity=1, cart=cart,precio_real = product.price,sub_total_linea = float(product.price) * int(quantity))
+                item, created = CartItem.objects.get_or_create(
+                    product=product,
+                    cart=cart,
+                    defaults={
+                        'quantity': 1,
+                        'precio_real': product.price,
+                        'sub_total_linea': float(product.price) * int(quantity)
+                    }
+                )
+                
                 if len(product_variation) > 0:
                     item.variations.clear()
                     item.variations.add(*product_variation)
                 item.save()
-                messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
+                #messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
         else:
-            #print("5. cantidad:",quantity)
+            print("Producto No exiete en el cart",cart.cart_id)
             if not quantity:
                 quantity = 1
 
@@ -388,16 +399,6 @@ def add_cart(request, product_id):
             cart_item.save()
             item_id = cart_item.id
             
-            
-            #Aplico Descuento si corresponde
-            precio_con_descuento=0
-            b_descuento = calcular_y_guardar_descuentos(item_id)
-            if b_descuento:
-                precio_con_descuento = b_descuento["precio_con_desc"]
-            else:
-                precio_con_descuento = product.price
-
-            print("Descuento:", precio_con_descuento)
             
             if product.es_kit:
                 print("4 Procesando Kits")
@@ -435,6 +436,9 @@ def add_cart(request, product_id):
                 except:
                     pass
 
+
+        #Recaulcular
+        calcular_descuento_carrito(request)
         messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
         
         if volver_store=="0":
@@ -459,6 +463,9 @@ def remove_cart(request, product_id, cart_item_id):
             cart_item.save()
         else:
             cart_item.delete()
+
+        #Recaulcular
+        calcular_descuento_carrito(request)
     except:
         pass
     return redirect('cart')
@@ -471,6 +478,9 @@ def remove_cart_item(request, product_id, cart_item_id):
         cart = Cart.objects.get(cart_id=_cart_id(request))
         cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
     cart_item.delete()
+
+    #Recaulcular
+    calcular_descuento_carrito(request)
     return redirect('cart')
 
 def cart(request, total=0, quantity=0, cart_items=None):
@@ -501,6 +511,7 @@ def cart(request, total=0, quantity=0, cart_items=None):
     except ObjectDoesNotExist:
         pass #just ignore
 
+    calcular_descuento_carrito(request)
     context = {
         'total': total,
         'descuento': descuento,
@@ -529,9 +540,13 @@ def checkout(request, total=0, quantity=0, cart_items=None):
             cart = Cart.objects.get(cart_id=_cart_id(request))
             cart_items = CartItem.objects.filter(cart=cart, is_active=True)
         
-        
+       
         is_valid = validate_cart_items(cart_items)
         if is_valid:
+            #Recaulcular
+           
+            
+            calcular_descuento_carrito(request)
             print('Validación exitosa.')
         else:
             print('La validación ha fallado.')
@@ -549,7 +564,8 @@ def checkout(request, total=0, quantity=0, cart_items=None):
             # Agregar al resultado final
             resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
                 
-              
+
+
      
         envio = 0 #(2 * total)/100
         grand_total = total + envio
@@ -597,6 +613,7 @@ def calcular_y_guardar_descuentos(itemid):
     from store.views import obtener_mejor_descuento  # Importación local
 
     precio_con_desc=0
+    print("calcular_y_guardar_descuentos")
     
     item_cart = CartItem.objects.get(id=itemid)
     if item_cart:
@@ -666,7 +683,198 @@ def calcular_y_guardar_descuentos(itemid):
             
                 }
             )
+      
+        return {"calcular_y_guardar_descuentos": precio_con_desc}
+
+def calcular_descuento_carrito(request):
+    
+
+    cartid = 0
+    total = 0
+    total_c_desc=0
+    total_s_desc=0
+    total_items=1
+    desc_unit_tot=0
+    total_cant_c_desc=0
+    total_cant_s_desc=0
+    descuento_total=0
+    
+    if not request.user.is_authenticated:
+        cart = Cart.objects.get(cart_id=_cart_id(request))
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True).first()
+
+        if cart_items:
+            cartid = cart_items.cart.id
+        else:
+            cartid = 0
+
+    print("calcular_descuento_carrito",cartid)
+
+    try:
+        
+        # Filtrar todos los CartItems asociados al carrito
+        if cartid ==0:
+            cartitem = CartItem.objects.filter(user=request.user, is_active=True)
+        else:
+            cartitem = CartItem.objects.filter(cart=cartid)
+        if cartitem.exists():
+            #Elimino los descuentos
+            for items in cartitem:
+                # Recalcula los descuentos: elimina lo que existe
+                cart_item_desc = CartItemDescuento.objects.filter(cartitemid=items.id)
+                if cart_item_desc.exists():
+                    cart_item_desc.delete()
+                    
+                #Calculo descuento individual por articulo
+                print("Linea de articulo:",items.id)
+                calcular_y_guardar_descuentos(items.id)
+        
+            #Recalculo los descuentos
+            for items in cartitem:
+               
+                if items.desc_unit > 0:
+                    total_c_desc = float(total_c_desc) + float(items.precio_real) * int(items.quantity)
+                    total_cant_c_desc = float(total_cant_c_desc) + int(items.quantity)
+                    print("total_c_desc", total_c_desc, " Cantidad afectada: ", total_cant_c_desc)
+                else:
+                    total_s_desc = float(total_s_desc) + float(items.precio_real) * int(items.quantity)
+                    total_cant_s_desc = float(total_cant_s_desc) + int(items.quantity)
+                    print("total_s_desc", total_s_desc, " cantidad afectada: ", total_cant_s_desc)
+                    
+                
 
 
-            
-        return {"precio_con_desc": precio_con_desc}
+            ahora = datetime.now()
+            # Filtrar reglas activas Y QUE TENGAN MONTOS DESDE Y HASTA
+            reglas = ReglaDescuento.objects.filter(
+                activo=True,
+                fecha_inicio__lte=ahora,
+                fecha_fin__gte=ahora,
+                monto_desde__gt=0,
+
+            )
+
+            # Evaluar todas las reglas activas
+            for regla in reglas:
+                monto_desde = float(regla.monto_desde)
+                monto_hasta = float(regla.monto_hasta)
+                porcentaje = regla.valor_descuento
+                acumulable = regla.acumulable
+                total = 0
+                desc_unit_tot_linea=0
+                precio_con_descuento=0
+                subtotal_linea=0
+                
+                monto_descuento=0
+                print("Reglas....",regla.nombre)
+                if acumulable == True:
+                    #Tomo el monto total del pedid para calcular el descuento  
+                    total = total_c_desc + total_s_desc
+                    total_items = total_cant_s_desc + total_cant_c_desc
+                else:
+                    total = total_s_desc
+                    total_items = total_cant_s_desc
+
+                if monto_desde <= float(total) <= monto_hasta:
+                    monto_descuento = float(total) * float(porcentaje) / 100
+                    desc_unit_tot = monto_descuento / total_items
+                    print("Aplica monto descuento")
+
+                    #cartitem_udp = CartItem.objects.filter(cart=cartid)
+                    #if cartitem_udp.exists():
+                    for items in cartitem:
+                        product = Product.objects.get(id=items.product.id)
+                        desc_unit_tot_linea = desc_unit_tot + items.desc_unit
+                        #Valido si le corresponde el descuento al articulo. Acumulable
+                        if acumulable == True:
+                            #Le corresponde a todos los articulos
+                            quantity = items.quantity
+                            descuento_total = int(quantity) * float(desc_unit_tot)
+                        else:
+                            if items.desc_unit == 0:  #Corresponde si no tiene descuento
+                                quantity = items.quantity
+                                descuento_total = int(quantity) * float(desc_unit_tot)
+                            else:
+                                descuento_total=0
+                        
+                        descuento_total=round(descuento_total,2)
+                        desc_unit_tot=round(desc_unit_tot,2)
+
+                        if descuento_total>0:
+                            # Crear un nuevo registro de descuento
+                            cart_item_descuento = CartItemDescuento.objects.create(
+                                cartitemid=items,  # Usa el `CartItem` actual
+                                product=product,
+                                regladescuento=regla,
+                                quantity=int(quantity),
+                                descuento_unit=float(round(desc_unit_tot,2)),
+                                descuento_total=float(round(descuento_total,2)),
+                                porcentaje_descuento=int(porcentaje)
+                            )
+                            cart_item_descuento.save()
+
+
+                        # Save the record (optional, as `update_or_create` already saves it)
+                            
+
+                            precio_prod = items.precio_real
+                            precio_con_descuento=float(round(precio_prod,2)) - float(round(desc_unit_tot,2))
+                            subtotal_linea = int(quantity) * float(precio_con_descuento)
+                            subtotal_linea = round(subtotal_linea,2)
+                            
+
+                            print("desc_unit_tot: ",desc_unit_tot)
+                            print("precio_prod: ",precio_prod)
+                            print("subtotal_linea: ",subtotal_linea)
+
+
+                            
+                            #Actualizo CartItem y sumo todos los descuentos.
+                            # Filtrar todos los CartItems asociados al carrito
+                            if cartid ==0:
+                                cart_item_udp, created = CartItem.objects.update_or_create(
+                                        id=items.id,
+                                        product=product,
+                                        user=request.user,
+                                        is_active=True,
+                                        defaults={
+                                            'desc_unit': float(round(desc_unit_tot,2)),
+                                            'precio_con_desc': float(round(precio_con_descuento,2)),
+                                            'sub_total_linea': float(round(subtotal_linea,2)),
+                                            'precio_real':float(precio_prod)
+                                            
+                                                }
+                                            )
+                                print("Linea articulo actualizada - User",request.user)
+
+                            else:
+                                cart_item_udp, created = CartItem.objects.update_or_create(
+                                    id=items.id,
+                                    product=product,
+                                    cart=cartid,
+                                    is_active=True,
+                                    defaults={
+                                        'desc_unit': float(desc_unit_tot_linea),
+                                        'precio_con_desc': float(precio_con_descuento),
+                                        'sub_total_linea': float(subtotal_linea),
+                                        'precio_real':float(precio_prod)
+                                        
+                                            }
+                                        )
+                                print("Linea articulo actualizada - Cart:",cartid)
+
+                        else:
+                            print("No corresponde descuento")
+                        
+                else:
+                    #Si no aplica hay que eliminar el descuento en itemdescuento y actualizar items
+                    print("No Aplica monto descuento")
+
+            print("Sumar al monto descuento unitario de cada articulo:$", descuento_total)
+            return descuento_total
+        else:
+            print("Carrito sin productos")
+            return 0
+    except:
+        print("EXCEPT:  Sin carrito")
+        pass

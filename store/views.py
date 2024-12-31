@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, ReviewRating, ProductGallery, ProductKit,ProductKitEnc
 from category.models import Category,SubCategory
-from carts.models import CartItem,CartItemKit
+from carts.models import CartItem,CartItemKit,Cart
 from django.db.models import Q,Value
 from django.db.models.functions import Concat
 from store.models import ReglaDescuento
@@ -337,14 +337,7 @@ def condiciones (request):
     return render (request,"includes/como_comprar.html")
  
 def obtener_mejor_descuento(producto, cantidad):
-    """
-    Devuelve el mejor descuento aplicable a un producto y cantidad, considerando tanto reglas por productos
-    como por categorías/subcategorías, usando relaciones ManyToMany.
     
-    :param producto: Producto al que se desea aplicar el descuento.
-    :param cantidad: Cantidad del producto.
-    :return: El valor del mejor descuento y el tipo ('PORCENTAJE' o 'FIJO').
-    """
     ahora = datetime.now()
 
     # Filtrar reglas activas
@@ -394,7 +387,8 @@ def obtener_mejor_descuento(producto, cantidad):
                     if regla.cantidad_minima <= int(cantidad):
                         porcenteje_descuento = regla.valor_descuento
                         descuento_actual = (producto.price * int(cantidad)) * (regla.valor_descuento / 100)
-                       
+
+
         # Descuento fijo
         elif tipo_descuento == 'FIJO':
             if regla.productos.filter(id=producto.id).exists():
@@ -425,11 +419,11 @@ def obtener_mejor_descuento(producto, cantidad):
             mejor_valor = descuento_actual
             mejor_descuento = regla
         
- 
+    
 
     # Retornar el mejor descuento encontrado
     return {
-        "descuento": mejor_valor,
+        "descuento": round(mejor_valor,2),
         "porcenteje_descuento":porcenteje_descuento,
         "tipo_descuento": mejor_descuento.tipo_descuento if mejor_descuento else None,
         "regla_descuento": mejor_descuento.nombre if mejor_descuento else None,

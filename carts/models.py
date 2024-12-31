@@ -19,10 +19,10 @@ class CartItem(models.Model):
     variations = models.ManyToManyField(Variation, blank=True)
     cart    = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
-    precio_real = models.FloatField()
+    precio_real = models.FloatField(default=0, blank=True, null=True)
     desc_unit = models.FloatField(default=0, blank=True, null=True)
     precio_con_desc= models.FloatField(default=0, blank=True, null=True)
-    sub_total_linea = models.FloatField()
+    sub_total_linea = models.FloatField(default=0, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def sub_total(self):
@@ -30,11 +30,11 @@ class CartItem(models.Model):
         return self.sub_total_linea
     
     def porcentaje_desc(self):
-        try:
-            descuento = CartItemDescuento.objects.get(cartitemid=self)
-            return descuento.porcentaje_descuento
-        except CartItemDescuento.DoesNotExist:
-            return 0
+        # Obtiene todos los porcentajes de descuento y sus nombres asociados al CartItem
+        descuentos = CartItemDescuento.objects.filter(cartitemid=self)
+        return [{'porcentaje': descuento.porcentaje_descuento, 'nombre': descuento.regladescuento.nombre} for descuento in descuentos]
+
+
 
     def __unicode__(self):
         return self.product
