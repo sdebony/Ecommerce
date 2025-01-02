@@ -16,7 +16,7 @@ from accounts.models import Account, UserProfile
 from .models import Alerta
 from contabilidad.models import Cuentas, Movimientos,Operaciones, Transferencias,CierreMes,ConfiguracionParametros
 from panel.models import ImportTempProduct, ImportTempOrders, ImportTempOrdersDetail,ImportDolar
-from compras.models import CompraDolar,ProveedorArticulos,ComprasDet
+from compras.models import CompraDolar,ProveedorArticulos,ComprasDet,ComprasEnc
 from accounts.forms import UserForm, UserProfileForm
 from meli.models import meli_params
 from django.db.models.functions import TruncMonth
@@ -548,6 +548,23 @@ def dashboard_control(request):
             )
             )['total_facturacion']
 
+        # Calcular la ganancia neta total excluyendo órdenes con status 'New'
+        ganancia_total = (
+            OrderProduct.objects.exclude(order__status='New')
+            .annotate(
+                ingreso_total=F('precio_unitario_cobrado') * F('quantity'),  # Ingresos totales por registro
+                costo_total=F('costo') * F('quantity')  # Costos totales por registro
+            )
+            .aggregate(
+                total_ingreso=Sum('ingreso_total'),  # Sumar todos los ingresos
+                total_costo=Sum('costo_total')  # Sumar todos los costos
+            )
+        )
+
+        # Calcular la ganancia neta
+        ganancia_neta = ganancia_total['total_ingreso'] - ganancia_total['total_costo']
+        print("Ganancia:", round(ganancia_neta,2))
+
         origenventa = OrigenVenta.objects.filter(codigo='MELI').first()
         total_facturacion_meli = Order.objects.filter(origen_venta=origenventa).exclude(status='New').aggregate(
             total_facturacion_meli=Sum(
@@ -584,7 +601,7 @@ def dashboard_control(request):
 
         margen_utilidad = OrderProduct.objects.filter(order__in=orders_validas).aggregate(
             margen_utilidad_total=Sum(
-                ((F('precio_unitario_cobrado') - F('descuento_unitario')) * F('quantity')) - (F('costo') * F('quantity')),
+                ((F('precio_unitario_cobrado')) * F('quantity')) - (F('costo') * F('quantity')),
                 output_field=FloatField()  # Asegura que el resultado sea un campo flotante
             )
         )    
@@ -597,42 +614,33 @@ def dashboard_control(request):
         total_articulos_vendidos = 0
 
         total_ganancia_real = round(float(total_facturacion) - float(total_product_cost),2)
-
-        print("total_facturacion",total_facturacion)
-        print("total_product_cost",total_product_cost)
-
-        print("Cantidad de ventas:",total_ventas,total_articulos_vendidos,total_product_cost)
         
+   
         margen_bruto_total = None
         if total_product_cost:
             if  total_product_cost > 0:
-                margen_bruto_total = round(((total_ganancia_real / total_facturacion)) * 100, 2)  # Redondear a 2 decimales
+                margen_bruto_total = round(((ganancia_neta / total_facturacion)) * 100, 2)  # Redondear a 2 decimales
             else:
                 margen_bruto_total = None  # O manejarlo como prefieras si total_product_cost es 0
 
         multi_cuentas= settings.STORE_MULTI_CANAL
-
+        total_ganancia_real = round(float(ganancia_neta),2)
 
         #STOCK TEORICO  LO COMPRADO MENOS LO VENDIDO
         # Sumar el total del campo cantidad del modelo ComprasDet
         compras_total = ComprasDet.objects.filter(id_compra_enc__estado=2).aggregate(total=Sum('cantidad'))['total'] or 0
-        print("cantidad comprada",compras_total)
-
+     
         # Filtrar productos con es_kit=True
         productos_kit_total = OrderProduct.objects.filter(product__es_kit=True).annotate(
             unidades_totales=F('quantity') * F('product__productkitenc__cant_unidades')
         ).aggregate(total=Sum('unidades_totales'))['total'] or 0
 
-
-        print("vendidas en kit:",productos_kit_total)
-        # Sumar el total de 'quantity' excluyendo los productos con 'product.es_kit = False'
+   # Sumar el total de 'quantity' excluyendo los productos con 'product.es_kit = False'
         orders_total = OrderProduct.objects.filter(product__es_kit=False).aggregate(total=Sum('quantity'))['total'] or 0
-        print("vendidas no kit:",orders_total)
-
+       
         total_articulos_vendidos = int(productos_kit_total) + int(orders_total)
         # Generar el resultado en el formato requerido
 
-        print("Total Articulos vendidos",total_articulos_vendidos)
         stock_control = int(compras_total) - int(total_articulos_vendidos)
 
 
@@ -709,6 +717,80 @@ def dashboard_resumen_ventas(request):
        
     else:
         return render (request,"panel/login.html")
+
+def dashboard_ganancia_neta(request):
+    # Obtener el año actual
+    # Obtener el año actual
+
+    permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+    
+    if request.method =="POST":
+        current_year = request.POST.get("anio")
+    else:
+        current_year = datetime.now().year
+
+
+    yr = int(current_year)
+    anios_disponibles = [yr-2,yr-1, yr,yr+1,yr+2]
+        
+
+    # Calcular Ganancia Neta mensual
+    ganancias = (
+        OrderProduct.objects.filter(order__fecha__year=current_year)
+        .annotate(
+            ingreso_total=F('precio_unitario_cobrado') * F('quantity'),  # Ingresos totales
+            costo_total=F('costo') * F('quantity')  # Costos totales
+        )
+        .annotate(ganancia=F('ingreso_total') - F('costo_total'))  # Ganancia neta
+        .values('order__fecha__month')
+        .annotate(total_ganancia=Sum('ganancia'))  # Ganancia acumulada por mes
+        .order_by('order__fecha__month')
+    )
+
+   
+    # Calcular Gastos Mensuales
+    gastos = (
+        Movimientos.objects.filter(
+            fecha__year=current_year,
+            movimiento__codigo='EGR',  # Código de movimiento correspondiente a gastos
+        )
+        .exclude(id__in=ComprasEnc.objects.values('id_pago'))
+        .values('fecha__month')
+        .annotate(total_gasto=Sum('monto'))
+        .order_by('fecha__month')
+    )
+
+    # Formatear datos para la tabla
+    meses = list(range(1, 13))
+    ganancias_data = {g['order__fecha__month']: g['total_ganancia'] for g in ganancias}
+    gastos_data = {g['fecha__month']: g['total_gasto'] for g in gastos}
+
+    # Asegurar valores por mes
+    ganancias_list = [ganancias_data.get(m, 0) for m in meses]
+    gastos_list = [gastos_data.get(m, 0) for m in meses]
+
+    # Calcular diferencias considerando signos
+    diferencias_list = [gan + gas for gan, gas in zip(ganancias_list, gastos_list)]
+    
+    # Preparar datos para la tabla
+    tabla_datos = [
+        {
+            'mes': m,
+            'ganancia': gan,
+            'gasto': gas,
+            'diferencia': dif
+        }
+        for m, gan, gas, dif in zip(meses, ganancias_list, gastos_list, diferencias_list)
+    ]
+
+    context = {
+        'tabla_datos': tabla_datos,
+        'permisousuario':permisousuario,
+        'anio': current_year, 
+        'anios_disponibles': anios_disponibles, 
+    }
+
+    return render(request, 'panel/dashboard_ganancia.html', context)
 
 def panel_product_list_category(request):
     
@@ -3098,13 +3180,20 @@ def panel_balance_movimientos(request):
     if validar_permisos(request,'BALANCE'):
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
-    
-        # Obtener todos los cierres mensuales del año actual (por ejemplo, 2024)
-        anio_actual = int(datetime.today().strftime('%Y'))
 
-        años_disponibles = CierreMes.objects.values_list('anio', flat=True).distinct().order_by('-anio')
+        if request.method =="POST":
+            anio = request.POST.get("anio")
+        else:
+        # Obtener todos los cierres mensuales del año actual (por ejemplo, 2024)
+            anio = int(datetime.today().strftime('%Y'))
+        print("anio",anio)
+
+        #anios_disponibles = CierreMes.objects.values_list('anio', flat=True).distinct().order_by('-anio')
+        yr = int(anio)
+        anios_disponibles = [yr-2,yr-1, yr,yr+1,yr+2]
+
         meses = range(1, 13)  # Meses de 1 (enero) a 12 (diciembre)
-        cierres_dict = {cierre.mes: cierre for cierre in CierreMes.objects.filter(anio=anio_actual)}
+        cierres_dict = {cierre.mes: cierre for cierre in CierreMes.objects.filter(anio=anio)}
 
         
         # Obtener el total de transacciones con idcierre=0 agrupado por mes
@@ -3164,8 +3253,8 @@ def panel_balance_movimientos(request):
         return render(request, 'panel/balance_cuentas.html', {
             'data': data, 
             'totales': totales, 
-            'anio_actual': anio_actual, 
-            'años_disponibles': años_disponibles,
+            'anio': anio, 
+            'anios_disponibles': anios_disponibles,
             'permisousuario':permisousuario}
         )
     else:

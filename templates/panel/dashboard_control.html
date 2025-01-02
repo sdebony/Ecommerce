@@ -98,7 +98,8 @@
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body text-center">
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Utilidad Bruta Actual</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{total_ganancia_real|format_currency }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>
+                            <a href="{% url 'dashboard_ganancia_neta' %}" target="_blank">{{total_ganancia_real|format_currency }}</a></strong></div>
                     </div>
                 </div>
             </div>
@@ -121,7 +122,7 @@
                         <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">Cantidad comprada - cantidad vendida</p>
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Stock Teorico</div>
                         <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>
-                            <a href="{% url 'compras_detalle_producto_reporte' %}">{{ stock_control }}</a></strong></div>
+                            <a href="{% url 'compras_detalle_producto_reporte' %}" target="_blank">{{ stock_control }}</a></strong></div>
                     </div>
                 </div>
             </div>

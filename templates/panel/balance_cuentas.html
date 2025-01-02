@@ -15,16 +15,19 @@
     <span class="bg-success" >Cerrado OK</span>
     <span class="bg-warning">Cerrado con diferencias </span>
     <p></p>
-    <form method="get" class="mb-3">
-        
-        <label for="anio">Seleccione el año:</label>
-        <select name="anio" id="anio" class="form-control" onchange="this.form.submit()">
-        {% for año in años_disponibles %}
-            <option value="{{ año }}" {% if año == anio_actual %}selected{% endif %}>{{ año }}</option>
-        {% endfor %}
-        </select>
-</form>
-
+    <form method="post" action="" class="mb-3">
+      {% csrf_token %}
+      <label for="anio">Seleccione el año: {{ anio }}</label>
+      <select name="anio" id="anio" class="form-control" onchange="this.form.submit()">
+          {% for ano in anios_disponibles %}
+              {% if ano|stringformat:"s" == anio|stringformat:"s" %}
+                <option value="{{ ano }}" selected>{{ ano }}</option>
+              {% else %}
+                <option value="{{ ano }}" >{{ ano }}</option>
+              {% endif %}
+          {% endfor %}
+      </select>
+  </form>
 
 <table class="table table-bordered">
     <thead>
