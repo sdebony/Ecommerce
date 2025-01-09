@@ -27,19 +27,42 @@ def add_cart(request, product_id):
     quantity=0
     volver_store=0 # Volver a la pagina Store 1 = Si / 0 = No 
     ruta='store'
+    sumar='SI'
     ruta = request.POST.get("ruta")
     product_info = product.product_name
 
-    print("add_cart")
-    print(ruta)
-    
      # If the user is authenticated
     if current_user.is_authenticated:
         product_variation = []
         if request.method == 'POST':
-            quantity = request.POST.get("quantity")
-            if quantity:
-                quantity = quantity.replace(",",".")
+           
+            product_id = request.POST.get('productId')
+            quantity = request.POST.get('quantity')
+            cantidad = request.POST.get('cantidad')
+            sumar = request.POST.get('sumar','SI')
+            
+            print(f"Producto: {product_id}, quantity: {quantity}, cantidad: {cantidad}, sumar: {sumar}")
+            try:
+                if request.content_type == 'application/json':
+                    # Parsear el cuerpo JSON de la solicitud
+                    data = json.loads(request.body)
+                    # Aquí data es una lista de diccionarios [{productId: 1, quantity: 3}, ...]
+                    # Iterar sobre los productos enviados
+                    for item in data:
+                        product_id = item.get('productId')
+                        quantity = item.get('quantity')
+                        cantidad = item.get('cantidad')
+                        sumar = item.get('sumar')
+                        # Procesa cada producto y cantidad según tus necesidades
+                        print(f"Producto: {product_id}, quantity: {quantity}, cantidad: {cantidad}")
+            except json.JSONDecodeError:
+                #return JsonResponse({'error': 'Error al procesar el JSON'}, status=400)
+                   pass
+                
+            #if quantity:
+            #    quantity = quantity.replace(",",".")
+            print("Sumar cantidad:",sumar)
+
             volver_store = request.POST.get("volver_store")
             ruta = request.POST.get("ruta")
             for item in request.POST:
@@ -56,7 +79,7 @@ def add_cart(request, product_id):
         #Si ya existe el producto
         if is_cart_item_exists:
             
-            print("Proudcto Existe en carrito")
+  
             cart_item = CartItem.objects.filter(product=product, user=current_user)
             ex_var_list = []
             id = []
@@ -66,8 +89,7 @@ def add_cart(request, product_id):
                 ex_var_list.append(list(existing_variation))
                 id.append(item.id)
                 cart_id = item.cart
-                print("cart_id",cart_id)
-
+               
             
             if product_variation in ex_var_list:
                 # increase the cart item quantity
@@ -77,7 +99,7 @@ def add_cart(request, product_id):
                 #print("1. cantidad:",quantity)
                 if quantity:
                     #print("articulo existe...")
-                    if item.quantity == float(quantity):
+                    if item.quantity == float(quantity) and sumar.upper() == 'SI':
                         #print("Si la cantidad ingresada es igual a la que tiene suma 1")
                         item.quantity = float(quantity) + 1
                     else:
@@ -240,10 +262,29 @@ def add_cart(request, product_id):
         product_variation = []
         if request.method == 'POST':
             ruta = request.POST.get("ruta")
-            quantity = request.POST.get("quantity")
-            #print("3. cantidad:",quantity)
-            if quantity:
-                quantity = quantity.replace(",",".")
+            product_id = request.POST.get('productId')
+            quantity = request.POST.get('quantity')
+            cantidad = request.POST.get('cantidad','1')
+            sumar = request.POST.get('sumar','SI')
+            
+            print(f"Producto: {product_id}, quantity: {quantity}, cantidad: {cantidad}, sumar: {sumar}")
+            try:
+                # Parsear el cuerpo JSON de la solicitud
+                if request.content_type == 'application/json':
+                    data = json.loads(request.body)
+                    # Aquí data es una lista de diccionarios [{productId: 1, quantity: 3}, ...]
+                    # Iterar sobre los productos enviados
+                    for item in data:
+                        product_id = item.get('productId')
+                        quantity = item.get('quantity')
+                        cantidad = item.get('cantidad')
+                        sumar = item.get('sumar')
+                        # Procesa cada producto y cantidad según tus necesidades
+                        print(f"Producto: {product_id}, quantity: {quantity}, cantidad: {cantidad}")
+            except json.JSONDecodeError:
+                #return JsonResponse({'error': 'Error al procesar el JSON'}, status=400)
+                pass
+
             volver_store = request.POST.get("volver_store")
             
             for item in request.POST:
@@ -270,7 +311,7 @@ def add_cart(request, product_id):
 
         is_cart_item_exists = CartItem.objects.filter(product=product, cart=cart).exists()
         if is_cart_item_exists:
-            print("Usuario No logueado, existe producto en carrito.",cart)
+            
             cart_item = CartItem.objects.filter(product=product, cart=cart)
             
             # existing_variations -> database
@@ -297,7 +338,7 @@ def add_cart(request, product_id):
                     quantity=1
 
                 if quantity:
-                    if item.quantity == float(quantity):
+                    if item.quantity == float(quantity) and sumar.upper() == 'SI':
                         item.quantity = int(quantity) + 1  #Esto es para cuando presiona el mas
                     else:
                         item.quantity = float(quantity)
@@ -306,11 +347,11 @@ def add_cart(request, product_id):
                 item.save()
 
             if product.es_kit:
-                print("3 Procesando Kits")
+                #print("3 Procesando Kits")
                 # PROCESO KIT
                 itemkit=[]
                 user = request.user  # Usuario actual que realiza la solicitud
-                print(item_id)
+                #print(item_id)
                 itemkit = CartItem.objects.get(product=product, id=item_id)
                 try:
                     CartItemKit.objects.filter(cart=item_id).delete()
@@ -332,7 +373,7 @@ def add_cart(request, product_id):
                             product_id_kit = int(product_id_kit)  # Asegúrate de que sea un entero
 
                         # Verificar si el producto existe
-                        print("kit Producto_id ",product_id_kit, " Cantidad: ", cantidad)
+                        #print("kit Producto_id ",product_id_kit, " Cantidad: ", cantidad)
             
                         try:
                             product = Product.objects.get(id=product_id_kit)
@@ -340,14 +381,7 @@ def add_cart(request, product_id):
                         except Product.DoesNotExist:
                             return JsonResponse({'error': f"Producto con ID {product_id} no encontrado."}, status=400)
       
-                        
-
-                       
-                        print("Usuario:", user)
-                        print("Producto:", product)
-                        print("Cantidad:", cantidad)
-                        print("itemkit",itemkit)
-                    
+                 
                         cart_item, created = CartItemKit.objects.get_or_create(
                             #user=user,
                             product=product,
@@ -360,10 +394,10 @@ def add_cart(request, product_id):
                     pass        
                         
                 calcular_descuento_carrito(request)      
-                messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
+                #messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
                
             else:
-                print("No es KIT ... Continuo")
+                #print("No es KIT ... Continuo")
                 #item = CartItem.objects.create(product=product, quantity=1, cart=cart,precio_real = product.price,sub_total_linea = float(product.price) * int(quantity))
                 item, created = CartItem.objects.get_or_create(
                     product=product,
@@ -381,7 +415,7 @@ def add_cart(request, product_id):
                 item.save()
                 #messages.success(request,  'Producto agregado: (' + str(quantity) + ') x ' + product_info)
         else:
-            print("Producto No exiete en el cart",cart.cart_id)
+            #print("Producto No exiete en el cart",cart.cart_id)
             if not quantity:
                 quantity = 1
 
@@ -511,7 +545,12 @@ def cart(request, total=0, quantity=0, cart_items=None):
     except ObjectDoesNotExist:
         pass #just ignore
 
-    calcular_descuento_carrito(request)
+    try:
+        calcular_descuento_carrito(request)
+    except:
+        print("EXCEPT:  Sin carrito")
+        pass
+    
     context = {
         'total': total,
         'descuento': descuento,
@@ -613,7 +652,7 @@ def calcular_y_guardar_descuentos(itemid):
     from store.views import obtener_mejor_descuento  # Importación local
 
     precio_con_desc=0
-    print("calcular_y_guardar_descuentos")
+    #print("calcular_y_guardar_descuentos")
     
     item_cart = CartItem.objects.get(id=itemid)
     if item_cart:
@@ -635,7 +674,7 @@ def calcular_y_guardar_descuentos(itemid):
         id_regla_desc = descuento["id_regla_descuento"]
       
         # Ahora puedes usar promo y tipo_descuento como variables independientes
-        print(f"monto_descuento: {monto_descuento}, Nombre descuento: {nombre_descuento}, porcentaje_descuento: {porcentaje_descuento}, tipo_descuento: {tipo_descuento}")
+        #print(f"monto_descuento: {monto_descuento}, Nombre descuento: {nombre_descuento}, porcentaje_descuento: {porcentaje_descuento}, tipo_descuento: {tipo_descuento}")
        
         if monto_descuento > 0:
             #Grabo la info )
@@ -726,7 +765,7 @@ def calcular_descuento_carrito(request):
                     cart_item_desc.delete()
                     
                 #Calculo descuento individual por articulo
-                print("Linea de articulo:",items.id)
+                #print("Linea de articulo:",items.id)
                 calcular_y_guardar_descuentos(items.id)
         
             #Recalculo los descuentos
@@ -735,11 +774,11 @@ def calcular_descuento_carrito(request):
                 if items.desc_unit > 0:
                     total_c_desc = float(total_c_desc) + float(items.precio_real) * int(items.quantity)
                     total_cant_c_desc = float(total_cant_c_desc) + int(items.quantity)
-                    print("total_c_desc", total_c_desc, " Cantidad afectada: ", total_cant_c_desc)
+                    #print("total_c_desc", total_c_desc, " Cantidad afectada: ", total_cant_c_desc)
                 else:
                     total_s_desc = float(total_s_desc) + float(items.precio_real) * int(items.quantity)
                     total_cant_s_desc = float(total_cant_s_desc) + int(items.quantity)
-                    print("total_s_desc", total_s_desc, " cantidad afectada: ", total_cant_s_desc)
+                    #print("total_s_desc", total_s_desc, " cantidad afectada: ", total_cant_s_desc)
                     
                 
 
@@ -766,7 +805,7 @@ def calcular_descuento_carrito(request):
                 subtotal_linea=0
                 
                 monto_descuento=0
-                print("Reglas....",regla.nombre)
+                #print("Reglas....",regla.nombre)
                 if acumulable == True:
                     #Tomo el monto total del pedid para calcular el descuento  
                     total = total_c_desc + total_s_desc
@@ -778,7 +817,7 @@ def calcular_descuento_carrito(request):
                 if monto_desde <= float(total) <= monto_hasta:
                     monto_descuento = float(total) * float(porcentaje) / 100
                     desc_unit_tot = monto_descuento / total_items
-                    print("Aplica monto descuento")
+                    #print("Aplica monto descuento")
 
                     #cartitem_udp = CartItem.objects.filter(cart=cartid)
                     #if cartitem_udp.exists():
@@ -823,9 +862,9 @@ def calcular_descuento_carrito(request):
                             subtotal_linea = round(subtotal_linea,2)
                             
 
-                            print("desc_unit_tot: ",desc_unit_tot)
-                            print("precio_prod: ",precio_prod)
-                            print("subtotal_linea: ",subtotal_linea)
+                            #print("desc_unit_tot: ",desc_unit_tot)
+                            #print("precio_prod: ",precio_prod)
+                            #print("subtotal_linea: ",subtotal_linea)
 
 
                             
@@ -845,7 +884,7 @@ def calcular_descuento_carrito(request):
                                             
                                                 }
                                             )
-                                print("Linea articulo actualizada - User",request.user)
+                                #print("Linea articulo actualizada - User",request.user)
 
                             else:
                                 cart_item_udp, created = CartItem.objects.update_or_create(
@@ -861,20 +900,19 @@ def calcular_descuento_carrito(request):
                                         
                                             }
                                         )
-                                print("Linea articulo actualizada - Cart:",cartid)
+                                #print("Linea articulo actualizada - Cart:",cartid)
 
-                        else:
-                            print("No corresponde descuento")
-                        
-                else:
+                        #else:
+                            #print("No corresponde descuento")       
+                #else:
                     #Si no aplica hay que eliminar el descuento en itemdescuento y actualizar items
-                    print("No Aplica monto descuento")
+                    #print("No Aplica monto descuento")
 
-            print("Sumar al monto descuento unitario de cada articulo:$", descuento_total)
+            #print("Sumar al monto descuento unitario de cada articulo:$", descuento_total)
             return descuento_total
         else:
-            print("Carrito sin productos")
+            #print("Carrito sin productos")
             return 0
     except:
-        print("EXCEPT:  Sin carrito")
+        #print("EXCEPT:  Sin carrito")
         pass

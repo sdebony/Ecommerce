@@ -178,3 +178,8 @@ cython_debug/
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+db.lifche.sqlite3
+db.qualities.sqlite3
+db.sqlite3.lifche
+db.sqlite3.lifche
+test.db.lifche.sqlite3

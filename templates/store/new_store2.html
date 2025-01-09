@@ -1,6 +1,6 @@
 {% extends 'base_mob.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 <!-- ========================= SECTION PAGETOP 
 *********************************MOBILE!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -58,7 +58,12 @@
 								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg"  style="width: 20rem; height: 20rem" loading="lazy">
 							{% endif %}
 							</div>
-						
+							{% if product.tiene_descuento %}
+								<!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
+								<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.5rem; padding: 0.5rem 1rem;">
+									{{ product.porcenteje_descuento | format_integer_def  }} %
+								</span>
+							{% endif %}
 						
 							<!--  </div>img-wrap.// -->
 							<div class="fix-start">

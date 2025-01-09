@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 <section class="section-content padding-y bg">
@@ -11,6 +11,8 @@
                 <aside class="col-md-4">
                     <article class="gallery-wrap">
                         <div class="img-wrap mainImage">
+                            
+
                             <center>
                                 {% if single_product.images %}
                                     <img src="https://yourfiles.cloud/uploads/{{ single_product.imgfile }}">
@@ -18,6 +20,7 @@
                                     <img src="https://yourfiles.cloud/uploads/none.jpg">
                                 {% endif %}
                             </center>
+                            
                         </div>
                     </article>
                 </aside>
@@ -30,11 +33,17 @@
                             <div class="mb-3">
                                 <var class="price h4">$ {{ single_product.price }}</var>
                             </div>
+                            {% if single_product.tiene_descuento %}
+                                <!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
+                                <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.5rem; padding: 0.5rem 1rem;">
+                                {{ single_product.porcenteje_descuento | format_integer_def  }} %
+                                </span>
+                            {% endif %}
                         {% else %}
                             <div class="input-group-prepend col-md-3">
                                 <span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ single_product.price }}</span>
                                 <input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
-                                <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1">
+                                <input type="number" class="form-control" id="quantity" name="quantity" value="{{ cantidad_producto }}" min="1">
                                 
                             </div>
                             
@@ -254,11 +263,21 @@
             return;
         }
 
-        const data = Array.from(selectedItems, ([productId, item]) => ({
+        const data = Array.from(selectedItems, ([productId, item]) => {
+        // Obtén el input relacionado con este producto
+        const quantityInput = document.querySelector(`#quantity`);
+        const quantity = quantityInput ? parseInt(quantityInput.value, 10) || 0 : 0; // Asegúrate de obtener un número
+
+        //console.log(`Input encontrado para productId: ${productId}, valor: ${quantityInput.value}`);
+        return {
             productId,
             cantidad: item.cantidad,
-        }));
+            quantity: quantity,
+            sumar:"NO"
+            };
+        });
 
+        
         fetch("{% url 'add_cart' single_product.id  %}", {
             method: 'POST',
             headers: {

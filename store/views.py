@@ -47,7 +47,10 @@ def store(request, category_slug=None,subcategory_slug=None):
             print("Subcategoria seleccionada")
             print("TEST TEST TEST TEST TEST TEST TEST TEST ")
             categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
-            subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
+            #subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
+            subcategory = SubCategory.objects.filter(sub_category_slug=subcategory_slug).first()
+
+
             subcategories = SubCategory.objects.filter(category=categories)
             products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')            
             product_count = products.count()
@@ -96,9 +99,20 @@ def store(request, category_slug=None,subcategory_slug=None):
         print("Categoria Default:", category_slug)
         print("Subcategoria Default:", subcategory_slug)
         
-        categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+        #categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+        try:
+            categories = Category.objects.filter(slug=category_slug).order_by("orden")
+            print(f"Categories found: {categories}")
+            if not categories.exists():
+                print(f"No categories found with slug: {category_slug}")
+            else:
+                categories = categories.first()
+        except Exception as e:
+            print(f"Error while querying categories: {e}")
+            raise
 
-        subcat = get_object_or_404(SubCategory, category=categories,sub_category_slug=subcategory_slug)
+        print("categoria..",categories)
+        subcat = SubCategory.objects.filter(category=categories,sub_category_slug=subcategory_slug).first()
         subcategories = SubCategory.objects.filter(category=categories)
         products = Product.objects.filter(category=categories,subcategory=subcat, is_available=True).order_by('product_name')
         
@@ -125,8 +139,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     # Recorrer los productos y agregar el campo 'tiene_descuento'
     for producto in paged_products:
         # Inicializamos el campo tiene_descuento como False
-        tiene_descuento = False
-        
+        tiene_descuento = False        
 
         # Verificamos si alguna regla de descuento es aplicable al producto
         mejor_descuento = obtener_mejor_descuento(producto, 1)
@@ -140,7 +153,7 @@ def store(request, category_slug=None,subcategory_slug=None):
             tiene_descuento = False
         
         # Ahora puedes usar promo y tipo_descuento como variables independientes
-        print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
+        #print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
         
         # Agregar el campo 'tiene_descuento' al producto
         producto.tiene_descuento = tiene_descuento
@@ -171,8 +184,7 @@ def store(request, category_slug=None,subcategory_slug=None):
         return render(request, 'store/new_store.html', context)
 
 def product_detail(request, category_slug, product_slug):
-
-    
+  
     
     print("product_detail: User: ")
     try:
@@ -197,14 +209,18 @@ def product_detail(request, category_slug, product_slug):
 
     # Get the product gallery
     product_gallery = ProductGallery.objects.filter(product_id=single_product.id)
+    cantidad_producto = 1 
     
     cartitemkit=[]
     if not user:
-        print("Not User, in_car:",in_cart)
-        cartitem = CartItem.objects.filter(product=single_product.id,cart=in_cart).first()
+        
+        cartitem = CartItem.objects.filter(product=single_product.id,cart__cart_id=_cart_id(request)).first()
+        print("Not User, cartitem:",cartitem)
     else:
-        print("User:",user)
+        
         cartitem = CartItem.objects.filter(product=single_product.id,user=user).first()
+        print("User: cartitem",cartitem)
+
     if cartitem:
         print("cartitem product",cartitem)
         if user:
@@ -227,10 +243,32 @@ def product_detail(request, category_slug, product_slug):
         except:
             pass
 
-   
+    tiene_descuento = False        
+
+    # Verificamos si alguna regla de descuento es aplicable al producto
+    mejor_descuento = obtener_mejor_descuento(single_product, 1)
+
+    # Extraer los valores de promo y tipo_descuento
+    descuento = mejor_descuento["descuento"]
+    porcenteje_descuento = mejor_descuento["porcenteje_descuento"]
+    if descuento > 0:
+        tiene_descuento = True
+    else:
+        tiene_descuento = False
+        
+    # Agregar el campo 'tiene_descuento' al producto
+    single_product.tiene_descuento = tiene_descuento
+    single_product.descuento = descuento
+    single_product.porcenteje_descuento = porcenteje_descuento
+
+    if cartitem:
+        cantidad_producto = cartitem.quantity
+    else:
+        cantidad_producto = 1
 
     context = {
         'single_product': single_product,
+        'cantidad_producto':cantidad_producto,
         'in_cart'       : in_cart,
         'orderproduct': orderproduct,
         'reviews': reviews,
