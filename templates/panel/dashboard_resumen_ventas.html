@@ -12,6 +12,7 @@
         const ventasWeb = {{ ventas_web|safe }};
         const ventasTN = {{ ventas_tn|safe }};
         const ventasCombinadas = {{ ventas_combinadas|safe }};
+        const ganancias_netas = {{ ganancias_netas|safe }};
 
         // Configuración del gráfico
         const ctx = document.getElementById('ventasChart').getContext('2d');
@@ -47,7 +48,15 @@
                         backgroundColor: 'rgba(75, 192, 192, 0.5)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
+                    },
+                    {
+                        label: 'Ganancia Neta',
+                        data: ganancias_netas,
+                        backgroundColor: 'rgba(255, 255, 0, 0.5)',
+                        borderColor: 'rgba(255, 255, 0, 1)',
+                        borderWidth: 1
                     }
+
                 ]
             },
             options: {

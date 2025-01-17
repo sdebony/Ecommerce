@@ -684,8 +684,26 @@ def dashboard_resumen_ventas(request):
             total=Sum("order_total")
         ).order_by("mes")
 
+         # Calcular Ganancia Neta mensual usando los mismos parámetros que ventas_mensuales
+        ganancias = (
+            OrderProduct.objects.filter(order__status__in=["Completed", "Cobrado", "Entregado"])
+            .annotate(
+                mes=TruncMonth("order__fecha"),
+                ingreso_total=F('precio_unitario_cobrado') * F('quantity'),  # Ingresos totales
+                costo_total=F('costo') * F('quantity')  # Costos totales
+            )
+            .annotate(ganancia=F('ingreso_total') - F('costo_total'))  # Ganancia neta
+            .values('mes')  # Agrupar por mes
+            .annotate(total_ganancia=Sum('ganancia'))  # Ganancia acumulada por mes
+            .order_by('mes')
+        )
+
+        # Convertir ganancias a un diccionario para fácil acceso
+        ganancias_por_mes = {g['mes']: g['total_ganancia'] for g in ganancias}
+        
+
         # Procesar datos
-        datos_por_mes = defaultdict(lambda: {"Mercado Libre": 0, "Web": 0, "Tienda Nube":0, "Mercado Libre + Web + Tienda Nube": 0})
+        datos_por_mes = defaultdict(lambda: {"Mercado Libre": 0, "Web": 0, "Tienda Nube":0, "Mercado Libre + Web + Tienda Nube": 0,"Ganancia Neta": 0 })
         for venta in ventas_mensuales:
             mes = venta["mes"]
             origen = venta["origen_venta__origen"]  # Usar el nombre del campo origen
@@ -693,6 +711,9 @@ def dashboard_resumen_ventas(request):
                 print(origen)
                 datos_por_mes[mes][origen] += venta["total"]
                 datos_por_mes[mes]["Mercado Libre + Web + Tienda Nube"] += venta["total"]
+            # Agregar ganancia neta del mes
+            if mes in ganancias_por_mes:
+                datos_por_mes[mes]["Ganancia Neta"] = ganancias_por_mes[mes]
 
         # Preparar listas
         meses = sorted(datos_por_mes.keys())
@@ -700,9 +721,10 @@ def dashboard_resumen_ventas(request):
         ventas_web = [datos_por_mes[mes]["Web"] for mes in meses]
         ventas_tn = [datos_por_mes[mes]["Tienda Nube"] for mes in meses]
         ventas_combinadas = [datos_por_mes[mes]["Mercado Libre + Web + Tienda Nube"] for mes in meses]
+        ganancias_netas = [datos_por_mes[mes]["Ganancia Neta"] for mes in meses]
 
 
-        print(ventas_tn,"ventas_tn")
+
         # Contexto para la plantilla
         context = {
             'labels': [mes.strftime("%b %Y") for mes in meses],  # Formato: Mes Año
@@ -710,6 +732,7 @@ def dashboard_resumen_ventas(request):
             'ventas_web': ventas_web,
             'ventas_tn': ventas_tn,
             'ventas_combinadas': ventas_combinadas,
+            'ganancias_netas': ganancias_netas,  # Agregar la nueva lista
             'permisousuario':permisousuario,
         }
         
@@ -3391,13 +3414,21 @@ def export_xls(request,modelo=None):
 
                     items_pedidos = Order.objects.filter(fecha__range=[fecha_desde,fecha_hasta],status=sheet)
                     rows = OrderProduct.objects.filter(order__in=items_pedidos).values_list('order__order_number','order__fecha','order__envio','order__order_total','order__email','order__first_name','order__last_name','product__product_name','quantity','product_price','costo','order__cuenta','descuento_unitario','precio_unitario_cobrado','order__origen_venta__origen','order__order_total_comisiones','order__order_total_descuentos','order__order_total_impuestos')
-                            
+                     
+                    nro_orden_anterior='0'      
                     for row in rows:
-                        row_num += 1      
+                        row_num += 1   
+                           
                         for col_num in range(len(row)):              
                             #if col_num==2 or col_num==3 or col_num==8 or col_num==9 or  col_num==10 or col_num==11 or col_num==12 or col_num==13 or col_num==15 or col_num==16 or col_num==17:
                             if col_num in {2, 3, 8, 9, 10, 11, 12, 13, 15, 16, 17}:
-                                monto = float("{0:.2f}".format((float)(row[col_num])))
+                                if col_num ==15: #Comisiones
+                                    if nro_orden_anterior==row[0]:
+                                        monto = 0
+                                    else:
+                                        monto = float("{0:.2f}".format((float)(row[col_num])))    
+                                else:
+                                    monto = float("{0:.2f}".format((float)(row[col_num])))
                                 ws.write(row_num,col_num,monto)
                             elif col_num==11:
                                 cuentas = Cuentas.objects.filter(id=int(row[col_num])).first()
@@ -3408,6 +3439,8 @@ def export_xls(request,modelo=None):
                                 ws.write(row_num,col_num, str(cuentas),font_style)     
                             else:
                                 ws.write(row_num,col_num, str(row[col_num]),font_style)
+                        nro_orden_anterior=row[0]
+
                 wb.save(response)
                 return response
             else:

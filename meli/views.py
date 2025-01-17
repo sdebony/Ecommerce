@@ -8,6 +8,7 @@ from orders.models import Order, OrderProduct,Payment,OrigenVenta,Product,OrderP
 from contabilidad.models import ConfiguracionParametros
 from store.models import ProductKit,ProductKitEnc
 
+from django.conf import settings
 
 
 from datetime import datetime
@@ -477,6 +478,51 @@ def meli_publicaciones(request):
 
             if detail_response.status_code == 200:
                 chunk_data = detail_response.json()  # Obtener los datos del chunk
+
+                for item in chunk_data:
+                    if 'body' in item and item['body']:  # Validar que la publicación está disponible
+                        publicacion_id = item['body']['id']
+                        
+                        # Buscar el producto en el modelo Product
+                        producto = Product.objects.filter(Q(sku_meli__regex=rf'(^|,){publicacion_id}(,|$)')).first()
+                        
+                        # Obtener el estado de la publicación
+                        respuesta = meli_get_estado_publicacion(request, publicacion_id)
+                        estado_publicacion = respuesta.get("status", "Estado no disponible")
+                        precio_to_win = respuesta.get("price_to_win", 0)
+                        winner_price = respuesta.get("winner_price", 0)
+                        
+                        if producto:
+                            precio_sugerido = meli_calcular_comisiones(producto, precio_to_win)
+                        else:
+                            precio_sugerido = 0
+                        
+                        # Añadir los datos al resultado
+                        articulos.append({
+                            'publicacion': item['body'],
+                            'producto': producto,  # Será None si no se encuentra
+                            'status': estado_publicacion,
+                            'precio_to_win': precio_to_win,
+                            'ganancia_precio_competencia': precio_sugerido,
+                            'winner_price': winner_price
+                        })
+                    else:
+                        print(f"Publicación no disponible: {item}")
+            else:
+                print(f"Error al obtener los detalles del chunk: {detail_response.status_code}")
+                print(f"Contenido de la respuesta: {detail_response.text}")
+                messages.error(request, f"Error en la conexión con Mercado Libre - Detalle Productos ({detail_response.status_code})")
+
+        # Final del fragmento
+
+            ids_concatenados = ','.join(chunk)  # Concatenar los IDs separados por comas
+            url = f"https://api.mercadolibre.com/items?ids={ids_concatenados}"
+            payload = {}
+
+            detail_response = requests.request("GET", url, headers=headers, data=payload)
+
+            if detail_response.status_code == 200:
+                chunk_data = detail_response.json()  # Obtener los datos del chunk
                 for item in chunk_data:
                     if 'body' in item:  # Validar que el detalle de la publicación está disponible
                         publicacion_id = item['body']['id']
@@ -534,38 +580,51 @@ def meli_publicaciones(request):
     return render(request,'panel/login.html',)
 
 def meli_get_all_publicaciones(request):
-    # Obtiene la lista de publicaciones de Mercado Libre
-
-    ids_concatenados = ''
-           
+    """
+    Obtiene la lista de publicaciones de Mercado Libre para el vendedor especificado.
+    """
     seller_id = settings.SELLER_ID
-    url = "https://api.mercadolibre.com/sites/MLA/search?seller_id=" + str(seller_id)
-          
+    base_url = f"https://api.mercadolibre.com/sites/MLA/search?seller_id={seller_id}"
     access_token = meli_get_authorization_code(settings.CLIENTE_ID)
-    
-    payload = {}
+
     headers = {
-        'Authorization': access_token #'APP_USR-5374552499309003-040715-531af5500eba214cfed3597ccc74e677-4388206'
+        'Authorization': f"Bearer {access_token}"
     }
-    
-    
-    #Busco todos los productos del vendedor
-    response = requests.request("GET", url, headers=headers, data=payload)
-    if response.status_code==200 : 
-        response_json = json.loads(response.text) #Diccionario
-        articulos = response_json
-        # Obtener la lista de IDs
-        ids = [result['id'] for result in articulos['results']]
 
-        # Concatenar los IDs en un solo string, separados por comas
-        ids_concatenados = ','.join(ids)
-    else:
-        ids_concatenados=''
-        messages.error(request,"Error de conexion  en Mercado Libre. - Consulta Productos")
-        print("ERROR DE CONEXION - Consulta")
+    offset = 0
+    limit = 50  # Límite por página
+    all_ids = []  # Lista para almacenar todos los IDs de publicaciones
 
-   
+    while True:
+        url = f"{base_url}&offset={offset}&limit={limit}"
+        print(f"Consultando: {url}")  # Debugging
 
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            response_json = response.json()
+
+            # Obtener los resultados de la página actual
+            results = response_json.get('results', [])
+            if not results:
+                # Si no hay más resultados, salir del bucle
+                break
+
+            # Extraer los IDs de las publicaciones y agregarlos a la lista
+            ids = [result['id'] for result in results]
+            all_ids.extend(ids)
+
+            # Avanzar al siguiente lote de publicaciones
+            offset += limit
+        else:
+            # Manejo de errores si la API falla
+            messages.error(request, f"Error de conexión con Mercado Libre: {response.status_code}")
+            print(f"Error: {response.status_code} - {response.text}")
+            break
+
+    # Concatenar todos los IDs en un solo string separado por comas
+    ids_concatenados = ','.join(all_ids)
+    print(f"IDs obtenidos: {ids_concatenados}")  # Debugging
     return ids_concatenados
 
 def meli_ventas(request):
