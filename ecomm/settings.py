@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d(
 #DEBUG = config('DEBUG', default=False, cast=bool)
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
+ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1','103.199.185.212','qualities.com.ar']
 #ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
                   
 
@@ -68,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'ecomm.middleware.db_switch_middleware.DatabaseSwitchMiddleware', 
     #'django_session_timeout.middleware.SessionTimeoutMiddleware',
 ]
 

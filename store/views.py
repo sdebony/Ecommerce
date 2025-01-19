@@ -321,7 +321,7 @@ def search(request):
             tiene_descuento = False
         
         # Ahora puedes usar promo y tipo_descuento como variables independientes
-        print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
+        #print(f"descuento: {descuento}, Tiene descuento: {tiene_descuento}, porcenteje_descuento:,{porcenteje_descuento}")
         
         # Agregar el campo 'tiene_descuento' al producto
         producto.tiene_descuento = tiene_descuento
@@ -346,6 +346,16 @@ def search(request):
         return render(request,'store/new_store2.html', context)
     else:   #Default para test mariano 
         return render(request, 'store/new_store.html', context)
+
+def search_products(request):
+    keyword = request.GET.get('keyword', '')
+    if keyword:
+        # Buscar productos que coincidan con la palabra clave
+        products = Product.objects.filter(product_name__startswith=keyword).order_by('product_name')
+        # Crear una lista de diccionarios con los datos que deseas mostrar
+        results = [{'product_name': product.product_name} for product in products]
+        return JsonResponse(results, safe=False)
+    return JsonResponse([], safe=False)
 
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
