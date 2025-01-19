@@ -1,0 +1,69 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+        <div class="container-fluid">
+
+             <!-- Page Heading -->
+             <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Reporte de Compras de Cliente</h1>
+                <form action="{% url 'panel_reporte_clientes_list' %}" enctype="multipart/form-data" method="POST">
+                
+                  {% csrf_token %}
+                  <div class="dropdown no-arrow">Desde:
+                    <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde  | date:'d/m/Y' }}" />
+                          Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta | date:'d/m/Y' }}"/>
+                          <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+                  </div>
+                </form>
+                <!-- Form Export-->
+                <form action="{% url 'export_clientes_ventas' %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde  | date:'d/m/Y' }}" hidden />
+                    <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta  | date:'d/m/Y' }}" hidden/>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>
+                </form>
+            </div>
+            <!-- Content Row -->
+           
+            <div class="row">
+              <!-- Area Chart -->
+                <div class="col-xl-12 col-lg-11">
+                    <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                 
+                       
+                        <!-- Card Body -->
+                        <div class="card-body">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary"> </h6>                       
+                            </div>
+                            <table id="table" data-toggle="table" data-pagination="false" data-search="true"
+                                data-show-columns="false" data-show-toggle="false" data-show-fullscreen="false"
+                                data-toolbar=".buttons-toolbar"  data-locale="es-AR" data-sort-name="total" data-sort-order="desc">
+                                <thead>
+                                    <th data-sortable="true" data-field="last_name">Apellido</th>
+                                    <th data-sortable="true" data-field="first_name">Nombre</th>
+                                    <th data-sortable="true" data-field="total">Importe Total</th>
+                                    <th data-sortable="true" data-field="cantidad">Cantidad Pedidos</th>
+                                   
+                                </thead>
+                                <tbody>
+                                    {% for cliente in clientes %}
+                                    <tr>
+                                        <td>{{ cliente.last_name }}</td>
+                                        <td>{{ cliente.first_name }}</td>
+                                        <td>{{ cliente.total }}</td>
+                                        <td>{{ cliente.cantidad }}</td>
+                                        
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table> 
+                        </div>
+                       
+                </div>
+              
+            </div>
+        </div> 
+{% endblock %}

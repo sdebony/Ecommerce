@@ -1,0 +1,39 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+    <h1>Reporte de Productos</h1>
+
+    {% if productos %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Stock Actual</th>
+                    <th>Total Comprado</th>
+                    <th>Total Vendido</th>
+                    <th>Diferencia Final</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.stock_actual }}</td>
+                        <td>{{ producto.total_cantidad_comprada }}</td>
+                        <td>{{ producto.total_cantidad_vendida }}</td>
+                        {% if producto.diferencia_final != 0 %}
+                        <td class="bg-warning">{{ producto.diferencia_final }}</td>
+                        {% else %}
+                        <td class="bg-success">{{ producto.diferencia_final }}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No se encontraron productos.</p>
+    {% endif %}
+
+{% endblock %}

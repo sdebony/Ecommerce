@@ -1,0 +1,48 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+<div class="card shadow mb-4">
+    <div class="container mt-5">
+        <h1 class="mb-4">Informe Mensual Acumulado</h1>
+
+
+        <form method="post" action="" class="mb-3">
+            {% csrf_token %}
+            <label for="anio">Seleccione el año: {{ anio }}</label>
+            <select name="anio" id="anio" class="form-control" onchange="this.form.submit()">
+                {% for ano in anios_disponibles %}
+                    {% if ano|stringformat:"s" == anio|stringformat:"s" %}
+                      <option value="{{ ano }}" selected>{{ ano }}</option>
+                    {% else %}
+                      <option value="{{ ano }}" >{{ ano }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </form>
+        
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Mes</th>
+                    <th>Ganancia Neta ($)</th>
+                    <th>Gastos Mensuales ($)</th>
+                    <th>Diferencia ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in tabla_datos %}
+                <tr>
+                    <td>{{ row.mes }}</td>
+                    <td>{{ row.ganancia |format_currency }}</td>
+                    <td>{{ row.gasto|format_currency }}</td>
+                    <td>{{ row.diferencia|format_currency }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -20,6 +20,9 @@
   <!-- Custom styles for this template-->
   <link href="{% static  'css/sb-admin-2.min.css' %}" rel="stylesheet">
 
+  <link href="{% static  'css/style.css' %}" rel="stylesheet">
+
+  
    <!-- Custom styles for this page -->
    <link href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css'%}" rel="stylesheet">
 
@@ -38,6 +41,8 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/css/select2.min.css" rel="stylesheet" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+  <script src="{% static 'js/dialog.js' %}"></script>
   
 </head>
 
@@ -64,7 +69,7 @@
       <!-- Nav Item - Dashboard -->
       <li class="nav-item">
         <br>
-              <a class="nav-link" href="{% url 'panel' %}"><i class="fas fa-fw fa-tachometer-alt"></i>
+              <a class="nav-link" href="{% url 'panel' %}"><i class="fas fa-home"></i>
               <span>Home</span></a>
 
         
@@ -83,7 +88,7 @@
     
        <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDashboard" aria-expanded="true" aria-controls="collapseDashboard">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span>
         </a>
         <div id="collapseDashboard" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -93,9 +98,37 @@
             {% for items in permisousuario %}
                 {% if items.modo_ver %}
                   {% if items.codigo.codigo == 'DASHBOARD VENTAS' %}
-                      <a class="collapse-item" href="{% url 'dashboard_ventas' %}" >Panel de Ventas</a>
+                      <a class="collapse-item" href="{% url 'dashboard_ventas' %}" >Panel Diario</a>
                   {% endif %}
                 {% endif %}
+            {% endfor %}
+            {% for items in permisousuario %}
+                {% if items.modo_ver %}
+                  {% if items.codigo.codigo == 'DASHBOARD CUENTAS' %}
+                      <a class="collapse-item" href="{% url 'dashboard_cuentas' %}" >Panel Financiero</a>
+                  {% endif %}
+                {% endif %}
+            {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD RESULTADOS' %}
+                  <a class="collapse-item" href="{% url 'dashboard_resultados' 0 %}" >Saldo Cuentas</a>
+              {% endif %}
+            {% endif %}
+            {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD CONTROL' %}
+                  <a class="collapse-item" href="{% url 'dashboard_control' %}" >Panel de Control</a>
+              {% endif %}
+            {% endif %}
+            {% endfor %}
+            {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DASHBOARD RESUMEN VENTAS' %}
+                  <a class="collapse-item" href="{% url 'dashboard_resumen_ventas' %}" >Resumen Ventas</a>
+              {% endif %}
+            {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -107,26 +140,80 @@
     
         <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo" aria-expanded="true" aria-controls="collapseCatalogo">
-            <i class="fas fa-fw fa-truck"></i>
+            <i class="fas fa-list"></i>
             <span>Catalogos</span>
           </a>
           <div id="collapseCatalogo" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
           
               <h6 class="collapse-header">Productos</h6>
-              {% for items in permisousuario %}
+                {% for items in permisousuario %}
+                  <!-- PRODUCTOS -->
                   {% if items.modo_ver %}
-                    {% if items.codigo.codigo == 'PRODUCTO' %}
-                        <a class="collapse-item" href="{% url 'panel_catalogo' %}" >Productos</a>
-                    {% endif %}
-                    {% if items.codigo.codigo == 'IMPORTAR PRODUCTOS' %}
-                        <a class="collapse-item" href="{% url 'panel_importar_productos' %}" >Importar Productos</a>
-                    {% endif %}
-                  
-                    {% if items.codigo.codigo == 'CATEGORIA' %}
+                      {% if items.codigo.codigo == 'PRODUCTO' %}
+                          <a class="collapse-item" href="{% url 'panel_catalogo' %}" >Productos</a>
+                      {% endif %}
+                  {% endif %}
+                  <!-- CATEGORIA-->
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'CATEGORIA' %}
                         <a class="collapse-item" href="{% url 'panel_categoria' %}" >Categorías</a>
+                      {% endif %}
+                  {% endif %}
+                  <!-- COSTOS -->
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'COSTOS' %}
+                        <a class="collapse-item" href="{% url 'panel_costo_list' %}" >Costos</a>
+                      {% endif %}
+                  {% endif %}
+
+                  <!-- LISTA DE PRECIOS-->
+                  {% if items.modo_ver %}
+                      {% if items.codigo.codigo == 'LISTA PRECIOS' %}
+                        <a class="collapse-item" href="{% url 'panel_lista_de_precios' %}" >Lista de Precios</a>
+                      {% endif %}
+                  {% endif %}
+
+                  <!-- DESCUENTOS -->
+                   <!-- LISTA DE PRECIOS-->
+                   {% if items.modo_ver %}
+                   {% if items.codigo.codigo == 'DESCUENTOS' %}
+                     <a class="collapse-item" href="{% url 'listar_reglas_descuento' %}" >Configuracion Descuentos</a>
+                   {% endif %}
+               {% endif %}
+                {% endfor %} 
+                
+                
+
+
+                <h6 class="collapse-header">IMPORTAR</h6>
+                
+                {% for items in permisousuario %}    
+                  {% if items.codigo.codigo == 'IMPORTAR PRECIOS' %}
+                      {% if items.modo_ver %}
+                          <a class="collapse-item" href="{% url 'panel_import_precios'  %}" >Importar Precios</a>
+                      {% endif %}
+                  {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR STOCK' %}
+                    {% if items.modo_ver %}
+                        <a class="collapse-item" href="{% url 'panel_import_stock'  %}" >Importar Stock</a>
                     {% endif %}
                   {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR PRODUCTOS' %}
+                    {% if items.modo_ver %}
+                      <a class="collapse-item" href="{% url 'panel_importar_productos' %}" >Importar Productos</a>
+                    {% endif %}
+                  {% endif %}
+
+                  {% if items.codigo.codigo == 'IMPORTAR COSTO' %}
+                    {% if items.modo_ver %}
+                        <a class="collapse-item" href="{% url 'panel_import_costo'  %}" >Importar Costos</a>
+                    {% endif %}
+                  {% endif %}
+        
+
               {% endfor %}
             </div>
           </div>
@@ -138,7 +225,7 @@
     
        <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClientes" aria-expanded="true" aria-controls="collapseClientes">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-user-check"></i>
           <span>Clientes</span>
         </a>
         <div id="collapseClientes" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -160,7 +247,7 @@
         <!-- INI MENU PEDIDOS-->
         <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePedidos" aria-expanded="true" aria-controls="collapsePedidos">
-            <i class="fas fa-fw fa-truck"></i>
+           <i class="fas fa-cash-register"></i>
             <span>Pedidos</span>
           </a>
           <div id="collapsePedidos" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -168,33 +255,33 @@
           
               <h6 class="collapse-header">Pedidos</h6>
               {% for items in permisousuario %}
-                {% if items.modo_ver %}
-                    {% if items.codigo.codigo == 'PEDIDOS' %}
-                      <a class="collapse-item" href="{% url 'panel_pedidos' 'New'  %}" >Pedidos</a>
-                    {% endif %}
-                {% endif %} 
-                {% if items.modo_ver %}
+                  {% if items.codigo.codigo == 'PEDIDOS' %}
+                      {% if items.modo_ver %}
+                          <a class="collapse-item" href="{% url 'panel_pedidos' 'New'  %}" >Pedidos</a>
+                      {% endif %}
+                  {% endif %} 
+                  
                   {% if items.codigo.codigo == 'IMPORTAR PEDIDOS' %}
-                    <a class="collapse-item" href="{% url 'panel_pedidos_import'  %}" >Importar Pedidos</a>
+                    {% if items.modo_ver %}
+                      <a class="collapse-item" href="{% url 'panel_pedidos_import'  %}" >Importar Pedidos</a>
+                    {% endif %}
                   {% endif %}
-                {% endif %}
 
-                
               {% endfor %}
             </div>
           </div>
         </li>
-      <!-- FIN MENU CATALOGO-->
+      <!-- FIN MENU PEDIDOS-->
 
       <!-- INI MENU MOVIMIENTOS-->
       <li class="nav-item {% if cmp_url in request.path or fac_url in request.path %} active {% endif %}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMovimientos" aria-expanded="true" aria-controls="collapseMovimientos">
-          <i class="fas fa-fw fa-truck"></i>
+          <i class="fas fa-hand-holding-usd"></i>
           <span>Movimientos</span>
         </a>
         <div id="collapseMovimientos" class="collapse {% if cmp_url in request.path or fac_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-        
+       
             <h6 class="collapse-header">Cash Flow </h6>
             {% for items in permisousuario %}
               {% if items.modo_ver %}
@@ -204,38 +291,182 @@
                   {% if items.codigo.codigo == 'TRANSFERENCIAS' %}
                     <a class="collapse-item" href="{% url 'panel_transferencias' %}">Transferencias</a>
                   {% endif %}
+                  {% if items.codigo.codigo == 'CIERRE CONTABLE' %}
+                    <a class="collapse-item" href="{% url 'panel_cierre_registrar'  %}">Cierre Mensual</a>
+                  {% endif %}
+                  {% if items.codigo.codigo == 'BALANCE' %}
+                  <a class="collapse-item" href="{% url 'panel_balance_movimientos'  %}">Resumen Anual</a>
+                {% endif %}
               {% endif %}
             {% endfor %}
+            
           </div>
         </div>
       </li>
     <!-- FIN MENU MOVIMIENTOS-->
 
-    <!-- FIN MENU MOVIMIENTOS-->
+     <!--  INICIO REPORTES-->
+     <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReportes" aria-expanded="true" aria-controls="collapseReportes">
+        <i class="fas fa-folder-open"></i>
+        <span>Reportes</span>
+      </a>
+      <div id="collapseReportes" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+
+          <h6 class="collapse-header">ARTICULOS</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'REPORTE ARTICULOS' %}
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_reporte_articulos_list' %}">Reporte de Articulos</a>
+              {% endif%}
+            {% endif %}
+          {% endfor %}
+
+          <h6 class="collapse-header">CLIENTES</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'REPORTE CLIENTES' %}
+                <a class="collapse-item" href="{% url 'panel_reporte_clientes_list' %}">Reporte de Clientes</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+        </div>
+      </div>
+    </li>
+    <!--   FIN REPORTES -->
+    <!--  INICIO COMPRAS-->
+      <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCompras" aria-expanded="true" aria-controls="collapseCompras">
+          <i class="fas fa-cogs"></i>
+          <span>Compras</span>
+        </a>
+        <div id="collapseCompras" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Compras</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'COMPRAS' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'compras_list' %}">Solicitud de Compras USD</a>
+                {% endif%}
+              
+              {% endif %}
+            {% endfor %}
+    
+            <h6 class="collapse-header">Proveedores</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'PROVEEDORES' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'proveedores_list' %}">Proveedores</a>
+                {% endif%}
+              
+              {% endif %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'PROVEEDORES' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'proveedor_check_articulos' %}">Lista de precios Proveedor</a>
+                {% endif%}
+              
+              {% endif %}
+           
+              <!--  ORDENES DE COMPRA-->
+              {% if items.modo_ver %}
+                  {% if items.codigo.codigo == 'ORDENES DE COMPRA' %}  <!-- ORDEN_DE_COMPRA-->
+                    <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'oc_list' %}">Ordenes de Compra</a>
+                  {% endif%}
+                
+                {% endif %}
+            {% endfor %}
+  
+          </div>
+        </div>
+      </li>
+      <!--   FIN COMPRAS -->
+
+
+      <!--  INICIO FIN MERCADO LIBRE-->
+      <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseML" aria-expanded="true" aria-controls="collapseML">
+          <i class="fas fa-cogs"></i>
+          <span>Mercado Libre</span>
+        </a>
+        <div id="collapseML" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+  
+           
+            <h6 class="collapse-header">Mercado Libre</h6>
+            {% for items in permisousuario %}
+              {% if items.modo_ver %}
+                {% if items.codigo.codigo == 'CONFIG ML' %}
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_productos_vendor_detail' %}">Productos Vendedor</a>
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_search' %}">Buscar Productos</a>
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_publicaciones' %}">Mis Publicaciones</a>
+                  <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'meli_ventas' %}">Mis Ventas</a>
+                              
+                  {% endif%}
+              {% endif %}
+            {% endfor %}
+  
+  
+          </div>
+        </div>
+      </li>
+      <!--   FIN MERCADO LIBRE -->
+
 
     <!--  INICIO CONFIGURACION-->
     <li class="nav-item {% if alq_url in request.path %} active {% endif %}">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseConfig" aria-expanded="true" aria-controls="collapseConfig">
-        <i class="fas fa-calendar-check"></i>
+        <i class="fas fa-cogs"></i>
         <span>Configuración</span>
       </a>
       <div id="collapseConfig" class="collapse {% if alq_url in request.path  %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
 
+          <h6 class="collapse-header">Config Dolares</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'DOLAR' %}
+                <a class="collapse-item" href="{% url 'panel_cotiz_dolar_list' %}">Dolares</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+
+
           <h6 class="collapse-header">Cuentas</h6>
           {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'CUENTAS' %}
-                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'conta_list_cuentas' %}">Configuración Cuentas</a>
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'conta_list_cuentas' %}">Configuración de Cuentas</a>
               {% endif%}
             {% endif %}
           {% endfor %}
+          <!-- Configuracion de Picking-->
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'PICKING' %}
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_picking_list' %}">Configuración de Picking</a>
+              {% endif%}
+            {% endif %}
+          {% endfor %}
+
+      
 
           <h6 class="collapse-header">Usuarios</h6>
           {% for items in permisousuario %}
             {% if items.modo_ver %}
               {% if items.codigo.codigo == 'PERMISOS' %}
-                <a class="collapse-item" href="{% url 'panel_usuarios' %}">Perfiles de Usuario</a>
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_usuarios' %}">Perfiles de Usuario</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+          <h6 class="collapse-header">Margenes</h6>
+          {% for items in permisousuario %}
+            {% if items.modo_ver %}
+              {% if items.codigo.codigo == 'MARGENES' %}
+                <a class="collapse-item {% if caja_new_url in request.path  %}  active {% endif %}" href="{% url 'panel_config_margen' %}"> Margenes</a>
               {% endif %}
             {% endif %}
           {% endfor %}
@@ -263,58 +494,60 @@
 
         <!-- Topbar -->
         {% block top_bar %}
-        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-6 static-top shadow">
        <!--    Topbar Navbar -->
           <ul class="navbar-nav ml-auto">
             <!-- Nav Item - Alerts -->
             <li class="nav-item dropdown no-arrow mx-1">
 
               <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bell fa-fw"></i>
-   <!--             - Counter - Alerts -
-                <span class="badge badge-danger badge-counter">3+</span>
-    -->
+                <i class="fas fa-bell fa-fw" style="font-size: 1.5rem;"></i>
+              
+                <span class="badge badge-danger badge-counter" style="font-size: 1.0rem;">{{ cant_alertas }}</span>
+    
              </a>
 
               <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
                 <h6 class="dropdown-header">
                   Alerts Center
                 </h6>
+                
+                {% if alertas %}
+                  {% for alerta in alertas %}
+                  
+                  <a class="dropdown-item align-items-right" href="#">
+                      <div class="mr-6">
+                          <div class="icon-circle badge-danger">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                          </div>
+                      </div>
+                    <div> 
+                      <div class="small text-gray-800"><strong>{{ alerta.titulo }}</strong></div>
+                      <span class="font-weight"  style="font-size: 11px;">{{ alerta.mensaje }} </span>
+                      <div class="d-flex justify-content-center mt-2">
+                        <button class="btn btn-primary btn-sm rounded-pill marcar-leida" data-id="{{ alerta.id }}">Marcar como leída</button>
+                    
+                      </div>
+                    </div>
+                  </a>
+                
+                  {% endfor %}
+                {% else %}
+                  <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                      <div class="icon-circle bg-primary">
+                        <i class="fas fa-file-alt text-white"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="small text-gray-500">Sin Alertas</div>
+                      <span class="font-weight-bold">Sin Alertas</span>
+                    </div>
+                  </a>
+                
+                {% endif%}
+
                
-                <a class="dropdown-item d-flex align-items-center" href="#">
-                  <div class="mr-3">
-                    <div class="icon-circle bg-primary">
-                      <i class="fas fa-file-alt text-white"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="small text-gray-500">Marzo 16, 1979</div>
-                    <span class="font-weight-bold">Hoy es mi cumple</span>
-                  </div>
-                </a>
-                <a class="dropdown-item d-flex align-items-center" href="#">
-                  <div class="mr-3">
-                    <div class="icon-circle bg-success">
-                      <i class="fas fa-donate text-white"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="small text-gray-500">Marzo 16, 1980</div>
-                    Cumplo 1 año
-                  </div>
-                </a>
-                <a class="dropdown-item d-flex align-items-center" href="#">
-                  <div class="mr-3">
-                    <div class="icon-circle bg-warning">
-                      <i class="fas fa-exclamation-triangle text-white"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="small text-gray-500">Marzo 16, 2023</div>
-                    Ya tengo varios añitos...
-                  </div>
-                </a>
-                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
                
               </div>
             </li>
@@ -368,7 +601,8 @@
 
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 class="h3 mb-0 text-gray-800">Bienvenido</h1>
+              <h1 class="h3 mb-0 text-gray-800">Bienvenido: <b> {{ user.full_name }}</b> </h1>
+            
           </div>
   
           <!-- Content Row -->
@@ -378,8 +612,7 @@
   
           <div class="row">
   
-           
-  
+           	  
              
           </div>
     </div>
@@ -395,7 +628,7 @@
 
 
    
-      </div>
+    </div>
       <!-- /.container-fluid -->
         <!-- End Page Content  -->
 
@@ -459,6 +692,7 @@
   <!-- Custom scripts for all pages-->
   <script src="{% static  'js/sb-admin-2.min.js' %}"></script>
 
+  
   <!-- Page level plugins -->
   <script src="{% static 'vendor/datatables/jquery.dataTables.min.js'%}"></script>
   <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
@@ -544,6 +778,56 @@ $(function () {
   });
 
 </script>
+
+<!-- // Alertas  -->
+
+<script>
+  document.querySelectorAll('.marcar-leida').forEach(button => {
+      button.addEventListener('click', function() {
+          const alertaId = this.dataset.id;
+
+          const url = `{% url 'marcar_como_leida' 0 %}`.replace('0', alertaId);
+          fetch(url, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}',
+              },
+          })
+
+
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Eliminar la alerta marcada como leída
+                  this.closest('a').remove();
+
+                  // Actualizar el contador de alertas
+                  const badgeCounter = document.querySelector('.badge-counter');
+                  badgeCounter.textContent = data.cant_alertas;
+
+                  // Si no quedan alertas, mostrar el mensaje de "Sin Alertas"
+                  if (data.cant_alertas === 0) {
+                      const alertList = document.querySelector('.dropdown-list');
+                      alertList.innerHTML = `
+                          <a class="dropdown-item d-flex align-items-center" href="#">
+                              <div class="mr-3">
+                                  <div class="icon-circle bg-primary">
+                                      <i class="fas fa-file-alt text-white"></i>
+                                  </div>
+                              </div>
+                              <div>
+                                  <div class="small text-gray-500">Sin Alertas</div>
+                                  <span class="font-weight-bold">Sin Alertas</span>
+                              </div>
+                          </a>
+                      `;
+                  }
+              }
+          });
+      });
+  });
+</script>
+
 {% endblock %}
   </body>
 

@@ -1,0 +1,129 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >Ordenes de Compra</h6>
+    </div>
+    
+     
+  <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'generar_orden_compra' %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not oc_compras %}
+        <div class="alert alert-info">No se encontraron ordenes de compra</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="proveedor">Proveedor</th>
+          <th data-sortable="true" data-field="total">Monto Total</th>
+          <th data-sortable="true" data-field="costoenvio">Envio</th>
+          <th data-sortable="true" data-field="descuento">Desc Total</th>   
+          <th data-sortable="true" data-field="estado">Estado</th>
+          <th data-sortable="false" data-field="">Borrar</th>
+         
+      </thead>
+      <tbody>
+        {% for item in oc_compras %}
+          <tr>
+            <td>{{ item.fecha_compra | date:'d/m/Y' }}</td>
+            <td>{{ item.proveedor.nombre }}</td> 
+            <td>{{ item.total|format_currency }}</td>
+            <td>{{ item.costoenvio|format_currency }}</td>
+            <td>{{ item.descuento|format_currency }}</td>
+            {% if item.estado == 0 %}
+              <td><span class="badge bg-primary text-white">Abierto</span></td>
+              <td >         
+                <a href="{% url 'oc_registrar_pago' item.id %}" class="btn btn-success btn-circle" title="Pagar"><i class="fas fa-dollar-sign" aria-hidden="true"></i></a>
+                <a href="{% url 'oc_detalle' item.id %}" class="btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                <a href="{% url 'oc_delete' item.id %}" class="btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
+              </td>
+            {% elif item.estado == 1 %}
+              <td><span class="badge bg-warning text-white">Pagado</span></td>
+              <td >
+                <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  
+                <a href="{% url 'oc_recibir' item.id %}" class="btn btn-secondary btn-circle" title="Recibir"><i class="fas fa-box-open" aria-hidden="true"></i></a>
+              </td>
+              {% elif item.estado == 2 %}
+              <td><span class="badge bg-success text-white">Finalizado</span></td>
+              <td >
+                <a href="{% url 'oc_anula_recepcion' item.id %}" class="btn btn-secondary btn-circle" title="Anular Recepcion"><i class="fa fa-box"></i></i></a>
+                <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  
+              </td>
+            {% endif %}
+           
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+<div>
+
+  <div class="card-body">
+    {% if not oc_detalle_compras %}
+        <div class="alert alert-info">No se encontraro el detalle de las ordenes</div>
+    {% endif %}
+
+    <div class="alert alert-info">Detalle de Compras - Totales x Articulo</div>
+      <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+          <th data-sortable="true" data-field="id_compra_enc__id">ID OC</th>
+          <th data-sortable="true" data-field="producto__id_product__product_name">producto</th>
+          <th data-sortable="true" data-field="total_cantidad">cantidad</th>
+         
+        
+      </thead>
+      <tbody>
+        {% for item in oc_detalle_compras %}
+          <tr>
+            <td>{{ item.id_compra_enc__id }}</td>
+            <td>{{ item.producto__id_product__product_name }}</td>
+            <td>{{ item.total_cantidad }}</td> 
+            
+
+           
+          
+          
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

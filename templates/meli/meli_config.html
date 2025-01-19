@@ -1,0 +1,46 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-6">
+  <!-- Card Header - Dropdown -->
+ 
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <h1 class="h3 mb-6 text-gray-800">Test API ML  </h1>
+        <form action="{% url 'meli_save_token' %}" enctype="multipart/form-data" name="token" id="token" method="POST">
+            {% csrf_token %}
+            <div class="col form-group">
+                <label for="">code</label>
+                <input type="text" name="code" id="code" class="form-control" value="" required>
+            </div>
+              
+            <div class="d-sm-flex align-items-left">
+                <a href="{% url 'meli_get_first_token' %}" class="btn btn-primary">Obtener Access Token</a>
+                <a href="{% url 'meli_solicitar_token' %}" class="btn btn-secondary">Refresh Token</a>
+                <a href="{% url 'panel_clientes' %}" class="btn btn-success">Volver</a>
+                <a href="{% url 'panel_clientes' %}" class="btn btn-warning">Volver</a>
+            </div>
+            <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
+            
+        </form>
+    </div>
+</div>  
+{% endblock%}
+
+{% block js_page %}
+<script>
+
+    let queryStrings = new URLSearchParams(window.location.search);
+    let parametrosGet = Object.fromEntries(queryStrings.entries());
+    code = parametrosGet
+    console.log(parametrosGet)
+    $("#code").val(parametrosGet.code);
+  
+    //window.location.replace("http://localhost:8000/panel/");
+    document.getElementById("token").submit();
+  </script>
+
+{% endblock %}

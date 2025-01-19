@@ -1,0 +1,85 @@
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+
+<section class="content">
+    <div class="container-fluid">
+      <div class="row">
+            <!-- left column -->
+            <div class="col-md-6" >
+               
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title" align="center"><i class="fas fa-boxes"></i>  Importar Costo </h3>
+                        </div>
+                        <div class="card-footer">
+                            <form action="{% url 'panel_import_costo' %}" method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                    <input type="file" name="rootfile">
+                                    <button type="submit" class="btn btn-primary">Procesar Archivo ...</button>
+                                    <a href="{% url 'panel_costo_list' %}" class="btn btn-secondary">Cancelar</a>
+                                    
+                                </form>
+                          </div>
+                  
+                    </div>
+            </div>
+
+            <div class="col-md-6" >
+               
+                <!-- general form elements -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
+                    </div>
+                    <div class="card-footer">
+                        <p> Arhivo Excel (XLS) con las siguientes columnas</p>
+                            <ul>
+                                <li> Producto - Ejemplo: <b>>Abacus 14 mm - AZUL CIELO</b></li>
+                                <li> Costo - Ejemplo: <b> 1.55</b></li>
+                            </ul>
+                      </div>
+              
+                </div>
+            </div>
+        </div>
+            <!-- rigth column-->
+        <div class="row">
+      
+            <aside class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                    <!-- Collapsable Card Example -->
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Accordion -->
+                            <a href="#collapseCard2" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="true" aria-controls="collapseCard2">
+                                <h6 class="m-0 font-weight-bold text-primary">Resultado - Procesados OK : {{ cant_ok }} - Procesados Error : {{ cant_error }}  </h6>
+                            </a>
+                            <!-- Card Content - Collapse -->
+                            <div class="collapse show" id="collapseCard2">
+                                <div class="card-body">
+                                    <p>Procesados OK : {{ cant_ok }}        </p>
+                                    <p>Procesados Error : {{ cant_error }}        </p>
+                                    <p>Errores : {{ error_str }}        </p> 
+                                </div>
+                            </div>
+                        </div>
+                         </form>
+                    </div>
+                        
+                </div><br>
+            <!-- fin rigth column-->
+
+            </div>
+    </div>
+                
+</section>
+<br>
+<br>
+
+
+{% endblock %}

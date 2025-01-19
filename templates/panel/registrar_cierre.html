@@ -1,0 +1,235 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+  <!--  TABLA FACTURAS-->
+  <div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h4 class="m-0 font-weight-bold text-primary align-items-center">Período: <B>{{ fecha_desde |date:'d/m/Y' }} - {{ fecha_hasta |date:'d/m/Y' }}</B></h4>
+    </div>
+    <div>
+      <p><h9 class="m-0 font-weight-bold text-secondary align-items-right">ATENCIÒN!!. El cierre contable agrupa todos los movimientos del mes y consolida los saldos de las cuentas
+      Una vez realizado el cierre del mes, no se podràn ingrasar ni modificar movimientos que afecten los saldos de las cuentas del mes cerrado</h9></p>
+
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="row">
+        <!-- Ini Form -->
+        <form action="{% url 'panel_cierre_registrar' %}" method="POST">
+          {% csrf_token %}
+          <div class="card-body login-card-body">
+
+              <div style="width:1500px; margin:0 auto;">
+                <section class="content">
+                  <div class="container-fluid">
+                    <div class="row">
+                      <!-- left column -->
+                      <div class="col-md-8">
+                        <!-- general form elements -->
+                        <div class="card card-primary">
+                          <div class="card-header">
+                            <h3 class="card-title"></h3>
+                          
+                            <div class="form-row">
+                              <div class="col form-group">
+                                <label><b> Mes: </b></label>
+                                  <select class="form-control" id="mes" name="mes">
+                                  {% for item in meses %}
+                                      {% if item == sel_mes %}
+                                          <option value="{{ item }}" selected>{{ item }} </option>
+                                      {% else %}
+                                          <option value="{{ item }}">{{ item}} </option>
+                                      {% endif %}
+                                  {% endfor %}
+                                  </select>
+                              </div>
+                              <div class="col form-group" >
+                                <label for="">Año: </label>
+                                <select  id="anio" name="anio" width="300" class="form-control">
+                                  {% for item in anios %}
+                                    {% if item == sel_anio %}
+                                      <option value="{{ item }}" selected>{{ item}}</option>
+                                    {% else %}
+                                      <option value="{{ item }}">{{ item}}</option>
+                                    {% endif %}
+                                  {% endfor %}
+                                  </select>
+                                </div>
+<!--                                <div class="col form-group">
+                                  <label><b> Cuenta: </b></label>
+                                    <select class="form-control" id="cuenta" name="cuenta">
+                                    {% for item in cuentas %}
+                                        {% if item.id == mov.cuenta.id %}
+                                            <option value="{{item.id}}" selected >{{item.nombre}} - {{ item.moneda.moneda }} </option>
+                                        {% else %}
+                                            <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                                        {% endif%}
+                                    {% endfor %}
+                                    </select>
+                                </div>
+-->                             <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit" name="action" value="BUSCAR" class="form-control">
+                              <i class="fa fa-search"></i>
+                              
+                          </div>
+                            </div>
+                            </div>
+                                
+                          </div>
+                          <!-- /.card-header -->
+                                <br>                          
+
+                                <table 
+                                id="table"
+                                data-toggle="table"
+                                data-pagination="false"
+                                data-search="false"
+                                data-show-columns="false"
+                                data-show-toggle="false"
+                                data-show-fullscreen="false"
+                                data-toolbar=".buttons-toolbar"
+                                data-locale="es-AR"
+                            >
+                                <tbody>
+
+                                    <tr>
+                                        <td bgcolor="lightgrey">INGRESOS</td>
+                                        <td bgcolor="lightgrey">ARS</td>    
+                                        <td bgcolor="lightgrey">USD</td>    
+                                    
+                                            
+                                    </tr>
+
+
+                                    <!-- INGRESO VENAS-->
+                                    {% for item in totales_ingresos_ventas %}
+                                    <tr>
+                                    <td> Ventas</td>
+                                    {% if item.cuenta__moneda__codigo == 'ARS' %}
+                                        <td>{{  item.total|default:"0"|format_currency}}</td>
+                                        <td></td>
+                                    {% elif item.cuenta__moneda__codigo == 'USD' %}
+                                        <td></td>
+                                        <td> {{  item.total|default:"0"|format_currency_usd}}</td>  
+                                    {% endif %}
+                                    </tr>
+                                    {% endfor %}
+
+                                    <!--   OTROS INGRESOS-->
+                                    {% for item in totales_ingresos_varios %}
+                                    <tr>
+                                    <td> Otros Ingresos</td>
+                                    {% if item.cuenta__moneda__codigo == 'ARS' %}
+                                        <td>  {{  item.total|default:"0"|format_currency}}</td>
+                                        <td></td>
+                                    {% elif item.cuenta__moneda__codigo == 'USD' %}
+                                        <td></td>
+                                        <td>{{item.total|default:"0"|format_currency_usd}}</td>  
+                                    {% endif %}
+                                    </tr>
+                                    {% endfor %}
+
+
+                                    <!--   TOTAL  INGRESOS-->
+                                    <tr>
+                                    <td> Total Ingresos</td>
+                                        {% for item in totales_ingresos %}
+                                            {% if item.cuenta__moneda__codigo == 'ARS' %}
+                                                <td><b> {{  item.total|default:"0"|format_currency}}</b></td>
+                                            {% elif item.cuenta__moneda__codigo == 'USD' %}
+                                                <td><b>{{  item.total|default:"0"|format_currency_usd}}</b></td>  
+                                            {% endif %}
+                                    {% endfor %}
+                                    </tr>
+                                
+                                    <!-- Libre -->
+                                    <tr>
+                                        <td ></td>
+                                        <td ></td>
+                                        <td ></td>
+                                    </tr>
+
+                                    <!--  EGRESOS -->
+                                    <tr>
+                                        <td bgcolor="lightgrey">EGRESOS</td>
+                                        <td bgcolor="lightgrey">ARS</td>
+                                        <td bgcolor="lightgrey">USD</td>
+                                    </tr>
+                                    
+                                    <!--   Egresos-->
+                                    <tr>
+                                        <td> Otros Egresos</td>
+                                        {% for item in totales_egresos %}
+                                                {% if item.cuenta__moneda__codigo == 'ARS' %}
+                                                    <td>{{  item.total|default:"0"|format_currency}}</td>
+                                                {% elif item.cuenta__moneda__codigo == 'USD' %}
+                                                    <td> {{  item.total|default:"0"|format_currency_usd}}</td>  
+                                                {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td ></td>
+                                        <td ></td>
+                                        <td ></td>
+                                    </tr>
+                                    <tr>
+                                        <td bgcolor="lightblue"><b>RESULTADO</b></td>
+                                        
+                                        {% for item in totales_resultado %}
+                                                {% if item.cuenta__moneda__codigo == 'ARS' %}
+                                                    <td bgcolor="lightblue"><b>{{  item.total|default:"0"|format_currency}}</b></td>
+                                                {% elif item.cuenta__moneda__codigo == 'USD' %}
+                                                    <td bgcolor="lightblue"><b>{{  item.total|default:"0"|format_currency_usd}}</b></td>  
+                                                {% endif %}
+                                        {% endfor %}
+                                    </tr>
+
+                                </tbody>
+                                </table>
+
+                          
+                   
+                          <!-- / .card-body -->
+                          <div class="card-footer">
+                            <button class="btn btn-danger" type="submit" name="action" value="ELIMINAR" class="form-control" style="float: right;">
+                              Eliminar Cierre </button><pre style='display:inline'  class="float-right"> </pre>
+                            <button class="btn btn-primary" type="submit" name="action" value="CERRAR" class="form-control" style="float: right;">
+                            Cerrar Mes </button><pre style='display:inline'  class="float-right"> </pre>
+                            <a href="{% url 'panel_movimientos' %}" class="btn btn-secondary" style="float: right;">Cancelar</a>
+                          </div>
+                      
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+          </div>
+        </form>
+        <!-- end Form-->
+      </div>
+      <hr>
+    </div>
+    <!-- end Card Body-->
+{% endblock %}
+{% block js_page %}
+
+
+<script>
+
+  $(function () {
+
+       $("#fecha, #fecha").datetimepicker({
+           format: 'Y-m-d',
+           timepicker:false
+       });
+
+      });
+
+  
+</script>
+{% endblock %}

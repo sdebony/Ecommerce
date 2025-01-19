@@ -1,0 +1,198 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="row">
+	<aside class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Datos del Producto Proveedor: <b>{{ proveedor_nombre }}</b></h4>
+                
+                <form action="{% url 'proveedor_articulo' proveedor_id '0' %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        
+                        <div class="col form-group">
+                            <label for="">Código Proveedor</label>
+                            <input type="number" name="idprod" id="idprod" class="form-control" value="{{producto.id}}" hidden>
+                            <input type="number" name="idprov" id="idprov" class="form-control" value="{{proveedor_id}}" hidden>
+                            <input type="text" name="codigo_prod_prov" class="form-control" value="{{producto.codigo_prod_prov}}" maxlength="25" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Nombre</label>
+                            <input type="text" name="nombre_articulo" class="form-control" value="{{producto.nombre_articulo}}" maxlength="70" required>
+                        </div>
+                        
+                        <div class="form-check">
+                            {% if producto.estado  %}
+                            <input class="form-check-input" id="estado" name="estado[]" type="checkbox" value="0" checked>
+                            {% else%}
+                            <input class="form-check-input" id="estado" name="estado[]" type="checkbox" value="1">
+                            {% endif %}
+                            <label class="form-check-label" id=estado for="flexCheckChecked">Activo</label>
+                        </div>
+                        
+
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Marca </label>
+                            <select class="form-control" id="marca" name="marca">
+                            {% for item in marcas %}
+                                {% if item.marca == producto.marca.marca   %}
+                                <option selected>{{ item.marca }}</option>
+                                {% else %}
+                                    <option> {{ item.marca }} </option>
+                                {% endif %}
+                                
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col form-group">
+                            <label>Unidad de Medida</label>
+                            <select class="form-control" id="unidad_medida" name="unidad_medida">
+                            {% for item in unidades %}
+                                {% if item.codigo == producto.unidad_medida.codigo  %}
+                                <option selected value="{{ item.codigo}}">{{ item.nombre }}</option>
+                                {% else %}
+                                    <option value="{{ item.codigo}}"> {{ item.nombre }} </option>
+                                {% endif %}
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Cantidad x Unidad Medida</label>
+                            <input type="text" name="cantidad_unidad_medida" class="form-control" value=" {{producto.cantidad_unidad_medida}} ">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Descripcion</label>
+                            <textarea type="textarea" name="descripcion" id="descripcion" rows="5" class="form-control"> {{producto.descripcion}}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Precio Compra</label>
+                            <input type="text" name="precio_compra" class="form-control" value="{{producto.precio_compra}}" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Precio por Unidad</label>
+                            <input type="text" name="precio_por_unidad" class="form-control" value="{{producto.precio_por_unidad}}" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Peso Unidad (Gramos)</label>
+                            <input type="text" name="peso_por_unidad" id="peso_por_unidad" class="form-control" value=" {{producto.peso_por_unidad}}" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Link producto</label>
+                            <input type="link" name="link" class="form-control" value=" {{producto.link}} ">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Nombre Imagen</label>
+                            <input id="imagen" type="text" name="imagen" class="form-control" value="{{producto.imagen}}">
+                        </div>
+                    </div>     
+                    <button type="submit" name="action" value="save" class="btn btn-primary"><span class=""></span> Guardar </button>
+                    {% if producto.id %}                    
+                        <button type="submit" name="action" value="create" class="btn btn-success"><span class=""></span> Crear Producto </button>
+                    {% endif %}
+                    <a href="{% url 'panel_catalogo' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+        </div> <!-- card.// -->
+    </aside>
+    <aside class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                    <h4 class="card-title mb-4">Imagen </h4>
+                    <aside class="col-md-6">
+                        <article class="gallery-wrap">
+                            <div class="img-big-wrap mainImage">
+                                <center>
+                                {% if producto.imagen %}
+                                <!-- https://yourfiles.cloud/uploads/c38d60f8a429da77307f17e7db0b6237/Tubo_Pelotas_Penn_Championship_x_3.jpg -->
+                                    <img src="https://yourfiles.cloud/uploads/{{ producto.imagen }}">
+                                {% else %}
+                                    <img src="https://yourfiles.cloud/uploads/none.jpg">
+                                {% endif %}
+                                </center>
+                            </div> <!-- img-big-wrap.// -->
+                        </article> <!-- gallery-wrap .end// -->
+                    </aside>
+               </div>
+        </div><br>
+
+  
+</aside>
+
+</div>
+
+
+      
+
+{% endblock %}
+
+{% block js_page %}
+
+<script>
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+
+
+
+              
+                  
+                
+                
+            },
+        });
+    }
+
+    
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
+      
+    });
+
+    
+   
+
+</script>
+
+{% endblock %}

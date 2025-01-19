@@ -1,4 +1,5 @@
 {% extends 'panel/base.html' %}
+{% load custom_filters %}
 
 {% block page_content %}
 
@@ -7,36 +8,66 @@
 	<aside class="col-lg-6">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title mb-4">Datos del Producto - <b>{{ producto.product_name }} </b></h4>
+                <h4 class="card-title mb-4">Datos del Producto - <b>{{ producto.product_name }}</b></h4>
                 <form action="{% url 'panel_producto_crud' %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
                     <div class="form-row">
                         <div class="col form-group">
-                        <label for="">Nombre</label>
-                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                            <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" required>
+                            <label for="">Nombre</label>
+                                <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
+                                <input type="text" name="product_name" class="form-control" value="{{producto.product_name}}" maxlength="70" required>
                         </div>
                         <div class="col form-group">
                             <label for="">slug</label>
                             <input type="text" name="slug" class="form-control" value="{{producto.slug}}"  disabled>
                         </div>
-                        <div class="form-check">
-                            {% if producto.is_available  %}
+                    </div>
+                    <div class="col form-group">    
+                        <div class="form-check "> <!-- Puedes usar mb-4 para margen inferior -->
+                            {% if producto.is_available %}
                             <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="0" checked>
-                            {% else%}
+                            {% else %}
                             <input class="form-check-input" id="is_available" name="is_available[]" type="checkbox" value="1">
                             {% endif %}
-                            <label class="form-check-label" if=is_available for="flexCheckChecked">Activo</label>
+                            <label class="form-check-label" for="is_available">Activo</label>
                         </div>
+                        
+                        <div class="form-check"> <!-- OCULTO HASTA QUE SE APRUEBE EL REQUERIMIENTO -->
+                            {% if producto.es_kit %}
+                            <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="0" checked>
+                            {% else %}
+                            <input class="form-check-input" id="es_kit" name="es_kit[]" type="checkbox" value="1">
+                            {% endif %}
+                            <label class="form-check-label" for="es_kit">Es KIT</label>
+                        </div>    
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
                         <label for="">Precio</label>
-                        <input type="text" name="price" class="form-control" value="{{producto.price}}" required>
+                        <input type="number" name="price" class="form-control" value="{{producto.price|floatformat:2|decimal_point}}" required>    
+                    </div>
+                        <div class="col form-group">
+                            <label for="">Stock</label>
+                            <input type="number" step="any" name="stock" id="stock" class="form-control" value="{{producto.stock|floatformat:0|decimal_point }}"  required>
                         </div>
                         <div class="col form-group">
-                        <label for="">Stock</label>
-                        <input type="text" name="stock" class="form-control" value=" {{producto.stock}} ">
+                            <label for="">Costo</label>
+                            <input type="number" step="any" name="costo_prod" id="costo_prod" class="form-control" value="{{producto.costo_prod|floatformat:2|decimal_point }}" >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Ubicacion</label>
+                            <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{producto.ubicacion }}" >
+                        </div>
+
+                        <div class="col form-group">
+                            <label for="">Peso (Gramos)</label>
+                            <input type="text" name="peso" class="form-control" value=" {{producto.peso}} " required>
+                        </div>
+                        <div class="col form-group bg-warning text-dark p-2 rounded">
+                            <label for="peso">Stock Mínimo</label>
+                            <input type="text" name="stock_minimo" class="form-control" value="{{ producto.stock_minimo }}" >
                         </div>
                         
                     </div>
@@ -59,6 +90,29 @@
                             </select> 
                         </div>
                     </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            
+                        <label for="">Sub Categoria: </label>
+                            <select name="subcategory" id="subcategory" class="form-control" required>
+                                {% for subcat in subcategoria %}
+                                    {% if producto %}
+                                        {% if subcat.id == producto.subcategory.id %}
+                                            <option value="{{subcat.id}}" selected >{{producto.subcategory.subcategory_name}}  </option>
+                                        {% else %}
+                                            <option value="{{subcat.id}}" >{{subcat.subcategory_name}}  </option>
+                                        {% endif %}
+                                    {% else%}
+                                        <option value="{{subcat.id}}" >{{subcat.subcategory_name}}  </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select> 
+
+                           
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="col form-group">
                         <label for="">Fecha Creación</label>
@@ -68,47 +122,134 @@
                         <label for="">Fecha ultima modificacion</label>
                         <input type="text" name="state" class="form-control" value="{{producto.modified_date}}"  disabled>
                         </div>
-                    
-                        
-
+                        <div class="form-check"> 
+                            {% if producto.is_popular  %}
+                                <input class="form-check-input" id="is_popular" name="is_popular[]" type="checkbox" value="0" checked>
+                                <label class="form-check-label" if=is_popular for="flexCheckChecked">Producto Popular</label>
+                            
+                            {% else%}
+                                <input class="form-check-input" id="is_popular" name="is_popular[]" type="checkbox" value="1">
+                                <label class="form-check-label" if=is_popular for="flexCheckChecked">Producto Popular</label>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="col form-group">
-                        <label for="">Descripcion</label>
-                        <textarea type="textarea" name="description" rows="8" class="form-control"> {{producto.description}}</textarea>
-                        <input id="images" type="text" name="images" class="form-control" value="{{ producto.images.url }}" hidden>
+                            <label for="">Descripcion</label>
+                            <textarea type="textarea" name="description" rows="8" class="form-control">{{producto.description}}</textarea>
+                        </div>
                     </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Nombre Imagen</label>
+                            <input id="images2" type="text" name="images2" class="form-control" value="{{ producto.images.url }}" hidden>
+                            <input id="images" type="text" name="images" class="form-control" value="{{producto.images}}">
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
                     <a href="{% url 'panel_catalogo' %}" class="btn btn-secondary">Cancelar</a>
                 </form>
         </div> <!-- card.// -->
+        <br>
+        {% if producto.es_kit %}
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'panel_product_kit' producto.id %}" method="POST" id="frmvariantes">
+                    {% csrf_token %}
+    
+                    <h4 class="card-title mb-6">Kit Productos - </h4>
+                    <aside class="col-md-12">
+                        <div class="form-row">
+                            <div class="col form-group">
+                                <label for="">Producto</label>
+                                <input type="number" name="productkit_id" class="form-control" value="{{product_kit_enc.id }}" hidden >
+                                <input type="number" name="product_id" class="form-control" value="{{producto.id }}" hidden >
+                                <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
+                            </div>          
+                        </div>
+                        <div class="form-row">
+                            <div class="col form-group">
+                                <label for="">Cantidad</label>
+                                <input type="any" name="cant_unidades" id="cant_unidades" class="form-control" value="{{ product_kit_enc.cant_unidades }}" required > 
+                            </div>
+                            <div class="col form-group">
+                                <label for="">Cant de variedades</label>
+                                <input type="text" name="cant_variedades" id="cant_variedades" class="form-control" value="{{ product_kit_enc.cant_variedades }}" required >
+                            </div>
+                        </div>
+                        <div class="form-row ">
+                            <div class="col form-group d-flex justify-content-end">
+                                <button type="submit" name="action" value="save" class="btn btn-primary"><span class=""></span> Guardar </button>
+                            </div> 
+                        </div>
+                        {% if product_kit_det %}
+                        <div class="form-row">           
+                            <table 
+                                id="table"
+                                data-toggle="table"
+                                data-pagination="false"
+                                data-search="false"
+                                data-show-columns="false"
+                                data-show-toggle="false"
+                                data-show-fullscreen="false"
+                                data-locale="es-AR"
+                                data-perpage="25"
+                            >
+                                <thead>
+                                    <th data-sortable="true" data-field="variation_category">Producto</th>
+                                    <th >Eliminar</th>
+                                    
+                                </thead>
+                                <tbody>
+                                    {% for item in product_kit_det %}
+                                    <tr>   
+                                        <td >{{item.productohijo.product_name}}</td> 
+                                        <td ><a href="{% url 'panel_productos_kit_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a></td>
+                                    
+                                    </tr>                               
+                                    {% endfor%}
+                                </tbody>                        
+                            </table>
+                        </div>
+                        
+                        {% endif %}
+                    </div>  
+                    {% if product_kit_enc.id %}
+                    <div class="form-row ">
+                        <div class="col form-group d-flex justify-content-end">
+                            <button type="submit" name="action" value="products" class="btn btn-success"><span class=""></span> Seleccionar Productos </button>
+                        </div> 
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        {% endif %}
     </aside>
+    <br>
     <aside class="col-lg-6">
         <div class="card">
             <div class="card-body">
-                <form action="{% url 'panel_producto_img' %}" enctype="multipart/form-data" method="POST">
+<!--                <form action="{% url 'panel_producto_img' %}" enctype="multipart/form-data" method="POST">
                     {% csrf_token %}
+-->
                     <h4 class="card-title mb-4">Imagen </h4>
                     <aside class="col-md-6">
                         <article class="gallery-wrap">
                             <div class="img-big-wrap mainImage">
-                                <center><img src="{{ producto.images.url }}"></center>
+                                <center>
+                                {% if producto.images %}
+                                    <img src="https://yourfiles.cloud/uploads/{{ producto.imgfile }}">
+                                {% else %}
+                                    <img src="https://yourfiles.cloud/uploads/none.jpg">
+                                {% endif %}
+                                </center>
                             </div> <!-- img-big-wrap.// -->
                         </article> <!-- gallery-wrap .end// -->
                     </aside>
 
-                    <div class="form-row">
-                        <div class="col form-group">
-                            <label for="">Imagen:</label>
-                            <input type="number" name="product_id"  class="form-control" value="{{producto.id}}" hidden>
-                            <input id="imgFile" type="file" name="imgFile" class="form-control" >
-                            <button type="submit" class="btn btn-primary"><span class=""></span> Cargar imagen </button>
-                        </div>
-                        
-                    </div>
-                </form>
-            </div>
+<!--                </form>
+ -->           </div>
         </div><br>
 
     <aside class="col-lg-14">
@@ -195,19 +336,117 @@
                         </form>
                         </table>
                         <!-- Fin listado-->
-                    </div>
-
-
-				</aside>
-                
+                </div>  
             </div>
         </div>
+        <br>
+        {% if precios_externos == 1  %}
+        <!--  PRECIOS Tienda Nube y PRECIOS Mercado Libre-->
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'panel_producto_precio_ext' %}" method="POST" id="frm_precios">
+                {% csrf_token %}
+
+                <h4 class="card-title mb-6 ">Precio Tienda Nube y Mercado Libre </h4>
+                <aside class="col-md-12">
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">Producto</label>
+                            <input type="number" name="product_id" class="form-control" value="{{producto.id}}" hidden>
+                            <input type="text" id="product_name" name="product_name" class="form-control" value="{{producto.product_name}}" required disabled>
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Precio Tienda Nube</label>
+                            <input type="number" step="any" name="precio_TN" id="precio_TN" class="form-control" value="{{producto.precio_TN|floatformat:2|decimal_point}}">
+                        </div>
+                        <div class="col form-group">
+                            <label for="">Precio Mercado Libre</label>
+                            <input type="number" step="any" name="precio_ML" id="precio_ML" class="form-control" value="{{producto.precio_ML|floatformat:2|decimal_point}}" >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="">SKU Meli</label>
+                            <input type="text" step="any" name="sku_meli" id="sku_meli" class="form-control" value="{{producto.sku_meli}}">
+                        </div>
+                        <div class="col form-group">
+                            <label for="">URL Meli</label>
+                            <input type="text" step="any" name="url_meli" id="url_meli" class="form-control" value="{{producto.url_meli}}" >
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <button type="submit" class="btn btn-primary"><span class=""></span> Actualizar </button>
+                        </div> 
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--  FIN PRECIOS TN Y ML-->
+        {% endif %}
     </aside>
 </aside>
 
 </div>
 
 
+{% endblock %}
+
+{% block js_page %}
+
+<script>
+
+   function buscarsubcategoria()     {
+       
+       console.log($("#category").val());
+       var categoria=$('#category').val();
+       var path = "{% url 'api:subcategory_list' %}" + categoria;
+
+        $.ajax({
+            type:"GET",
+            url: path,
+            success: function(r){
+            
+                var select2=document.getElementById('subcategory');
+                select2.options.length=0;
+                for(f=0;r.length;f++)
+                {
+                    var op=document.createElement('option');
+                    var texto=document.createTextNode(r[f].subcategory_name);
+                    
+                    op.value = r[f].id
+                    op.appendChild(texto);
+                    select2.appendChild(op);
+                } 
+
+
+
+              
+                  
+                
+                
+            },
+        });
+    }
+
+    
+   $(function () {
+
+        $("#fecha, #fecha").datetimepicker({
+            format: 'd/m/Y',
+            timepicker:false
+        });
+        $("#category").change(function() {
+           console.log($("#category").val());
+           buscarsubcategoria();
+           
+        });
       
+    });
+
+    
+   
+
+</script>
 
 {% endblock %}

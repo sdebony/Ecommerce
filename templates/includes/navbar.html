@@ -1,82 +1,183 @@
 {% load static %}
 
 
-<div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, #3167EB , #7A7A7A);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
-<a href="#" style="color: white;text-transform: uppercase;letter-spacing: 2px;">
-<span>&#x1F525</span> Si es tu primer compra, acordate que el monto minimo de compra inicial tiene que ser de $35000 y para futuras compras el monto minimo es de $10.000. Gracias <span>&#x1F525</span></a>
-</div> <!-- container //  -->
+  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:5px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  
+    BIENVENIDO AL CATALOGO MAYORISTA
+    
+  </div> <!-- container //  -->
 
-<header class="section-header">
+  
+<header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  <!--  DIV 2 PARA SCROLL  <small class="title text-muted"></small>  *************************-->
+  <style>
+    #searchResults ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      max-height: 250px; /* Tamaño más pequeño */
+      overflow-y: auto;
+      background-color: white; /* Fondo blanco para destacar la lista */
+      position: absolute; /* Asegura que esté encima del contenido */
+      width: 100%; /* Asegura que ocupe el ancho completo del input */
+      z-index: 1000; /* Asegura que la lista quede encima de otros elementos */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Añade sombra suave para distinguir la lista */
+    }
+  
+    #searchResults .list-group-item {
+      cursor: pointer;
+      font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+      padding: 8px 12px; /* Reducir el espaciado */
+      transition: background-color 0.2s;
+    }
+  
+    #searchResults .list-group-item:hover {
+      background-color: #f8f9fa; /* Color hover de Bootstrap */
+    }
+  
+    #searchResults {
+      margin-top: 5px; /* Ajusta la separación del input */
+      position: relative; /* Relaciona la posición con el input */
+      width: 90%; /* O ajusta según sea necesario */
+      max-width: 300px; /* Ajuste del ancho máximo */
+    }
+  </style>
+  
+  
+  <br>
+  <span class="small"></span>
+  <div id="TopDiv_light" class="container">
 
-
-
-<section class="header-main border-bottom">
-  <div class="container">
-<div class="row align-items-center">
-  <div class="col-lg-2 col-md-3 col-6">
-    <a href="{% url 'home' %}" class="brand-wrap">
-      <img class="logo" src="{% static './images/logo.png' %}">
-    </a> <!-- brand-wrap.// -->
-  </div>
-  <div class="col-lg col-sm col-md col-6 flex-grow-0">
-    <div class="category-wrap dropdown d-inline-block float-right">
-      <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-        <i class="fa fa-bars"></i> All category
-      </button>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="{% url 'store' %}">All Products </a>
-        {% for category in links %}
-          <a class="dropdown-item" href="{{ category.get_url }}">{{ category.category_name }} </a>
-        {% endfor %}
-      </div>
-    </div>  <!-- category-wrap.// -->
-  </div> <!-- col.// -->
-  <a href="{% url 'store' %}" class="btn btn-outline-primary">Store</a>
-  <div class="col-lg  col-md-6 col-sm-12 col">
-    <form action="{% url 'search' %}" class="search" method='GET'>
-      <div class="input-group w-100">
-          <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword" required>
-
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="submit">
-              <i class="fa fa-search"></i>
-            </button>
+    <div  class="row " >
+      <span class="small"></span>
+          <div class="col text-align-left" >
+             <div class="input-group-append">  <!-- style="width: 50%;"-->
+                  <a href="{% url 'store' %}" class="btn btn-primary text-center btn-block"> 	
+                      <i class="fa fa-list"></i> &nbsp Productos</a>
+              </div>
+              
+              <!--  SEARCH-->
+              <div class="d-flex p-1">     
+                <form id="searchForm" action="{% url 'search' %}" class="search btn-block" method="GET">
+                  <div class="input-group-append">
+                      <input type="text" id="searchInput" class="form-control" placeholder="Search" name="keyword" required autocomplete="off">
+                      <div class="input-group-append">
+                          <button class="btn btn-primary btn-block" type="submit">
+                              <i class="fas fa-search"></i>
+                          </button>
+                      </div>
+                  </div>
+              </form>
+              
+              </div>
+              
+              <!-- Contenedor para los resultados de búsqueda -->
+              <div id="searchResults" class="row mt-3"></div>
+              
+              <!-- SEARCH -->
+              
+                        
           </div>
-        </div>
-    </form> <!-- search-wrap .end// -->
-  </div> <!-- col.// -->
-  <div class="col-lg-3 col-sm-6 col-8 order-2 order-lg-3">
-        <div class="d-flex justify-content-end mb-3 mb-lg-0">
-          {% if user.id is None %}
-          <div class="widget-header">
-            <small class="title text-muted">Welcome guest!</small>
-            <div>
-              <a href="{% url 'login' %}">Sign in</a> <span class="dark-transp"> | </span>
-              <a href="{% url 'register' %}"> Register</a>
-            </div>
-          </div>
-          {% else %}
-          <div class="widget-header">
-            <small class="title text-muted">Welcome {{user.first_name}}!</small>
-            <div>
-              <a href="{% url 'dashboard' %}" target="_blank">Dashboard</a> <span class="dark-transp"> | </span>
-              <a href="{% url 'logout' %}"> Logout</a>
-            </div>
-          </div>
-          {% endif %}
-          <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
-            <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
-            <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
+      
+      <div  class="col text-transform">
+        
+          <small>
+          <a href="{% url 'home' %}"><div class="mr-1"> 
+              <img id="myLogo" class="img-fluid"  src="{% static './images/lifche.jpg' %}"  alt="Logo">
+            </div> 
           </a>
+          </small>
+      </div>
+      <div class="col align-items-right">
+            <a href="{% url 'cart' %}">
+              <div class="btn btn-primary btn-block"> <i class="fa fa-shopping-cart"></i>&nbsp Carrito 	<!-- style="width: 50%;" -->
+              <span class="badge badge-pill badge-danger notify">({{cart_count}})</span></div>
+            </a>
+                {% if user.id is None %}
+                <div class="align-items-right">
+                  <small class="title text-muted">Bienvenido Invitado!</small>
+                  <a href="{% url 'login' %}" target="_blank">
+                    <small class="title text-muted">Iniciar Sesion!</small></a>
 
-        </div> <!-- widgets-wrap.// -->
-
-      </div> <!-- col.// -->
-</div> <!-- row.// -->
-  </div> <!-- container.// -->
-</section> <!-- header-main .// -->
-
-
-
-
+                </div>
+              {% else %}
+                <div class="align-items-right">
+                  <small class="title text-muted">{{user.first_name |truncatechars:18 }}</small>
+                  <br>
+                  <a href="{% url 'dashboard' %}">
+                    <small class="title text-muted">Mi Perfil</small></a> 
+                  
+                <!--   <a href="{% url 'meli_get_first_token' %}" target="_blank">Mi Perfil</a> <span class="dark-transp"> | </span>
+                    
+                    <a href="{% url 'logout' %}"> Cerrar sesion</a>--> 
+                  </div>
+                </div>
+              {% endif %}
+      
+      </div>
+    </div>
+</div>
+  <!--  FIN DIV 2 PARA SCROLL *********************-->
+  
+<br>  
 </header> <!-- section-header.// -->
+	<!-- ========================= FOOTER END // ========================= -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value;
+
+        if (query.length >= 3) {
+            fetch("{% url 'search_products' %}?keyword=" + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Search Results:', data); // Verifica la respuesta
+                    searchResults.innerHTML = '';
+                    if (data.length > 0) {
+                        const ul = document.createElement('ul');
+                        ul.className = 'list-group';
+
+                        data.forEach(product => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.textContent = product.product_name;
+                            li.addEventListener('click', () => {
+                                searchInput.value = product.product_name;
+                                searchResults.innerHTML = '';
+                                document.getElementById('searchForm').submit();
+                            });
+                            ul.appendChild(li);
+                        });
+
+                        searchResults.appendChild(ul);
+                    } else {
+                        searchResults.innerHTML = '<p>No results found</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else {
+            searchResults.innerHTML = '';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!searchResults.contains(e.target) && e.target !== searchInput) {
+            searchResults.innerHTML = '';
+        }
+    });
+});
+
+  </script>
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+  
+  </body>
+  </html>

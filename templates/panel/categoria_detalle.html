@@ -17,6 +17,8 @@
                         <label for="">Nombre</label>
                             <input type="number" name="categoria_id"  class="form-control" value="{{categoria.id}}" hidden>
                             <input type="text" name="category_name" class="form-control" value="{{categoria.category_name}}" required>
+                            <label for="">Orden</label>
+                            <input type="text" name="orden" class="form-control" value="{{categoria.orden}}">
                         </div>
                         <div class="col form-group">
                             <label for="">slug</label>
@@ -25,6 +27,7 @@
                         <input id="imgFile" type="file" name="imgFile" class="form-control" value="{{ categoria.cat_image.url}}">
                         <input id="images" type="text" name="images" class="form-control" value="{{ categoria.cat_image }}" hidden>               
                         
+
                     </div>
                     
                     <div class="form-row">
@@ -73,14 +76,22 @@
             <!-- left column -->
             <div class="col-md-12" >
                 <!-- general form elements -->
-                <div class="card card-primary"><b>Categorias:</b>
+                <div class="card card-primary"><b>Sub Categorias: </b>
+                    <div class="dropdown no-arrow">
+                        {% if categoria %}
+                        <a href="{% url 'panel_subcategoria_save' categoria.id 0  %}" class="href btn btn-success"> Agregar </a>
+                        {% else%}
+                        <a href="{% url 'panel_subcategoria_save' 0 0 %}" class="href btn btn-success"> Agregar </a>
+                        {% endif %}
+                        
+                    </div>
                     <div class="card-header">
                             <!-- tabla articulos -->
                             <table 
                                 id="table"
                                 data-toggle="table"
                                 data-pagination="false"
-                                data-search="true"
+                                data-search="false"
                                 data-show-columns="false"
                                 data-show-toggle="false"
                                 data-show-fullscreen="false"
@@ -88,39 +99,29 @@
                                 data-locale="es-AR"
                                 >
                                 <thead>
-                                    <th data-sortable="true" data-field="id">Nro</th>
-                                    <th data-sortable="true" data-field="product_name">Pducto</th>
-                                    <th data-sortable="true" data-field="description">Descripcion</th>   
-                                    <th data-sortable="true" data-field="price">Precio</th>
-                                    <th data-sortable="true" data-field="images">Imagen</th>
-                                    <th data-sortable="true" data-field="stock">Stock</th>
-                                    <th data-sortable="true" data-field="category">Categoria</th>
-                                    <th data-sortable="true" data-field="is_available">habilitado</th>
                                     
+                                    <th data-sortable="true" data-field="id">ID</th>
+                                    <th data-sortable="true" data-field="subcategory_name">Sub Categoría</th>
+                                    <th data-sortable="true" data-field="sub_category_slug">Slug</th>   
+                                    <th data-sortable="true" data-field="sub_category_description">Descripcion</th>
+                                    <th data-sortable="true" data-field="orden">Orden</th>
                                     <th class="all">Acciones</th>  
                                 </thead>
                                 <tbody>
-                                    {% for item in articulos_tmp %}
-                                    <tr>
-                                    <td>{{ item.id }}</td>
-                                    <td>{{ item.product_name }}</td>
-                                    <td>{{ item.description }}</td> 
-                                    <td>{{ item.price }}</td>
-                                    <td>{{ item.images }}</td>
-                                    <td>{{ item.stock }}</td>
-                                    <td>{{ item.category }}</td>
-                                    {% if item.is_available %}
-                                        <td> <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
-                                    {% else %}
-                                        <td> <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;"> </td>
+                                    {% if subcategoria %}
+                                        {% for item in subcategoria %}
+                                        <tr>
+                                        <td>{{ item.id }}</td>
+                                        <td><b><a href="{% url 'panel_subcategoria_detalle' item.id %}">{{ item.subcategory_name }}</a></b></td> 
+                                        <td>{{ item.sub_category_slug }}</td>
+                                        <td>{{ item.sub_category_description }}</td> 
+                                        <td>{{ item.orden }}</td>
+                                        <td >         
+                                        <a href="{% url 'panel_subcategoria_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                                        </td>
+                                        </tr>
+                                        {% endfor %}
                                     {% endif %}
-                                    <td >         
-                                       <a href="{% url 'panel_importar_productos_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
-                                    </div>
-                                    
-                                    </td>
-                                    </tr>
-                                    {% endfor %}
                                 </tbody>
 
                             </table>

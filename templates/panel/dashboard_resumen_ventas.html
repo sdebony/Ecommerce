@@ -1,0 +1,83 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+<div class="card shadow mb-4">
+    <h1>Ventas Mensuales por Canal</h1>
+    <canvas id="ventasChart" width="700" height="300"></canvas>
+    <script>
+        // Datos enviados desde Django
+        const labels = {{ labels|safe }}; // Meses
+        const ventasMercadoLibre = {{ ventas_mercado_libre|safe }};
+        const ventasWeb = {{ ventas_web|safe }};
+        const ventasTN = {{ ventas_tn|safe }};
+        const ventasCombinadas = {{ ventas_combinadas|safe }};
+        const ganancias_netas = {{ ganancias_netas|safe }};
+
+        // Configuración del gráfico
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Mercado Libre',
+                        data: ventasMercadoLibre,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Web',
+                        data: ventasWeb,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Tn',
+                        data: ventasTN,
+                        backgroundColor: 'rgba(54, 102, 205, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Mercado Libre + Web + TN',
+                        data: ventasCombinadas,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Ganancia Neta',
+                        data: ganancias_netas,
+                        backgroundColor: 'rgba(255, 255, 0, 0.5)',
+                        borderColor: 'rgba(255, 255, 0, 1)',
+                        borderWidth: 1
+                    }
+
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</div>
+
+{% endblock %}

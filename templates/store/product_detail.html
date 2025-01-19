@@ -1,111 +1,302 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 <section class="section-content padding-y bg">
-	<div class="container">
+    <div class="container">
+        <div class="card">
+            <div class="row no-gutters">
+                <!-- Imagen del producto -->
+                <aside class="col-md-4">
+                    <article class="gallery-wrap">
+                        <div class="img-wrap mainImage">
+                            
 
-		<!-- ============================ COMPONENT 1 ================================= -->
-		<div class="card">
-			<div class="row no-gutters">
-				<aside class="col-md-6">
-					<article class="gallery-wrap">
-						<div class="img-big-wrap mainImage">
-							<center><img src="{{ single_product.images.url }}"></center>
-						</div> <!-- img-big-wrap.// -->
+                            <center>
+                                {% if single_product.images %}
+                                    <img src="https://yourfiles.cloud/uploads/{{ single_product.imgfile }}">
+                                {% else %}
+                                    <img src="https://yourfiles.cloud/uploads/none.jpg">
+                                {% endif %}
+                            </center>
+                            
+                        </div>
+                    </article>
+                </aside>
+                
+                <!-- Información del producto -->
+                <main class="col-md-8 border-left">
+                    <article class="content-body">
+                        <h2 class="title">{{ single_product.product_name }}</h2>
+                        {% if not single_product.es_kit %}
+                            <div class="mb-3">
+                                <var class="price h4">$ {{ single_product.price }}</var>
+                            </div>
+                            {% if single_product.tiene_descuento %}
+                                <!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
+                                <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.5rem; padding: 0.5rem 1rem;">
+                                {{ single_product.porcenteje_descuento | format_integer_def  }} %
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <div class="input-group-prepend col-md-3">
+                                <span class="input-group-text xl" style="font-size: 15px" aria-label="Large" >$ {{ single_product.price }}</span>
+                                <input type="text" class="form-control"  id="volver_store" name="volver_store" value="1" hidden>
+                                <input type="number" class="form-control" id="quantity" name="quantity" value="{{ cantidad_producto }}" min="1">
+                                
+                            </div>
+                            
+                        {% endif %}
+                        <div class="row align-items-left">
+                            
+                            <span class="">{{ single_product.description }}</span>
+                        </div>
+                        <hr>
 
-					</article> <!-- gallery-wrap .end// -->
-					<ul class="thumb">
-						<li>
-							<a href="{{ single_product.images.url }}" target="mainImage"><img src="{{ single_product.images.url }}" alt="Product Image"></a>
-							{% for i in product_gallery %}
-							<a href="{{i.image.url}}" target="mainImage"><img src="{{i.image.url}}" alt="Product Image"></a>
-							{% endfor %}
-						</li>
-					</ul>
-				</aside>
-				<main class="col-md-6 border-left">
+                       
+                        <section class="section-content mt-4">
+                            <div class="container">
+                                {% if single_product.es_kit and single_product.stock > 0 %}
+                                    <h5 class="mb-3">Selecciona los productos y cantidades</h5>
+                                    <form id="kit-form">
+                                        <div class="row align-items-center">
+                                            <!-- Select de producto -->
+                                            <div class="col-md-3 mb-3">
+                                                <label for="product_select">Producto</label>
+                                                <select id="product_select" class="form-control" required>
+                                                    <option value="" disabled selected>Seleccionar producto</option>
+                                                    {% for item in productos_kit %}
+                                                        <option value="{{ item.id }}">{{ item.productohijo }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
 
-					<form action="{% url 'add_cart' single_product.id %}" method="POST">
-						{% csrf_token %}
-						<article class="content-body">
+                                            <!-- Input de cantidad -->
+                                            <div class="col-md-2 mb-3">
+                                                <label for="cantidad_input">Cantidad</label>
+                                                <input type="number" id="cantidad_input" class="form-control" min="1" required>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="add-item" class="btn btn-success">Agregar</button>
+                                    </form>
+                                    <!-- Tabla de selección -->
+                                    <div class="table-responsive mt-4" style="max-width: 50%;">
+                                        <table class="table table-sm table-bordered text-left" id="selected-items-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Producto</th>
+                                                    <th>Cantidad</th>
+                                                    <th>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Filas dinámicas -->
+                                                {% for item in cartitemkit%}
+                                                <tr>
+                                                    <td>{{ item.product.product_name}}</td>
+                                                    <td>{{ item.quantity }}</td>
+                                                    <td>
+                                                        <button class="btn btn-danger btn-sm" onclick="removeItem('${productId}')">Eliminar</button>
+                                                    </td>
+                                                </tr>
 
-							<h2 class="title">{{ single_product.product_name }}</h2>
-							<div class="rating-star">
-								<span>
-									<i class="fa fa-star{% if single_product.averageReview < 0.5 %}-o{% elif single_product.averageReview >= 0.5 and single_product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
-									<i class="fa fa-star{% if single_product.averageReview < 1.5 %}-o{% elif single_product.averageReview >= 1.5 and single_product.averageReview < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
-									<i class="fa fa-star{% if single_product.averageReview < 2.5 %}-o{% elif single_product.averageReview >= 2.5 and single_product.averageReview < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
-									<i class="fa fa-star{% if single_product.averageReview < 3.5 %}-o{% elif single_product.averageReview >= 3.5 and single_product.averageReview < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
-									<i class="fa fa-star{% if single_product.averageReview < 4.5 %}-o{% elif single_product.averageReview >= 4.5 and single_product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
-									<span>{{single_product.countReview}} reviews</span>
-									</span>
-							</div>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-
-							<div class="mb-3">
-								<var class="price h4">$ {{single_product.price}}</var>
-							</div>
-
-							<p>{{ single_product.description }}</p>
-							<hr>
-							{% if single_product.variation_set.colors.count > 0 %}
-							<div class="row">
-								<div class="item-option-select">
-									<h6>Choose Color</h6>
-									<select name="color" class="form-control" required>
-										<option value="" disabled selected>Select</option>
-										{% for i in single_product.variation_set.colors %}
-										<option value="{{ i.variation_value | lower }}">{{ i.variation_value | capfirst }}</option>
-										{% endfor %}
-									</select>
-								</div>
-							</div>
-							{% endif%}
-							{% if single_product.variation_set.sizes.count > 0 %}
-							<div class="row">
-								<div class="item-option-select">
-									<h6>Select Size</h6>
-									<select name="size" class="form-control" required>
-										<option value="" disabled selected>Select</option>
-										{% for i in single_product.variation_set.sizes %}
-										<option value="{{ i.variation_value | lower }}">{{ i.variation_value | capfirst }}</option>
-										{% endfor %}
-									</select>
-								</div>
-							</div>
-							{% endif %}
-							{% if single_product.variation_set.letras.count > 0 %}
-							<div class="row">
-								<div class="item-option-select">
-									<h6>Select Letra</h6>
-									<select name="letra" class="form-control" required>
-										<option value="" disabled selected>Select</option>
-										{% for i in single_product.variation_set.letras %}
-										<option value="{{ i.variation_value | lower }}">{{ i.variation_value | capfirst }}</option>
-										{% endfor %}
-									</select>
-								</div>
-							</div>
-							{% endif %}
-						
-							{% if single_product.stock <= 0 %}
-							<h5 class="text-danger">Out of Stock</h5>
-							{% else %}
-							<button type="submit" class="btn  btn-primary"> <span class="text">Add to Cart</span> <i class="fa fa-shopping-cart"></i> </button>
-							{% endif %}
-						</article> <!-- product-info-aside .// -->
-					</form>
-				</main> <!-- col.// -->
-			</div> <!-- row.// -->
-		</div> <!-- card.// -->
-		<!-- ============================ COMPONENT 1 END .// ================================= -->
-
-		<br>
-
-	</div> <!-- container .//  -->
+                                    <!-- Botones -->
+                                    <div class="d-flex justify-content-start mt-3">
+                                        <button type="button" id="confirm-items" class="btn btn-primary me-3" disabled>Confirmar selección</button>
+                                        <button class="btn btn-secondary" onclick="volverAlListado()">Cancelar</button>
+                                    </div>
+                                {% elif single_product.stock < 1 %}
+                                    <h5 class="text-danger">Sin Stock</h5>
+                                    <div class="d-flex justify-content-start mt-3">
+                                        <button class="btn btn-secondary" onclick="volverAlListado()">Continuar Pedido</button>
+                                    </div>
+                                {% else %}
+                                <div class="d-flex justify-content-start mt-3">
+                                    <button class="btn btn-secondary" onclick="volverAlListado()">Cancelar</button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        
+                        </section>
+                        <script>
+                             function volverAlListado() {
+                                const rutaAnterior = sessionStorage.getItem('rutaAnterior');
+                            
+                                if (rutaAnterior) {
+                                    window.location.href = rutaAnterior;
+                                } else {
+                                    window.location.href = '/store/';
+                                }
+                            }
+                        </script>
+                    
+                    </article>
+                </main>
+            </div>
+        </div>
+    </div>
 </section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
+
+<script>
+
+    const quantityInput = document.getElementById('quantity');
+
+    quantityInput.addEventListener('input', function () {
+        if (this.value < 0) {
+            this.value = 1; // Restablece al valor mínimo permitido
+        }
+    });
+
+    // Variables iniciales
+    const cantidadkits = document.getElementById('quantity');
+    const cantUnidadesBase = {{ kit.cant_unidades }};
+    const cantVariedadesBase = {{ kit.cant_variedades }};
+
+    // Valores dinámicos que se actualizarán
+    let cantUnidadesMax = cantUnidadesBase * parseInt(cantidadkits.value || 1);
+    let cantVariedadesMax = cantVariedadesBase * parseInt(cantidadkits.value || 1);
+
+    // Función para recalcular los valores dinámicos
+    function actualizarValores() {
+        cantUnidadesMax = cantUnidadesBase * parseInt(cantidadkits.value || 1);
+        cantVariedadesMax = cantVariedadesBase * parseInt(cantidadkits.value || 1);
+
+        console.log('Cantidad Unidades Max actualizada:', cantUnidadesMax);
+        console.log('Cantidad Variedades Max actualizada:', cantVariedadesMax);
+    }
+
+    // Evento para detectar cambios en el input `quantity`
+    cantidadkits.addEventListener('input', actualizarValores);
+
+    // Inicialización en caso de valores predefinidos
+    actualizarValores();
+
+   
+    let totalCantidad = 0;
+    let totalVariedades = 0;
+    const selectedItems = new Map();
+
+    // Agrega un listener para recalcular si cambia la cantidad
+    cantidadkits.addEventListener('input', () => {
+        const cantUnidadesMax = cantUnidadesBase * parseInt(cantidadkits.value || 1);
+        const cantVariedadesMax = cantVariedadesBase * parseInt(cantidadkits.value || 1);
+
+        console.log('Cantidad Unidades Max:', cantUnidadesMax);
+        console.log('Cantidad Variedades Max:', cantVariedadesMax);
+    });
+
+    document.getElementById('add-item').addEventListener('click', function () {
+        const productSelect = document.getElementById('product_select');
+        const cantidadInput = document.getElementById('cantidad_input');
+
+        const productId = productSelect.value;
+        const productName = productSelect.options[productSelect.selectedIndex]?.text || '';
+        const cantidad = parseInt(cantidadInput.value);
+
+        if (!productId || cantidad <= 0) {
+            alert('Por favor, selecciona un producto y una cantidad válida.');
+            return;
+        }
+
+        if (totalCantidad + cantidad > cantUnidadesMax) {
+            console.log(totalCantidad);
+            console.log(cantidad);
+            console.log(cantUnidadesMax);
+            alert(`No puedes superar el máximo de ${cantUnidadesMax} unidades.`);
+            return;
+        }
+
+        if (!selectedItems.has(productId) && totalVariedades >= cantVariedadesMax) {
+            alert(`No puedes seleccionar más de ${cantVariedadesMax} variedades.`);
+            return;
+        }
+
+        // Actualizar o agregar el producto seleccionado
+        if (selectedItems.has(productId)) {
+            totalCantidad -= selectedItems.get(productId).cantidad;
+        } else {
+            totalVariedades++;
+        }
+
+        selectedItems.set(productId, { productName, cantidad });
+        totalCantidad += cantidad;
+
+        updateTable();
+    });
+
+    function updateTable() {
+        const tbody = document.querySelector('#selected-items-table tbody');
+        tbody.innerHTML = '';
+
+        selectedItems.forEach((item, productId) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.productName}</td>
+                <td>${item.cantidad}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="removeItem('${productId}')">Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        document.getElementById('confirm-items').disabled = totalCantidad < cantUnidadesMax;
+    }
+
+    function removeItem(productId) {
+        const item = selectedItems.get(productId);
+        totalCantidad -= item.cantidad;
+        totalVariedades--;
+        selectedItems.delete(productId);
+        updateTable();
+    }
+
+    document.getElementById('confirm-items').addEventListener('click', function () {
+        if (totalCantidad < cantUnidadesMax) {
+            alert(`Debes seleccionar exactamente ${cantUnidadesMax} unidades.`);
+            return;
+        }
+
+        const data = Array.from(selectedItems, ([productId, item]) => {
+        // Obtén el input relacionado con este producto
+        const quantityInput = document.querySelector(`#quantity`);
+        const quantity = quantityInput ? parseInt(quantityInput.value, 10) || 0 : 0; // Asegúrate de obtener un número
+
+        //console.log(`Input encontrado para productId: ${productId}, valor: ${quantityInput.value}`);
+        return {
+            productId,
+            cantidad: item.cantidad,
+            quantity: quantity,
+            sumar:"NO"
+            };
+        });
+
+        
+        fetch("{% url 'add_cart' single_product.id  %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => {
+            if (response.ok) {
+                //alert('Selección confirmada.');
+                volverAlListado();
+            } else {
+                alert('Hubo un error al confirmar la selección.');
+            }
+        });
+    });
+
+   
+</script>
 
 {% endblock %}

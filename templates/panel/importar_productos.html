@@ -7,7 +7,7 @@
 
 <section class="content">
     <div class="container-fluid">
-      <div class="row">
+        <div class="row">
             <!-- left column -->
             <div class="col-md-6" >
                
@@ -16,23 +16,90 @@
                         <div class="card-header">
                             <h3 class="card-title" align="center">Importar Productos </h3>
                         </div>
+                        
                         <div class="card-footer">
                             <form action="{% url 'panel_producto_import' %}" method="POST" enctype="multipart/form-data">
                                 {% csrf_token %}
                                     <input type="file" name="rootfile">
                                     <button type="submit" class="btn btn-primary">Procesar Archivo ...</button>
-                                    <a href="#" class="btn btn-secondary">Cancelar</a>
+                               
                                     
                                 </form>
                           </div>
                   
                     </div>
+                </div>
+
+            <div class="col-md-6" >
+               
+                <aside class="col-lg-12">
+                    <div class="card-body">
+                    <!-- Collapsable Card Example -->
+                        <div class="card shadow mb-6">
+                            <!-- Card Header - Accordion -->
+                            <a href="#collapseCard3" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseCard3">
+                                <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
+                            </a>
+                            <!-- Card Content - Collapse -->
+                            <div class="collapse" id="collapseCard3">
+                                <div class="card-body">
+                                    <span> Arhivo Excel (XLS) con las siguientes columnas. (el nombre del archivo no debe tener espacios)</span>
+                                    <ul>
+                                        <li> <b>(a) Producto</b> - Ejemplo: Abacus 14 mm - AZUL CIELO</li>
+                                        <li> <b>(b) Descripcion</b> - Ejemplo:  Todas las cuentas de silicona son 100% de silicona de grado alimenticio</li>
+                                        <li> <b>(c) Precio</b> - Ejemplo:  1234.56</li>
+                                        <li> <b>(d) Nombre Imagen</b>  - Ejemplo:  cd58b2389d911eb731c09cc8051e31f1/Abacus-14-mm---AMARILLO-PASTEL.jpg</li>
+                                        <li> <b>(e) Stock</b> - Ejemplo:  1234</li>
+                                        <li> <b>(f) Habilitado</b> - Ejemplo:  True / False </li>
+                                        <li> <b>(g) Categoria</b> - Ejemplo: Abacus.</li>
+                                        <li> <b>(h) Sub Categoria</b> - Ejemplo:  14 mm</li>
+                                        <li> <b>(i) Peso (Gramos)</b> - Ejemplo:  1</li>
+                                        <li> <b>(j) Ubicación</b> - Ejemplo:  123 </li>
+                                        <li> <b>(k) Costo</b> - Ejemplo:  123.56 </li>
+                                    </ul>
+                                    <a href="{% url 'panel_producto_import_del_all' %}"  class="btn btn-secondary">Eliminar Todos los productos</a>
+                                    <a href="{% url 'panel_producto_img' %}"  class="btn btn-primary">Actualizar Imagenes Productos</a>
+
+                                    
+
+
+                                </div>
+                            </div>
+                        </div>
+                 
+                    </div>
+                  
+            </aside>
+                <!-- general form elements 
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
+                    </div>
+                    <div class="card-footer">
+                        <span> Arhivo Excel (XLS) con las siguientes columnas. (el nombre del archivo no debe tener espacios)</span>
+                            <ul>
+                                <li> <b>(a) Producto</b> - Ejemplo: Abacus 14 mm - AZUL CIELO</li>
+                                <li> <b>(b) Descripcion</b> - Ejemplo:  Todas las cuentas de silicona son 100% de silicona de grado alimenticio</li>
+                                <li> <b>(c) Precio</b> - Ejemplo:  1234.56.</li>
+                                <li> <b>(d) Nombre Imagen</b>  - Ejemplo:  cd58b2389d911eb731c09cc8051e31f1/Abacus-14-mm---AMARILLO-PASTEL.jpg</li>
+                                <li> <b>(e) Stock</b> - Ejemplo:  1234</li>
+                                <li> <b>(f) Habilitado</b> - Ejemplo:  True / False </li>
+                                <li> <b>(g) Categoria</b> - Ejemplo: Abacus.</li>
+                                <li> <b>(h) Sub Categoria</b> - Ejemplo:  14 mm</li>
+                                <li> <b>(i) Peso (Gramos)</b> - Ejemplo:  1</li>
+                            </ul>
+                      </div>
+              
+                </div>
+            -->
             </div>
 
+        </div>
             <!-- rigth column-->
-
+        <div class="row">
+        
             <aside class="col-lg-6">
-                <div class="card">
                     <div class="card-body">
                     <!-- Collapsable Card Example -->
                         <div class="card shadow mb-4">
@@ -50,18 +117,14 @@
                                 </div>
                             </div>
                         </div>
-                         </form>
+                 
                     </div>
-                        <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a>
-                    </div><br>
-            <!-- fin rigth column-->
+                    <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a>
+            </aside>
 
         </div>
-    </div>
                 
 </section>
-<br>
-<br>
 
 <section class="content">
     <div class="container-fluid">
@@ -85,7 +148,7 @@
                                 >
                                 <thead>
                                     <th data-sortable="true" data-field="id">Nro</th>
-                                    <th data-sortable="true" data-field="product_name">Pducto</th>
+                                    <th data-sortable="true" data-field="product_name">Producto</th>
                                     <th data-sortable="true" data-field="description">Descripcion</th>   
                                     <th data-sortable="true" data-field="price">Precio</th>
                                     <th data-sortable="true" data-field="images">Imagen</th>

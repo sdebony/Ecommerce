@@ -1,0 +1,223 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="card shadow mb-6">
+    <div class="container-fluid">
+        <h1 class="h3 mb-6 text-gray-800">Mis Publicaciones </h1>
+        <a href="{% url 'meli_get_first_token' %}" class="btn btn-primary " role="button" style="float: right;">
+            &nbsp;Conectar ML</a>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Publicaciones</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cantidad_publicaciones }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if articulos %}
+        <table id="dataTable" style="font-size: 12px;" data-toggle="table" data-pagination="false" data-search="true" data-show-columns="true" data-show-toggle="true" data-show-fullscreen="false" data-toolbar=".buttons-toolbar" data-locale="es-AR">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto Vinculado</th>
+                    <th>Articulo</th>
+                    <th>Costo</th>
+                    <th>Stock Meli</th>
+                    <th>Stock Real</th>
+                    <th>Precio Meli</th>
+                    <th>Precio Real</th>
+                    <th>Precio Ganador</th>
+                    <th>Para Ganar</th>
+                    <th>Si igualo</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for articulo in articulos %}
+                  {% if articulo.status != "not_listed" %}
+                    <tr>
+                        {% if articulo.producto %}
+                        <th><a href="{% url 'panel_producto_detalle' articulo.producto.id %}" target="_blank">{{ articulo.publicacion.id }}</a></th>
+                        <th>{{ articulo.producto.product_name }}</th>
+                        {% else %}
+                        <th>{{ articulo.publicacion.id }}</th>
+                        <th>Articulo no encontrado</th>
+                        {% endif %}
+                        <th>
+                          <a href="#" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalForm" 
+                            data-title="{{ articulo.publicacion.title }}" 
+                            data-base-price="{{ articulo.publicacion.base_price }}"
+                            data-costo="{{ articulo.producto.costo_prod }}"
+                            onclick="event.preventDefault();">
+                            {{ articulo.publicacion.title }}
+                          </a>
+                        </th>
+                        <th>{{ articulo.producto.costo_prod|format_currency }}</th>
+                        {% if articulo.publicacion.available_quantity ==  articulo.producto.stock and articulo.producto.stock > 0 or articulo.producto.stock is None %}
+                          <th>{{ articulo.publicacion.available_quantity }}</th>
+                          <th>{{ articulo.producto.stock }}</th>
+                        {% else %}
+                            
+                          <th class="bg-warning text-dark">{{ articulo.publicacion.available_quantity }}</th>
+                          <th class="bg-warning text-dark">{{ articulo.producto.stock }}</th>
+                        {% endif %}
+                        {% if articulo.publicacion.base_price != articulo.producto.precio_ML and articulo.producto.precio_ML > 0 %}
+                              
+                            {% if articulo.publicacion.original_price %}
+                                  <th class="bg-warning text-dark"> {{articulo.publicacion.original_price|format_currency }}</th>
+                            {% else %}
+                                  <th class="bg-warning text-dark"> {{articulo.publicacion.base_price|format_currency }}</th>
+                            {% endif %}    
+                                  <th class="bg-warning text-dark"> {{articulo.producto.precio_ML|format_currency }}</th>
+                            {% else %}
+
+                            {% if articulo.publicacion.original_price %}
+                                <th> {{articulo.publicacion.original_price|format_currency }}</th>
+                              {% else %}
+                                <th> {{articulo.publicacion.base_price|format_currency }}</th>
+                            {% endif %}    
+                            <th> {{articulo.producto.precio_ML|format_currency }}</th>
+                          
+                        {% endif %}  
+                        <th> {{ articulo.winner_price|format_currency }}</th>
+                        <th> {{ articulo.precio_to_win|format_currency }}</th>
+                        {% if articulo.ganancia_precio_competencia > 0 %}
+                        <th> <span class="badge bg-success text-white">
+                              {{ articulo.ganancia_precio_competencia|format_currency }}
+                            </span>
+                        </th>
+                        {% else %}
+                        <th> 
+                          <span class="badge bg-warning text-white" >
+                            {{ articulo.ganancia_precio_competencia|format_currency }}
+                          </span>
+                        </th>
+                        {% endif %}
+                        <th>
+                          {% if articulo.status == "winning" %}
+                          <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-success text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% elif articulo.status == "not_listed" %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-danger text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% elif articulo.status == "sharing_first_place" %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-info text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'meli_analisis_publicaciones' articulo.publicacion.id %}" target="_blank">
+                            <span class="badge bg-warning text-white">{{ articulo.status }}</span>
+                            </a>
+                            {% endif %}
+                        </th>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalForm" tabindex="-1" aria-labelledby="modalFormLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalFormLabel">Editar Precio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="priceForm">
+          <div class="mb-3">
+            <label for="modal-title" class="form-label">Título</label>
+            <input type="text" class="form-control" id="modal-title" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="modal-base-price" class="form-label">Precio Base</label>
+            <input type="number" class="form-control" id="modal-base-price" step="any">
+          </div>
+          <div class="mb-3">
+            <label for="modal-calculated-price" class="form-label">Precio Calculado</label>
+            <input type="text" class="form-control" id="modal-calculated-price" readonly>
+          </div>
+          <!-- Campo adicional para ingresar el costo del producto -->
+          <div class="mb-3">
+            <label for="modal-product-cost" class="form-label">Costo del Producto</label>
+            <input type="number" class="form-control" id="modal-product-cost" step="any">
+          </div>
+          <div class="mb-3">
+            <label for="modal-final-price" class="form-label">Precio Final (Base - Costo)</label>
+            <input type="text" class="form-control" id="modal-final-price" readonly>
+          </div>
+          <button type="button" class="btn btn-primary" id="calculatePrice">Calcular</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modalForm');
+
+    // Escuchar cuando se muestra el modal
+    modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget; // El botón que abre el modal
+        const title = button.getAttribute('data-title');
+        const basePrice = button.getAttribute('data-base-price');
+        const productCost = button.getAttribute('data-costo'); // Obtener el costo desde el atributo data-costo
+
+        // Rellenar los campos del modal
+        modal.querySelector('#modal-title').value = title;
+        modal.querySelector('#modal-base-price').value = basePrice;
+        modal.querySelector('#modal-calculated-price').value = ''; // Limpiar campo calculado
+        modal.querySelector('#modal-product-cost').value = productCost; // Rellenar con el costo del producto
+        modal.querySelector('#modal-final-price').value = ''; // Limpiar campo de precio final
+    });
+
+    // Lógica para calcular el nuevo precio
+    document.getElementById('calculatePrice').addEventListener('click', function () {
+        const basePrice = parseFloat(document.getElementById('modal-base-price').value);
+        const productCost = parseFloat(document.getElementById('modal-product-cost').value);
+
+        if (!isNaN(basePrice)) {
+            // Realizar el cálculo del precio calculado (restar 15.5%, el valor adicional dependiendo de BasePrice, y 0.04%)
+            const calculatedPrice = basePrice - (basePrice * 0.155) - (basePrice > 12000 ? 1800 : 900) - (basePrice * 0.04);
+            document.getElementById('modal-calculated-price').value = calculatedPrice.toFixed(2); // Formatear a 2 decimales
+
+            if (!isNaN(productCost)) {
+                // Restar el costo del producto al precio calculado para obtener el precio final
+                const finalPrice = calculatedPrice - productCost;
+                document.getElementById('modal-final-price').value = finalPrice.toFixed(2); // Formatear a 2 decimales
+            } else {
+                document.getElementById('modal-final-price').value = ''; // Limpiar el precio final si el costo no es válido
+            }
+        } else {
+            alert("Por favor, ingrese un valor válido para el precio base.");
+        }
+    });
+});
+
+</script>
+
+{% endblock %}
+

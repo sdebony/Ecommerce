@@ -8,16 +8,36 @@
 	<div class="container">
 
 		<!-- ============================ COMPONENT 1 ================================= -->
-		<h4 class="text-center mb-20">Review Your Order and Make Payment</h4>
+		<h4 class="text-center mb-20">Revise el pedido y confirme la entrega</h4>
 		<div class="row">
 
 			<aside class="col-lg-8">
 				<div class="card">
 					<h5 class="card-header">Datos de la Entrega - #{{ order.order_number }}</h5>
 					<div class="card-body">
+						<p class="card-text mb-0 fw-bold">
+						{% if order.dir_correo == 2 %} Correo Argentino {% elif order.dir_correo == 1 %} OCA {% elif order.dir_correo == 3 %} Retira Cliente {% endif%} 
+						</p>
+						{% if order.dir_tipocorreo == 2 %}
+						<p class="card-text mb-0 fw-bold">Retiro en Sucursal - <strong>{{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipocorreo == 1 %}
+						<p class="card-text mb-0 fw-bold">Envio a Domicilio - <strong> {{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipocorreo == 3 %}
+						<p class="card-text mb-0 fw-bold">Retira Cliente - <strong>{{ order.dir_nombre }}</strong></p>
+						{% endif %}
+						{% if order.dir_tipoenvio == 1 %}
+						<p class="card-text mb-0 fw-bold">Tipo envio: <strong>Clàsico</strong></p>
+						{% endif %}
+						{% if order.dir_tipoenvio == 2 %}
+						<p class="card-text mb-0 fw-bold">Tipo envio: <strong>Expreso</strong></p>
+						{% endif %}
+										
+						<hr class="mb-0">
 						<p class="card-text mb-0">{{order.full_name}}</p>
 						<p class="card-text mb-0">{{order.full_address}}</p>
-						<p class="card-text mb-0">{{order.dir_localidad}}, {{order.dir_provincia}}</p>
+						<p class="card-text mb-0">{{order.dir_localidad}} - {{order.dir_provincia}}</p>
 						<p class="card-text mb-0">{{order.dir_cp}}</p>
 						<p class="card-text mb-0">{{order.email}}</p>
 						<p class="card-text mb-0">{{order.dir_telefono}}</p>
@@ -35,6 +55,7 @@
 
 					</div>
 				</div>
+				<!-- Detalle-->
 				<div class="card">
 					<h5 class="card-header">Productos</h5>
 					<div class="card-body">
@@ -53,7 +74,7 @@
 								<tr>
 									<td>
 										<figure class="itemside align-items-center">
-											<div class="aside"><img src="{{ cart_item.product.images.url }}" class="img-sm"></div>
+											<div class="aside"><img src="https://yourfiles.cloud/uploads/{{ cart_item.product.imgfile }}" class="img-sm"></div>
 											<figcaption class="info">
 												<a href="{{ cart_item.product.get_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
 												<p class="text-muted small">
@@ -85,6 +106,7 @@
 
 					</div>
 				</div>
+				<!-- Fin detalle-->
 
 			</aside> <!-- col.// -->
 			<aside class="col-lg-4">
@@ -96,8 +118,12 @@
 							<dd class="text-right">$ {{total}}</dd>
 						</dl>
 						<dl class="dlist-align">
+							<dt>Descuento :</dt>
+							<dd class="text-right">$ {{order_total_descuentos}}</dd>
+						</dl>
+						<dl class="dlist-align">
 							<dt>Envio:</dt>
-							<dd class="text-right"> $ {{envio}}</dd>
+							<dd class="text-right">$ {{envio}}</dd>
 						</dl>
 						<dl class="dlist-align">
 							<dt>Total:</dt>

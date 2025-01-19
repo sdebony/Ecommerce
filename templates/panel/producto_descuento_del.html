@@ -1,0 +1,46 @@
+
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+    <h1>Eliminar Regla de Descuento</h1>
+    
+    <p>¿Está seguro de que desea eliminar la siguiente regla de descuento?</p>
+    
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <td>{{ regla.nombre }}</td>
+        </tr>
+        <tr>
+            <th>Tipo de Descuento</th>
+            <td>{{ regla.get_tipo_descuento_display }}</td>
+        </tr>
+        <tr>
+            <th>Valor del Descuento</th>
+            <td>{{ regla.valor_descuento }}</td>
+        </tr>
+        <tr>
+            <th>Cantidad Mínima</th>
+            <td>{{ regla.cantidad_minima }}</td>
+        </tr>
+        <tr>
+            <th>Fecha de Inicio</th>
+            <td>{{ regla.fecha_inicio|date:'Y-m-d'  }}</td>
+        </tr>
+        <tr>
+            <th>Fecha de Fin</th>
+            <td>{{ regla.fecha_fin|date:'Y-m-d'  }}</td>
+        </tr>
+    </table>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+        <a href="{% url 'listar_reglas_descuento' %}" class="btn btn-secondary">Cancelar</a>
+
+    </form>
+
+    
+    {% endblock %}

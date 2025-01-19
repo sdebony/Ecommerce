@@ -6,84 +6,97 @@
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
     <h6 class="m-0 font-weight-bold text-primary">Movimientos</h6>
     <div class="dropdown no-arrow">
-      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-      </a>
-      <a href="{% url 'mov_export_xls' 1 %}" class="btn btn-secondary">Exportar xls</a>
-      
+
+    <form action="{% url 'panel_movimientos' %}" enctype="multipart/form-data" method="POST">
+      {% csrf_token %}
+      Desde:
+       <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde|date:'d/m/Y'}}" />Hasta:
+       <input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta|date:'d/m/Y'}}"/>
+       <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+     </form>
+     <!-- Form Export-->
+     <form action="{% url 'mov_export_xls' 1 %}" enctype="multipart/form-data" method="POST">
+       {% csrf_token %}
+       
+       <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde|date:'d/m/Y'}}" hidden/>
+       <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta|date:'d/m/Y'}}" hidden />
+       <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>  
+        
+     </form>
+
     </div>
   </div>
   <!-- Card Body -->
   <div class="card-body">
-    {% if not mov %}
-    <div class="alert alert-info">No Hay Movimientos</div>
-    {% endif %}
-    <div class="buttons-toolbar">
-      <a class="btn btn-primary" href="{% url 'mov_registros' 0 %}"><i class="fa fa-plus"></i> Nuevo</a>
-  </div>
+      {% if not mov %}
+      <div class="alert alert-info">No Hay Movimientos</div>
+      {% endif %}
+      <div class="buttons-toolbar">
+        <a class="btn btn-primary" href="{% url 'mov_registros' 0 %}"><i class="fa fa-plus"></i> Nuevo</a>
+      </div>
 
     
 
-    <table 
-    id="table"
-    data-toggle="table"
-    data-pagination="false"
-    data-search="true"
-    data-show-columns="false"
-    data-show-toggle="false"
-    data-show-fullscreen="false"
-    data-toolbar=".buttons-toolbar"
-    data-locale="es-AR"
-  >
-      <thead>
-          <th data-sortable="true" data-field="id">Id</th>        
-          <th data-sortable="true" data-field="fecha">Fecha</th>
-          <th data-sortable="true" data-field="cliente">Cliente</th>
-          <th data-sortable="true" data-field="movimiento">Movimiento</th>
-          <th data-sortable="true" data-field="cuenta">Cuenta</th>
-          <th data-sortable="true" data-field="monto">Monto</th>
-          <th data-sortable="true" data-field="Observaciones">Observaciones</th>
+      <table 
+      id="table"
+      style="font-size: 13px;"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+        <thead>
+            <th data-sortable="true" data-field="id">Id</th>        
+            <th data-sortable="true" data-field="fecha">Fecha</th>
+            <th data-sortable="true" data-field="cliente">Cliente</th>
+            <th data-sortable="true" data-field="movimiento">Movimiento</th>
+            <th data-sortable="true" data-field="cuenta">Cuenta</th>
+            <th data-sortable="true" data-field="monto">Monto</th>
+            <th data-sortable="true" data-field="Observaciones">Observaciones</th>
 
-          <th class="all">Acciones</th>  
-      </thead>
-      <tbody>
-        {% for item in mov %}
-        <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.fecha | date:"d/m/Y" }}</td>
-          <td>{{ item.cliente }}</td>
-          <td>{{ item.movimiento }}</td>
-          <td>{{ item.cuenta }} - {{ item.cuenta.moneda }} </td>
-          <td>{{ item.monto}}</td>
-          {% if item.ordernumber  %}
-              <td>
-                <a href="{% url 'panel_pedidos_detalle' item.ordernumber.order_number %}">{{ item.observaciones }}</a>    
-               </td>
-          {% else %}
-                {% if  item.idtransferencia %}
+            <th class="all">Acciones</th>  
+        </thead>
+        <tbody>
+          {% for item in mov %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.fecha | date:"d/m/Y" }}</td>
+            <td>{{ item.cliente }}</td>
+            <td>{{ item.movimiento }}</td>
+            <td>{{ item.cuenta }} - {{ item.cuenta.moneda }} </td>
+            <td>{{ item.monto}}</td>
+            {% if item.ordernumber  %}
                 <td>
-                  <a href="{% url 'mov_transferencia' item.idtransferencia %}">{{ item.observaciones }}</a>    
-                 </td> 
-                {% else %}
-                <td>{{ item.observaciones }}</td>
+                  <a href="{% url 'panel_pedidos_detalle' item.ordernumber.order_number %}">{{ item.observaciones }}</a>    
+                </td>
+            {% else %}
+                  {% if  item.idtransferencia %}
+                  <td>
+                    <a href="{% url 'mov_transferencia' item.idtransferencia %}">{{ item.observaciones }}</a>    
+                  </td> 
+                  {% else %}
+                  <td>{{ item.observaciones }}</td>
+                  {% endif %}
+            {% endif %}
+            <td >         
+                {% if not item.ordernumber   %}
+                  {% if not item.idtransferencia %}
+                    <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle btn-sm" title="Editar"><i class="far fa-edit"> </i></a>
+                    <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle btn-sm" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+                  {% endif %}
                 {% endif %}
-          {% endif %}
-          <td >         
-              {% if not item.ordernumber   %}
-                {% if not item.idtransferencia %}
-                  <a href="{% url 'mov_registros' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
-                  <a href="{% url 'panel_movimiento_eliminar' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
-                {% endif %}
-              {% endif %}
 
-            </div>
-         
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-
-    </table>
+              </div>
+          
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
   </div>
 </div>
 {% endblock %}

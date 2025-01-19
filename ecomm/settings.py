@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,8 +30,8 @@ SECRET_KEY = 'django-insecure-ri+^c)b+yg%hs=_s!ky=+*$%#4s^irw(z%*y&y-^*j*e81m6d(
 #DEBUG = config('DEBUG', default=False, cast=bool)
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1']
-#ALLOWED_HOSTS = ['django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['localhost','sdebony.pythonanywhere.com','127.0.0.1','103.199.185.212','qualities.com.ar']
+###ALLOWED_HOSTS = ['     XXXXXX  v  v django-ecomm-env.eba-assjjbuu.us-west-2.elasticbeanstalk.com']
                   
 
 
@@ -45,10 +47,13 @@ INSTALLED_APPS = [
     'category',
     'accounts',
     'store',
+    'ecomm',
     'carts',
     'orders',
     'api',
     'panel',
+    'compras',
+    'meli',
     'contabilidad',
     'admin_honeypot',
     'rest_framework',
@@ -63,14 +68,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'ecomm.middleware.db_switch_middleware.DatabaseSwitchMiddleware', 
     #'django_session_timeout.middleware.SessionTimeoutMiddleware',
 ]
 
-SESSION_EXPIRE_SECONDS = 60  # 3600 1 hour
-SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
-SESSION_TIMEOUT_REDIRECT = 'accounts/login'
+#SESSION_EXPIRE_SECONDS = 60  # 3600 1 hour
+#SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+#SESSION_TIMEOUT_REDIRECT = 'accounts/login'
 
 ROOT_URLCONF = 'ecomm.urls'
+
+APPEND_SLASH = True
 
 TEMPLATES = [
     {
@@ -85,6 +93,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',
                 'carts.context_processors.counter',
+                'panel.context_processors.alertas_context_processor',
             ],
         },
     },
@@ -96,19 +105,37 @@ AUTH_USER_MODEL = 'accounts.Account'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Database Configuration
+
+if 'RDS_DB_NAME' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME':  'db.sqlite3',
+        }
+    }
+
+
+#ORIGINAL 
 #DATABASES = {
 #    'default': {
-#        'ENGINE': config('ENGINE'),
-#        'NAME': BASE_DIR / config('DB_NAME'),
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': 'db.sqlite3',
 #    }
 #}
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
-    }
-}
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -131,13 +158,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-ar'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Argentina/Buenos_Aires'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = False
 
@@ -145,14 +172,16 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR /'static'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
     'ecomm/static',
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR /'media'
+MEDIA_URL = ''
+MEDIA_ROOT = BASE_DIR /''
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -168,3 +197,61 @@ EMAIL_PORT = config('EMAIL_PORT', cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+
+WHATSAPP_URL_ENVIO =  'https://graph.facebook.com/v18.0/195379333669152/messages'
+WHATSAPP_TOKEN = 'Bearer EAAPqOybIeowBO31ZCjZA9qYzAKS3azpof5al9TfLgtRBiitCTJ34IYVq6hmlxUWuFj15VFVk78uEnVeMIVG75Whydvp5RGCwcMkLeZBkEjnZBUsZCRvWCR39knbxorYkh2cDPeXQQFGWfSuQTh0aolPHdzC3Ls2PsDyCtrOM78FxxL515rDrN9VZBMC31R35xZC1xFdsGSpkeNQxZAhJ20HiOV5E7CMZD'
+
+PRODUCT_PAGE_STORE=5000
+POPULAR_PRODUCT=8
+
+DIAS_DEFAULT_PEDIDOS=90
+DIAS_DEFAULT_MOVIMIENTOS = 90
+
+MONTO_MINIMO=100
+
+DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
+DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
+DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
+#DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+#DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
+#DEF_CATEGORY='esferas'  #Eesferas (Slug)
+#DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
+
+STORE_MULTI_CANAL="SI"
+STORE_DEF_CANAL="WEB"
+
+STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
+STORE_TEMPLATE="2"  #2 Menu original
+
+ACTIVAR_ALERTAS = "NO"
+
+DEF_CEL = '54111565184759'
+#DEF_CEL =  '54111558679809'
+#DEF_CC_MAIL = 'lifche.argentina@gmail.com'
+DEF_CC_MAIL = 'qualitiesarg@gmail.com'
+
+#MELI  QUALITIES ***************
+CLIENTE_ID="710125811010660"                           #"5374552499309003"
+REDIRECT_URI="https://lifche.qualities.com.ar/meli/"    #"https://lifche.qualities.com.ar/meli/"
+CLIENT_SECRET="IYNplfYS5hrHur1RPNDHTIDgpHJDmSmR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
+NICK_NAME="DI20240920150629" #Qualities
+SELLER_ID="1998248263" #"1998248263"  #QUALITIES_ARG
+           
+ID_CUENTA_MELI=11  #MP Qualities
+
+#SERVICIO CORREO ARGENTINO
+USER_CORREO_ARG = config('CA_USER')
+PASS_CORREO_ARG = config('CA_PASS')
+CUSTOMERID_CORREO_ARG = '0000830277' #Lifche
+EMAIL_USER_CORREO_ARG = config('CA_EMAIL_USER')
+EMAIL_PASS_CORREO_ARG = config('CA_EMAIL_PASS')
+
+
+OCA_CP_ORIGEN='1617'
+OCA_OPERATIVA_ED='421906'  #Oca entrega a domicilio
+OCA_OPERATIVA_ES='421907'  #Oca entrega en Sucursal
+OCA_CUIT='23-24695274-4'
+OCA_VALOR_DECLARADO='10000'
+OCA_VOLUMETRIA_TOTAL='1'
+

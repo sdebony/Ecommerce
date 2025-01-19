@@ -1,0 +1,161 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+    <form method="post" id="frmCompras">
+        {% csrf_token %}
+        <div class="col-xl-12 col-md-12 mb-12">
+            {% if oc_enc_compras %}
+            <div class="card border-left-warning shadow h-100 py-2">
+            {% else %}
+            <div class="card border-left-success shadow h-100 py-2">
+            {% endif %}
+                <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    {% if oc_enc_compras %} Ver  {% else %} Nueva {% endif %} Orden de Compra
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="row">
+                                    <!-- Inicio Izquierda -->
+                                    <div class="col-12">
+                                        <!-- Inicio Encabezado -->
+                                        <div class="form-group row">
+                                            
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <span class="input-group-text" id="basic-addon1">Proveedor:</span>
+                                                    {% if oc_enc_compras %}
+                                                    <!-- <input type="text" class="form-control" name="proveedor" id="proveedor" readonly class="form-control-plaintext" aria-label="Fecha" aria-describedby="basic-addon1" value="{{ oc_enc_compras.proveedor.nombre }}" disabled> -->
+                                                        <input type="text" id="proveedor" name="proveedor" readonly class="form-control-plaintext" placeholder="" aria-label="proveedor" aria-describedby="basic-addon1" value="{{ oc_enc_compras.proveedor.nombre }}" >
+
+                                                        <input type="text" class="form-control" name="id_oc" id="id_oc" aria-label="id_oc" aria-describedby="basic-addon1" value="{{ oc_enc_compras.id }}" hidden>
+                                                        <input type="text" class="form-control" name="id_proveedor" id="id_proveedor" aria-label="id_oc" aria-describedby="basic-addon1" value="{{ oc_enc_compras.proveedor.id }}" hidden>
+                                                    {% else %}
+                                                    <input type="text" class="form-control" name="id_oc" id="id_oc" aria-label="id_oc" aria-describedby="basic-addon1" value="0" hidden>
+                                                    <input type="text" class="form-control" name="id_proveedor" id="id_proveedor" aria-label="Fecha" aria-describedby="basic-addon1" value="0" disabled>
+
+                                                    <select id="proveedor" name="proveedor" class="form-control">
+                                                        <option value="">Seleccione un Proveedor</option>
+                                                        {% for proveedor in proveedores %}
+                                                            <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Fecha:</span>
+                                                        <input type="text" class="form-control" name="fecha_compra" readonly id="fecha_compra" aria-label="Fecha" aria-describedby="basic-addon1" value="{{ oc_enc_compras.fecha_compra|date:'d/m/Y' }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">SubTotal:   </span>
+                                                        <input type="text" id="sub_total" name="sub_total" readonly class="form-control-plaintext" placeholder="" aria-label="Subtotal" aria-describedby="basic-addon1" value="{{ oc_enc_compras.sub_total }}" >
+                                                    </div>
+                                                </div>
+                                            </div>
+                                           <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Descuentos:</span>
+                                                        <input type="text"  id="descuentos" readonly class="form-control-plaintext" placeholder="" aria-label="Subtotal" aria-describedby="basic-addon1" value="{{ oc_enc_compras.descuento }}">
+                                                      </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="basic-addon1">Total:</span>
+                                                        <input type="text" id="total" readonly class="form-control-plaintext font-weight-bold" placeholder="" aria-label="total" aria-describedby="basic-addon1" value="{{ oc_enc_compras.total }}">
+                                                      </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text">Costo Envio:</span>
+                                                        <input type="number" step="any" id="enc_envio" class="form-control"  value="{{ oc_enc_compras.costoenvio }}" >
+                                                      </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Observaciones</span>
+                                                        <textarea class="form-control" id="observaciones" rows="4" aria-label="With textarea"  >{{ oc_enc_compras.observacion }}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <!-- Botones -->
+                                                <div class="dropdown-divider"></div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <a href="{% url 'oc_list' %}" class="btn btn-secondary"><i class="far fa-hand-point-left"></i> Cancelar</a>
+                            
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        <!-- Fin Botones -->
+
+                                        </div>
+                                        <!-- Fin Encabezado -->
+                                    </div>
+                                    <!-- Fin Izquierda -->
+                                   
+                                </div>
+                                <hr>
+                                <!-- Inicio Detalle -->
+                                <div class="row">
+                                    <div class="col">
+                                        <table id="tabla_detalle" style="width:100%">
+                                            <thead>
+                                                <th>Producto</th>        
+                                                <th>Cantidad</th>
+                                                <th>Precio</th>
+                                                <th>Sub Total</th>
+                                                <th>Desc.</th>
+                                                <th>Total</th>
+                                               
+                                            </thead>
+                                            <tbody>
+                                                {% for item in oc_detalle_compras %}
+                                                <tr>
+                                                <td>{{ item.producto }}</td>
+                                                <td>{{ item.cantidad }}</td>
+                                                <td>{{ item.precio_prv }}</td>
+                                                <td>{{ item.sub_total }}</td>
+                                                <td>{{ item.descuento }}</td>
+                                                <td>{{ item.total }}</td>
+                                                
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- Fin Detalle -->
+                            </div>
+                        </div>
+                </div>
+        </div>
+    </form>
+{% endblock %}

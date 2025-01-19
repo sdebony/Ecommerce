@@ -1,0 +1,122 @@
+{% extends 'panel/base.html' %}
+
+{% load custom_filters %}
+{% load static %}
+
+{% block page_content %}
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+
+    .bg-warning {
+        background-color: #f6b4aa !important; /* Fondo Naranja */
+    }
+    
+
+</style>
+
+        <div class="container-fluid">
+            <!-- Page Heading -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Panel Financiero - Limites Cuentas</h1>
+                <form action="{% url 'dashboard_cuentas' %}" enctype="multipart/form-data" method="POST">
+                
+                  {% csrf_token %}
+                  <div class="dropdown no-arrow">Desde:
+                    <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde  | date:'d/m/Y' }}" disabled />
+                          Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta | date:'d/m/Y' }}"disabled/>
+                          <button type="submit" class="btn btn-primary" hidden> <i class="fas fa-search" hidden></i></button>
+                  </div>
+                </form>
+            </div>
+            <!-- Content Row -->
+            <!-- Content Row -->    
+
+            <h8>Importe depositado en el corriente mes</h8>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre Cuenta</th>
+                        <th>Moneda</th>
+                        <th>Total Ingresos (Mes Actual)</th>
+                        <th>Total Asignado (Mes Actual)</th>
+                        <th>Disponible</th>
+                        <th>Límite Cuenta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cuenta in cuentas %}
+                    <tr>
+                        {% if cuenta.resta_monto < 0 %}
+                          <tr class="bg-warning" >
+                        
+                        {% endif %}
+                      
+                        <td>{{ cuenta.nombre }}</td>
+                        <td>{{ cuenta.moneda.simbolo }}</td>
+                        <td>{{ cuenta.total_monto|format_currency }}</td>
+                        <td>{{ cuenta.total_order_total|format_currency }}</td>
+                        <td>{{ cuenta.resta_monto|format_currency }}</td>
+                        <td>{{ cuenta.limite|format_currency }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+ 
+            <br>
+               
+            <div class="container-fluid">
+                <div class="row">
+                    {% for item in resultado %}
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                            <div class="col mr-2 "><span class="text-white-75 small">Solicitud: {{ item.solicitud.id }} - {{ item.solicitud.fecha  | date:'d/m/Y' }}</span>         
+                                <div class="text-s font-weight-bold text-primary text-uppercase mb-3"> {{ item.cuenta }}
+                                </div>
+                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Solicitado: {{ item.solicitud.monto|format_currency_usd }} </span> </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Acumulado: {{item.total_acum_usd|format_currency_usd }}  </span>  </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Asignado: {{item.total_asig_usd |format_currency_usd }}</span>  </div>
+                                <div class="text-lg fw-bold"><span class="font-weight-bold text-white-75 small">Total: {{item.total_general_usd|format_currency_usd }}  -  ( $ {{ item.total_acum_pesos|format_currency}} ) </span>  </div>
+                                <div class="h8 mb-0 font-weight-bold text-gray-800"><span class="text-white-75 small">Faltan: {{item.faltan_usd|format_currency_usd }}  </span>  </div>
+                            </div>
+                        </div>   
+                        <span class="text-white-75 small"><hr></span>
+                        <div class="d-flex flex-row">
+                        <a class="text-arrow-icon small" href="{% url 'compras_usd_detalle' item.solicitud.id  %}">
+                            Ver Detalle
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </a>
+                        </div>
+                        <div class="d-flex flex-row-reverse">
+                            <a class="btn btn-primary text-arrow-icon small" href="{% url 'compras_close' item.solicitud.id  %}">
+                                Confirmar Compra
+                                
+                            </a>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+           
+
+ 
+   
+
+        
+{% endblock %}

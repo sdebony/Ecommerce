@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
+
 {% block content %}
-<!-- ========================= SECTION PAGETOP ========================= -->
+<!-- ========================= SECTION PAGETOP 
 <section class="section-pagetop bg">
 <div class="container">
 	{% if 'search' in request.path %}
@@ -11,119 +12,120 @@
 		<h2 class="title-page">Our Store</h2>
 	{% endif %}
 
-</div> <!-- container //  -->
+</div> 
 </section>
+========================= -->
 <!-- ========================= SECTION INTRO END// ========================= -->
 
 <!-- ========================= SECTION CONTENT ========================= -->
-<section class="section-content padding-y">
+<section class="section-content">
 <div class="container">
+	<!-- {{ resolucion }} -->
+	<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+		{% for category in links %}
+		<div class="panel panel-default">
+			<div class="panel-heading" role="tab" id="heading1">
+					<h6 class="panel-title"  style="font-size: 2em;">
+						{% if request.path == '/store/' %}
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapse_{{category.id}}" aria-expanded="true" aria-controls="collapse_{{category.id}}" style="font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 20x" class>{{ category.category_name }}
+							<div class="float-right"><i class="fa fa-chevron-down" aria-hidden="true"></i></div>
+						</a> 
+						{% else %}
+						<a href="{% url 'store' %}">{{ category.category_name }}
+							<div class="float-right"><i class="fa fa-chevron-down" aria-hidden="true"></i></div>
+						</a> 
+						{% endif %}	 						
+					</h6>
+				
+				{% for subcategory in sub_links %}
+					{% if subcategory.category == category %}
+						<p></p>
+						{% if category.id == category_id %} 
+							<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">	
+						{% else %}
+							<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; height: 0px; font-size: 1.3em;" aria-expanded="true" id="collapse_{{category.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+						{% endif %}
+								<h6 class="panel-title"  style="font-size: 1.3em;">
+									<li>
+										<a  href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">{{ subcategory.subcategory_name }}</a>
+									</li>
+								</h6>
+							
+							{% if subcategory.id == subcategory_id  %}
+								<div style="font-family: Verdana, Geneva, Tahoma, sans-serif;" aria-expanded="true" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse show in" role="tabproducto" aria-labelledby="heading1">
+							{% else %}
+								<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; height: 0px;" aria-expanded="false" id="collapse1_sub_{{subcategory.id}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1">
+								
+							{% endif %}
+							<p></p>
 
-<div class="row">
-	<aside class="col-md-3">
+									<div class="container">
+									
+									{% if products %}
+										{% for product in products %}
+											<!-- Start Productos -->
+											<form action="{% url 'add_cart' product.id %}" method="POST" class="small" style="background-color:White;">
+												{% csrf_token %}
+										
+												<div class="row justify-content-start">
+														<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
 
-<div class="card">
-	<article class="filter-group">
-		<header class="card-header">
-			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
-				<i class="icon-control fa fa-chevron-down"></i>
-				<h6 class="title">Categories</h6>
-			</a>
-		</header>
-		<div class="filter-content collapse show" id="collapse_1" style="">
-			<div class="card-body">
+															<div class="col-4 col-md-4">
+																<a href="#">
+																	{% if product.images %}
+																	<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}" class="img-sm"  style="width: 10rem; height: 10rem">
+																	{% else %}
+																	<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg" class="img-sm"  style="width: 10rem; height: 10rem">
+																	{% endif %}
 
-				<ul class="list-menu">
-					<li><a href="{% url 'store' %}">All Products  </a></li>
-					{% for category in links %}
-				<li><a href="{{ category.get_url }}">{{ category.category_name }}  </a></li>
-					{% endfor %}
-				</ul>
+																</a>
+															</div>	
+															<div class="col-8 col-md-4">
+																<div class="input-group-prepend">
+																	<a href="{{ product.get_url }}" >{{ product.product_name }} </a>
+																	</div>
+																	<span class=" font-size: 1.2em;" style="font-size: 15px"><b> $ {{ product.price }}</b></span>
+																
 
-			</div> <!-- card-body.// -->
+																	{% if product.stock > 0 %}
+																	<div class="input-group-prepend">	
+																		<input type="text" class="form-control form-control-sm"  id="quantity" name="quantity" value="1" onchange="this.form.submit()">
+																		<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
+																		<button type="submit" class="btn  btn-primary btn-sm"> 
+																			<i class="fa fa-shopping-cart"></i>
+																		</button>
+																	</div>	
+																	{% else %}
+																	<div class="input-group-prepend">	
+																		<h5 class="text-danger">Sin Stock</h5>
+																	</div>
+																	{% endif %}
+
+
+															</div>
+													
+												</div>
+											</form>
+										{% endfor %}
+										<div class="row">
+											<div class="col-auto"></div>
+										</div>
+									<!-- End  Productos -->
+									{% endif %}
+									</div>
+
+								</div>
+						</div>
+					{% endif %}
+				{% endfor %}	
+			</div>
 		</div>
-	</article> <!-- filter-group  .// -->
-
-</div> <!-- card.// -->
-
-	</aside> <!-- col.// -->
-	<main class="col-md-9">
-
-<header class="border-bottom mb-4 pb-3">
-		<div class="form-inline">
-			<span class="mr-md-auto"><b>{{ product_count }}</b> items found </span>
-
-		</div>
-</header><!-- sect-heading -->
-
-<div class="row">
-	{% if products %}
-	{% for product in products %}
-	<div class="col-md-4">
-		<form action="{% url 'add_cart' product.id %}" method="POST">
-			{% csrf_token %}
-		<figure class="card card-product-grid">
-			<div class="img-wrap">
-
-				<a href="{{ product.get_url }}"><img src="{{ product.images.url }}"></a>
-
-			</div> <!-- img-wrap.// -->
-			<figcaption class="info-wrap">
-				<div class="fix-height">
-					<a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
-					<div class="price-wrap mt-2">
-						<span class="price">$ {{ product.price }}</span>
-					</div> <!-- price-wrap.// -->
-				</div>
-		<!--		<a href="{{ product.get_url }}" class="btn btn-block btn-primary">View Details </a>
-		-->		<button type="submit" class="btn  btn-primary"> <span class="text">Add to Cart</span> <i class="fa fa-shopping-cart"></i> </button>
-
-
-			</figcaption>
-		</figure>
-		</form>
-	</div> <!-- col.// -->
-	{% endfor %}
-	{% else %}
-	<div>
-		<h2>No result found. Please try again.</h2>
+		{% endfor %}
 	</div>
-	{% endif %}
-</div> <!-- row end.// -->
-
-
-<nav class="mt-4" aria-label="Page navigation sample">
-	{% if products.has_other_pages %}
-	  <ul class="pagination">
-			{% if products.has_previous %}
-	    <li class="page-item"><a class="page-link" href="?page={{products.previous_page_number}}">Previous</a></li>
-			{% else %}
-			<li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-			{% endif %}
-
-			{% for i in products.paginator.page_range %}
-				{% if products.number == i %}
-	    		<li class="page-item active"><a class="page-link" href="#">{{i}}</a></li>
-				{% else %}
-					<li class="page-item"><a class="page-link" href="?page={{i}}">{{i}}</a></li>
-				{% endif %}
-	    {% endfor %}
-
-			{% if products.has_next %}
-	    	<li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}">Next</a></li>
-			{% else %}
-				<li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-			{% endif %}
-	  </ul>
-	{% endif %}
-</nav>
-
-	</main> <!-- col.// -->
-
-</div>
+		
 
 </div> <!-- container .//  -->
 </section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
+
 
 {% endblock %}

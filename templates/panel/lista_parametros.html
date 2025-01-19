@@ -1,0 +1,64 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >Lista de parametros</h6>
+    </div>
+    
+     
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not param %}
+        <div class="alert alert-info">No se encontraron parametros</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="true"
+      data-search="true"
+      data-show-columns="true"
+      data-show-toggle="true"
+      data-show-fullscreen="true"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        <th data-sortable="true" data-field="codigo">Código</th>
+          <th data-sortable="true" data-field="nombre">Nombre</th>
+          <th data-sortable="true" data-field="valor">Valor</th>   
+          <th data-sortable="true" data-field="tipo_valor">Tipo Valor</th>
+          <th data-sortable="true" data-field="descripcion">Descripción</th>
+         
+          <th class="all">Acciones</th> 
+      </thead>
+      <tbody>
+        {% for item in param %}
+        <tr>
+          <td>{{ item.codigo }}</td>
+          <td>{{ item.nombre }}</td> 
+          <td>{{ item.valor|format_number }}</td>
+          <td>{{ item.tipo_valor }}</td>
+          <td>{{ item.descripcion }}</td>
+         
+          <td >         
+            <a href="{% url 'panel_margen_edit' item.id %}" class="href btn btn-warning btn-circle" title="Modificar"><i class="fas fa-edit"></i></a>
+            <!-- <a href="#" class="href btn btn-success btn-circle" title="Acceso"><i class="fas fa-check"></i></a> 
+            <a href="#" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>-->
+          </div>
+       
+        </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}

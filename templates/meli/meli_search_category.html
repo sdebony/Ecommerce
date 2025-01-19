@@ -1,0 +1,83 @@
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-6">
+  <!-- Card Header - Dropdown -->
+ 
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <h1 class="h3 mb-6 text-gray-800">Buscar en .. {{category.name}} </h1>
+             
+        <form action="{% url 'meli_search_categoria' arts_category.id %}" enctype="multipart/form-data" name="token" id="token" method="POST">
+            {% csrf_token %}
+            <div class="col form-group">
+                Categoria: 
+                {% for cats in category.path_from_root %}
+                <label for=""><a href="{% url 'meli_search_categoria' cats.id %}" >{{ cats.name }}</a>  / </label>
+                {% endfor %}
+                <input type="text" name="str_search" id="str_search" class="form-control" value="{{ arts_category.query }}" >
+            </div>
+           
+            <button type="submit" class="btn btn-warning"><span class=""></span> Buscar </button>
+            <a href="{% url 'meli_get_first_token' %}" class="btn btn-primary " role="button" style="float: right;">
+                &nbsp;Conectar ML</a>
+        </form>
+    </div>
+    
+    <div class="card-body">
+        {% if arts_category %}
+
+       
+        
+        
+        <table class="table table-striped table-bordered " id="dataTable">  
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Articulo</th>
+                    <th scope="col">Precio Original</th>
+                    <th scope="col">Precio Actual</th>
+                    <th scope="col">category_id</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Cuotas</th>
+                    <th scope="col">% Interes</th>
+                </tr>
+            </thead>
+            <tbody>
+                        
+                        {% for arts in arts_category.results %}
+                        <tr>
+                            <th><a href={{arts.permalink}} target="_blank">{{ arts.id }}</a> </th>
+                            <th>{{arts.title}} </th>
+                            {% if arts.original_price %}
+                                <th>$ {{arts.original_price }}</th>
+                            {% else %}
+                                    <th>$ {{arts.price }}</th>
+                            {% endif %}    
+                            <th>$ {{arts.price }}</th>
+                            <th><a href="{% url 'meli_search_categoria' arts.category_id %}">{{arts.category_id}}</a></th>
+                            {% for attr in arts.attributes %}
+                                {% if attr.id == 'BRAND'%}
+                                <th>{{attr.value_name }} </th>
+                                {% endif %}    
+                            {% endfor %}    
+                            <th>{{arts.installments.quantity }} </th>
+                            <th>{{arts.installments.rate}} </th>
+                                
+                            
+                            
+                        </tr>
+                        {% endfor %}
+                
+                        
+            </thead>
+        </table>
+        {% endif %}
+    </div>
+
+</div>  
+
+{% endblock%}

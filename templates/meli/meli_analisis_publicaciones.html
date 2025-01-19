@@ -1,0 +1,57 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+    <div class="container mt-5">
+        <h1 class="text-center">Características del Producto</h1>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h3>ID del Producto: {{ product.item_id }}</h3>
+                <p>Precio Actual: {{ product.current_price }} {{ product.currency_id }}</p>
+                <p>Precio para Ganar: {{ product.price_to_win }} {{ product.currency_id }}</p>
+                <p>Estado:
+                    {% if product.status == "winning" %}
+                    <span class="badge bg-success text-white">{{ product.status }}</span> 
+                    {% elif product.status == "sharing_first_place" %}
+                    <span class="badge bg-primary text-white">{{ product.status }}</span>
+                    {% else %}
+                    <span class="badge bg-warning text-white">{{ product.status }}</span>
+                    {% endif %}
+                </p>
+                <h4 class="mt-4">Boosts</h4>
+                <ul class="list-group">
+                    {% for boost in product.boosts %}
+                        <li class="list-group-item">
+                            <strong>{{ boost.description }}:</strong> 
+                            {% if boost.status == "winning" %}
+                                <span class="badge bg-success text-white">{{ boost.status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-white">{{ boost.status }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if product.winner %}
+                <h4 class="mt-4">Ganador Actual</h4>
+                <p>ID del Producto Ganador: {{ product.winner.item_id }}</p>
+                <p>Precio del Ganador: {{ product.winner.price }} {{ product.winner.currency_id }}</p>
+                <ul class="list-group">
+                    {% for boost in product.winner.boosts %}
+                        <li class="list-group-item">
+                            <strong>{{ boost.description }}:</strong> 
+                            {% if boost.status == "winning" %}
+                                <span class="badge bg-success text-white">{{ boost.status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-white">{{ boost.status }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No hay información del ganador.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endblock%}

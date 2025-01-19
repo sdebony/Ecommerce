@@ -1,0 +1,87 @@
+{% extends 'panel/base.html' %}
+{% block page_content %}
+
+{% load static %}
+
+<head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+</head>
+
+    <h1>Ordenar Categorías y Subcategorías</h1>
+    <ul id="category-list">
+        {% for category in categories %}
+        
+        <li data-id="categorie_{{ category.id }}" class="category-item">
+            {{ category.category_name }}
+        
+            <ul id="subcategory-list-{{ category.id }}" class="subcategory-list">
+                {% for subcategory in subcategories %}
+                    {% if subcategory.category == category %}
+                    <li data-id="subcategory_{{ subcategory.id }}" class="subcategory-item">
+                        {{ subcategory.subcategory_name }}
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </li>
+        
+        {% endfor %}
+
+    </ul>
+
+    <script>
+        // Initialize Sortable for categories
+        var sortableCategories = new Sortable(document.getElementById('category-list'), {
+            group: "categories",
+            animation: 150,
+            onEnd: function (evt) {
+                updateOrder();
+            }
+        });
+
+        // Initialize Sortable for each subcategory list
+        document.querySelectorAll('.subcategory-list').forEach(function(subcategoryList) {
+            new Sortable(subcategoryList, {
+                group: "subcategories",
+                animation: 150,
+                onEnd: function (evt) {
+                    updateOrder();
+                }
+            });
+        });
+
+        function updateOrder() {
+            var order_data = [];
+
+            // Process categories
+            document.querySelectorAll('#category-list .category-item').forEach(function (categoryItem) {
+                order_data.push(categoryItem.getAttribute('data-id'));
+
+                // Process subcategories within each category
+                var subcategoryList = categoryItem.querySelectorAll('.subcategory-item');
+                subcategoryList.forEach(function (subitem) {
+                    order_data.push(subitem.getAttribute('data-id'));
+                });
+            });
+
+            fetch("{% url 'panel_picking_update_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: 'order_data=' + order_data.join(',')
+            }).then(response => response.json())
+              .then(data => {
+                if (data.status === 'success') {
+                    console.log('Order updated successfully');
+                } else {
+                    console.error('Failed to update order');
+                }
+            });
+        }
+    </script>
+
+
+
+{% endblock %}

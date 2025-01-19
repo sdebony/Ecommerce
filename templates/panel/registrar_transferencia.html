@@ -2,6 +2,8 @@
 
 {% extends 'panel/base.html' %}
 {% load static %}
+{% load custom_filters %}
+
 {% block page_content %}
 
   {% if trans %}
@@ -60,6 +62,7 @@
                                   {% endif %}
                                 {% endfor %}
                                 </select>
+                                
                           </div>
                       </div>
                       <div class="col form-group">
@@ -86,20 +89,22 @@
                       
                     </select> </div>
                 </div>
+                
                   <div class="form-row">
                     <div class="col form-group">
-                        <div class="col form-group">  
+                        <div class="col form-group">
+                         
                         <label for="">Monto Origen</label>
-                        <input type="text" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen }}"  required>
+                        <input type="number" step="any" name="monto_origen" id="monto_origen" class="form-control" value="{{trans.monto_origen|floatformat:2|decimal_point }}"  required>
                         </div>
                       </div>   
                         <div class="col form-group">
                         <label for="">Cotización</label>
-                        <input type="text" name="conversion" id="conversion" class="form-control" value="{{trans.conversion }}">
-                        </div>
+                        <input type="number" step="any" name="conversion" id="conversion" class="form-control" value="{{trans.conversion|floatformat:2|decimal_point  }}">
+                      </div>
                         <div class="col form-group">
                           <label for="">Monto Destino</label>
-                          <input type="text" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino }}"  >
+                          <input type="number" step="any" name="monto_destino" id="monto_destino" class="form-control" value="{{trans.monto_destino|floatformat:2|decimal_point }}"  >
                           </div>
                       
                   </div>
@@ -108,6 +113,8 @@
                       <label for="">Observaciones</label>
                       <textarea type="textarea" name="observaciones" id="observaciones" rows="3" class="form-control"> {{trans.observaciones}}</textarea>
                       </div>
+                      <input type="number" name="moneda_origen" id="moneda_origen" class="form-control" value="0" hidden >
+                      <input type="number" name="moneda_destino" id="moneda_destino" class="form-control" value="0"  hidden >
                     
                 </div>
                   <!-- / .card-body -->
@@ -149,8 +156,8 @@
             type:"GET",
             url: path,
             success: function(r){
-                console.log(r);
-                console.log(r.moneda);
+                //console.log(r);
+                //console.log(r.moneda);
                 //mensaje(r.moneda,'red');
                 
                 if (combo==1){
@@ -163,6 +170,7 @@
                 }
                 
                 
+                
             },
         });
     }
@@ -170,12 +178,20 @@
     function calcular()
     {
         var monto_origen,conversion,monto_destino;
+        const conversionInput = document.getElementById('conversion');
 
+
+        console.log("CALCULAR");
         monto_origen = $("#monto_origen").val();
         monto_destino = $("#monto_destino").val();
         conversion = $("#conversion").val();
+        moneda_origen = $("#moneda_origen").val();
+        moneda_destino = $("#moneda_destino").val();
         
 
+        console.log(monto_origen,monto_destino,conversion)
+
+         
         if(conversion==""){
             $('#conversion').val(0);
         }
@@ -184,21 +200,33 @@
             $('#monto_destino').val(0);
         }
 
-      
-
+        // SI ES LA MISMA MONEDA NO HAY CONVERSION
+        if (moneda_origen==moneda_destino){
+          conversion=1;
+          $('#conversion').val(conversion);
+          $('#monto_destino').val(monto_origen);
+         
+          conversionInput.disabled = true;
+        } else {
+          conversionInput.disabled = false;
+        }
+              
         if (monto_origen>0&&conversion==0&&monto_destino>0){
-            conversion=monto_origen/conversion
+            conversion= Number((monto_origen/conversion).toFixed(2));
             $('#conversion').val(conversion);
         
             return false;
+       
         }
-
+        
         if (monto_origen>monto_destino&&conversion>0){
-            monto_destino = monto_origen / conversion
+            monto_destino = Number((monto_origen/conversion).toFixed(2));
             $('#monto_destino').val(monto_destino);
         
             return false;
-        }        
+        } 
+        
+        
     }
 
    $(function () {
@@ -236,15 +264,7 @@
             data: {"id":transferencia.caja_destino.id  }
         });
 
-       
-
-        //$("#moneda_origen").data('select2').trigger('select', {
-        //    data: {"id":transferencia.moneda_origen.id  }   
-        //});
-        
-        //$("#moneda_destino").data('select2').trigger('select', {
-        //    data: {"id":transferencia.moneda_destino.id}
-        //});
+      
             
     });
 

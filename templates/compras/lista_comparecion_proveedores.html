@@ -1,0 +1,134 @@
+
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " > 
+        <h3><strong>Mejores precios Proveedores</strong></h3></h6>
+        <form  action="{% url 'proveedor_check_articulos'  %}" enctype="multipart/form-data" method="POST">
+          {% csrf_token %}
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <a href="{% url 'mov_export_xls' 7 %}" class="btn btn-secondary">Exportar xls</a>
+            <button type="submit" class="btn btn-success">Importar Costos Proveedor</button>
+          </div>
+        </form>
+  </div>
+
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not productos_con_proveedores %}
+        <div class="alert alert-info">No se encontraron precios de proveedores</div>
+    {% endif %}
+
+
+
+ 
+      <h2 class="text-center">Lista de Productos y Precios de Proveedores</h2>
+     <!-- <table class="table table-sm">  -->
+        <table 
+      id="table"
+      style="font-size: 13px;"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Stock</th>
+                <th>Costo de Producto</th>
+                {% for proveedor in proveedores %}
+                    <th>{{ proveedor.nombre }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos_con_proveedores.values %}
+            <tr>
+                <td class="small">{{ producto.product_name }}</td>
+                <td class="small">{{ producto.stock }}</td>
+                <td class="small">{{ producto.costo_prod|format_currency }}</td>
+                {% for proveedor in proveedores %}
+                    <td class="small">
+                        {% with producto.proveedores|get_item:proveedor.nombre as datos_proveedor %}
+                            {% if datos_proveedor %}
+<!--                                <strong>Artículo:</strong> {{ datos_proveedor.nombre_articulo }}<br> -->
+                                <strong>Unidades:</strong> {{ datos_proveedor.cantidad_unidad_medida }}<br>
+                                <strong>Precio Compra:</strong> {{ datos_proveedor.precio_compra|format_currency }}<br>
+                                <strong>Precio por Unidad:</strong> <strong class="text-danger">{{ datos_proveedor.precio_por_unidad }}</strong>
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+<!--
+    <table 
+      id="table"
+      style="font-size: 13px;"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        
+        <th data-sortable="true" data-field="product_name">Articulo</th>
+        <th data-sortable="true" data-field="stock">Stock</th>
+        <th data-sortable="true" data-field="costo_prod">Costo Actual</th>   
+        <th data-sortable="true" data-field="proveedor_nombre">Proveedor</th>
+        <th data-sortable="true" data-field="cantidad_unidad_medida">Cantidad</th>
+        <th data-sortable="true" data-field="nombre_articulo">Articulo</th>
+        <th data-sortable="true" data-field="precio_compra">Precio</th>
+        <th data-sortable="true" data-field="precio_por_unidad">Precio Unit</th>
+        
+         
+      </thead>
+      <tbody>
+        {% for producto in productos_con_proveedores %}
+        <tr>
+            <td>{{ producto.product_name }}</td>
+            <td>{{ producto.stock }}</td>
+            <td>{{ producto.costo_prod|format_currency }}</td>
+            <td>{{ producto.proveedor_nombre }}</td>
+            <td>{{ producto.nombre_articulo }}</td>
+            <td>{{ producto.cantidad_unidad_medida }}</td>
+            <td>{{ producto.precio_compra|format_currency }}</td>
+            <td>{{ producto.precio_por_unidad|format_currency}}</td>
+        </tr>
+        {% endfor %}
+
+       
+      </tbody>
+
+    </table>
+
+-->
+
+  </div>
+</div>
+{% endblock %}

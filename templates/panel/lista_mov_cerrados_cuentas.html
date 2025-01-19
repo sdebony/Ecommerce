@@ -1,0 +1,96 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+ 
+  <div class="container-fluid">
+
+    <!-- Page Heading -->
+     <h1 class="h3 mb-4 text-gray-800 ">Resumen movimientos contabilizados</h1>
+<!--      <h6>Periodo: {{ fecha_desde|date:'d/m/Y'}} - {{ fecha_hasta|date:'d/m/Y'}}</h6> -->
+
+       <div class="d-sm-flex align-items-left justify-content-between mb-4">
+        <div class="buttons-toolbar">
+          <a class="btn btn-secondary" href="{% url 'panel_balance_movimientos'  %}">Volver</a>
+      </div>
+       </div>
+     <div class="row">
+      
+
+      {% for item in mov %}
+      <!-- Earnings (Monthly) Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        {% if item.cuenta__moneda__simbolo == '$' %}
+        <div class="card border-left-primary shadow h-100 py-2">
+          {% else %}
+          <div class="card border-left-success shadow h-100 py-2">
+          {% endif %}
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              {% if item.cuenta__moneda__simbolo == '$' %}
+                
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ item.total|format_currency }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fa fa-dollar-sign fa-2x text-gray-300"></i>
+               </div>
+                  {% else %}
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ item.cuenta__nombre }} - {{item.cuenta__moneda }} </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ item.total|format_currency_usd }}</div>
+                </div>
+                <div class="col-auto">
+                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>    
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %} 
+
+</div>
+
+<table 
+    id="table"
+    data-toggle="table"
+    data-pagination="false"
+    data-search="true"
+    data-show-columns="false"
+    data-show-toggle="false"
+    data-show-fullscreen="false"
+    data-toolbar=".buttons-toolbar"
+    data-locale="es-AR"
+  >
+      <thead>
+          <th data-sortable="true" data-field="id">Id</th>        
+          <th data-sortable="true" data-field="fecha">Fecha</th>
+          <th data-sortable="true" data-field="cliente">Cliente</th>
+          <th data-sortable="true" data-field="movimiento">Movimiento</th>
+          <th data-sortable="true" data-field="cuenta">Cuenta</th>
+          <th data-sortable="true" data-field="monto">Monto</th>
+          <th data-sortable="true" data-field="Observaciones">Observaciones</th>
+
+      </thead>
+      <tbody>
+        {% for item in movimientos %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.fecha | date:"d/m/Y" }}</td>
+          <td>{{ item.cliente }}</td>
+          <td>{{ item.movimiento }}</td>
+          <td>{{ item.cuenta }} - {{ item.cuenta.moneda }} </td> 
+          <td>{{ item.monto|format_currency_def}}</td>
+          <td>{{ item.observaciones }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+  <form id="proveedores" name="proveedores" action="{% url 'proveedores_add'  %}" enctype="multipart/form-data" method="POST">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title"><b>Alta de Proveedores  </b></h3>
+                    <div class="input-group mb-6">
+                        <input type="number" id="idproveedor" name="idproveedor" class="form-control" value="{{ proveedores.id }}" hidden >
+                    </div>
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                <div class="form-row">
+                    
+                    <div class="form-group col-md-12">
+                        <label>Nombre:</label>
+                      <input type="text" name="nombre" id="nombre" class="form-control" value="{{ proveedores.nombre }}" required >
+                    </div>
+                </div>
+                 
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Direccion:</label>
+                      <input type="text" name="direccion" id="direccion" class="form-control" value="{{ proveedores.direccion }}" required >
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Contacto:</label>
+                      <input type="text" name="contacto" id="contacto" class="form-control" value=" {{ proveedores.contacto }}"  >
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Telefono 1:</label>
+                      <input type="text" name="telefono1" id="telefono1" class="form-control" value=" {{ proveedores.telefono1 }}"  >
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Telefono 2:</label>
+                      <input type="text" name="telefono2" id="telefono2" class="form-control" value=" {{ proveedores.telefono2 }}"  >
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>email :</label>
+                      <input type="email" name="email" id="email" class="form-control" value=" {{ proveedores.email }}"  >
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Sitio Web:</label>
+                      <input type="text" name="web" id="web" class="form-control" value="{{ proveedores.web}}"  >
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Facebook :</label>
+                      <input type="text" name="facebook" id="facebook" class="form-control" value=" {{ proveedores.facebook }}"  >
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Instragram:</label>
+                      <input type="text" name="instragram" id="instragram" class="form-control" value=" {{ proveedores.instragram }}"  >
+                    </div>
+                </div>
+                  
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{% url 'proveedores_list' %}" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block js_page %}
+
+
+<script>
+
+  $(function () {
+
+       $("#fecha, #fecha").datetimepicker({
+           format: 'Y-m-d',
+           timepicker:false
+       });
+
+      });
+
+  
+</script>
+{% endblock %}

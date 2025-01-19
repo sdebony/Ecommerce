@@ -1,0 +1,468 @@
+{% extends 'panel/base.html' %}
+
+{% load custom_filters %}
+
+{% block page_content %}
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Modificar Pedido</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="{% url 'panel_pedidos' 'New' %}">Volver</a></li>
+              <li class="breadcrumb-item active">Pedido # {{ ordenes.order_number }}     
+                </li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="callout callout-info">
+              <h5><i class="fas fa-info"></i><b>Estado de la Orden:
+                <font size="4" face="verdana" color="red">    
+              {{ ordenes.status | upper }}</font></b></h5>
+         
+            </div>
+
+
+            <!-- Main content -->
+            <div class="invoice p-3 mb-3">
+            <form action="{% url 'panel_pedidos_save_enc'  %}"  method="POST">
+            {% csrf_token %}
+            <input type="number" step="any" name="enc_order_total_comisiones" id="enc_order_total_comisiones" class="form-control" value="{{ ordenes.order_total_comisiones|floatformat:2|decimal_point }}" maxlength="10" hidden >
+            <input type="number" step="any" name="enc_order_total_impuestos" id="enc_order_total_impuestos" class="form-control" value="{{ordenes.order_total_impuestos|floatformat:2|decimal_point }}" maxlength="10" hidden >
+            <input type="number" step="any" name="enc_order_total_descuentos" id="enc_order_total_descuentos" class="form-control" value="{{ ordenes.order_total_descuentos|floatformat:2|decimal_point }}" maxlength="10" hidden>
+            <input type="number" step="any" name="enc_envio" id="enc_envio" class="form-control" value="{{ ordenes.envio|floatformat:2|decimal_point }}" maxlength="10" hidden>
+            <input type="text" name="enc_origen_venta" id="enc_origen_venta" class="form-control" value="{{ ordenes.origen_venta.codigo }}" maxlength="10" hidden>
+            
+
+            
+            <!-- title row -->
+              <div class="row">
+                <div class="col-12">
+                 {% if ordenes.dir_tipocorreo == 1 %} 
+                 <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="1" checked>
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal Correo Argentino
+                    <small class="float-right">Fecha: 
+                        <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
+                    </small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 2 %}
+                  <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio - Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
+                    <small class="float-right">Fecha: 
+                        <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
+                    </small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 3 %}
+                  <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
+                  <h4><i class="fas fa-user"></i> Retira Cliente 
+                    <small class="float-right">Fecha: 
+                        <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
+                    </small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 0 %}
+                  <input class="form-check-input" id="dir_tipocorreo" name="dir_tipocorreo[]" type="checkbox" value="0" >
+                  <h4><i class="fas fa-user"></i> 
+                    <small class="float-right">Fecha: 
+                        <input type="text" name="fecha" id="fecha" class="form-control" value="{{ ordenes.fecha|date:'d/m/Y' }}"  required>
+                    </small>
+                  </h4>
+                  {% endif %}
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- info row -->
+              <div class="row invoice-info">
+                <div class="col-sm-6 invoice-col">
+                        Para
+                        <address>
+                            <input type="text" name="order_number" id="order_number"  class="form-control" value="{{ ordenes.order_number }}" required hidden>
+                            <div class="form-row">
+                                <div class="col form-group">
+                                    <strong><input type="text" name="first_name" id="first_name" class="form-control" value="{{ ordenes.first_name}}" required></strong>
+                                </div>
+                                <div class="col form-group">
+                                    <strong><input type="text" name="last_name" id="last_name" class="form-control" value="{{ ordenes.last_name}}" required></strong>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                            <div class="col form-group">
+                                <label>Calle:</label>
+                                <input type="text" name="dir_calle" id="dir_calle" class="form-control" value="{{ ordenes.dir_calle  }}" required>
+                            </div>
+                            <div class="col form-group">
+                                <label>Nro:</label>
+                                <input type="text" name="dir_nro" id="dir_nro" class="form-control" value="{{ ordenes.dir_nro }}" required>
+                            </div>
+                            <div class="col form-group">
+                              <label>Piso:</label>
+                              <input type="text" name="dir_piso" id="dir_piso" class="form-control" value="{{ ordenes.dir_piso  }}" maxlength="10">
+                          </div>
+                          <div class="col form-group">
+                              <label>Depto:</label>
+                              <input type="text" name="dir_depto" id="dir_depto" class="form-control" value="{{ ordenes.dir_depto }}" maxlength="10">
+                          </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col form-group"> 
+                                <label>Localidad:</label>
+                                <input type="text" name="dir_localidad" id="dir_localidad" class="form-control" value="{{ ordenes.dir_localidad  }}">
+                            </div>
+                            <div class="col form-group"> 
+                                <label>Provincia:</label>
+                                <input type="text" name="dir_provincia" id="dir_provincia" class="form-control" value="{{ ordenes.dir_provincia }}" required> 
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col form-group"> 
+                                <label>Telefono</label>
+                                <input type="text" name="dir_telefono" id="dir_telefono" class="form-control" value="{{ ordenes.dir_telefono  }}" required>
+                            </div>
+                            <div class="col form-group">
+                                <label>Email:</label>
+                                <input type="text" name="email" id="email" class="form-control" value="{{ ordenes.email }}" required> 
+                            </div>   
+                            <div class="input-group">
+                                {% if pago_pendiente %}
+                                <a href="{% url 'panel_pedidos' 'New' %}"  class="btn btn-secondary float-right">Cancelar</a>
+                                {% endif %} 
+                                <button type="submit" class="btn btn-success">Guardar</button>
+                              </pre>
+                            </div>   
+                        </div>
+                        </address>
+                
+                </div>
+              </div>
+            </form> 
+              <!-- /.row -->
+            <hr>
+            
+            <br>
+            <form action="{% url 'panel_pedidos_save_detalle'  %}"  method="POST">
+              {% csrf_token %}
+              <div class="form-row">
+                  <div class="col form-group"> 
+                      <label>Agregar Producto:</label>
+                    
+                      <div class="input-group w-100">
+                        {% if edit_item %}
+                          <input type="text" name="edit_order_number" id="edit_order_number" style="width:30%;"  class="form-control" value="{{ ordenes.order_number }}" required hidden>
+                          <input type="text" name="edit_item_id" id="edit_item_id" style="width:30%;"  class="form-control" value="{{ edit_item_id }}"  required hidden>
+                          <input type="text" name="edit_item" id="edit_item" style="width:60%;"  class="form-control" value="{{ edit_item }}" disabled>
+                          
+                        {% else %}
+                        <input type="text" name="producto" id="producto" style="width:60%;"  class="form-control" placeholder="Producto"  required>
+                          <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" hx-target="#dialog" onclick="return abrir_modal2('{% url 'search_lookup' keyword=' ' order_number=' ' %}')">
+                              <i class="fa fa-search"></i>
+                              
+                          </div>
+                        {% endif %}
+                        
+                      </div>
+                  </div>
+                  <div class="col form-group"> 
+                      {% if edit_quantity %}
+                          <label>Cantidad:</label>
+                          <input type="text" name="edit_quantity" id="edit_quantity" class="form-control" value="{{ edit_quantity }}" required>
+                      {% else %}
+                      <input type="text" name="edit_quantity" id="edit_quantity" class="form-control" value="{{ edit_quantity }}" required hidden> 
+                      {% endif %}
+                  </div>
+                  <div class="col form-group"> 
+                      {% if edit_precio %}
+                          <label>Precio:</label>
+                          <input type="text" name="edit_precio" id="edit_precio" class="form-control" value="{{ edit_precio }}" enabled>
+                      {% endif %} 
+                  </div>
+                  <div class="col form-group">  
+                    {% if edit_precio %}  
+                        <label>Descueno:</label>
+                        <input type="text" name="edit_descuento" id="edit_descuento" class="form-control" value="{{ edit_descuento }}" enabled> 
+                    {% endif %}
+                  </div>
+                  <div class="col form-group"> 
+                          {% if edit_item_subtotal %}
+                          <label>Subtotal:</label>
+                          <input type="text" name="edit_subtotal" id="edit_subtotal" class="form-control" value="{{ edit_item_subtotal }}" disabled>
+                          <div class="input-group-append">
+                            <pre style='display:inline'  class="float-right"> 
+                            <button class="btn btn-primary" type="submit" >Guardar   <i class="fa fa-save"></i></button>  
+                            </pre>
+                          </div>
+                          {% endif %} 
+                  </div>
+              </div>
+            </form>
+             <br>
+
+              <!-- Table row -->
+              <div class="row">
+                <div class="col-12 table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                    <tr>
+                      <th>Cantidad</th>
+                      <th>Product</th>
+                      <th>Variantes</th>
+                      <th>Subtotal</th>
+                      <th class="all">Acciones</th>
+                      
+                    </tr>
+                    </thead>
+                    <tbody  >
+                    {% for item in ordenes_detalle %}  
+                    <tr>
+                      <td>{{ item.quantity}}</td>
+                      <td>{{ item.product}}</td>
+                      <td>
+                        {% for var in item.variations.all %}
+                          {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
+                        {% endfor %}
+                      </td>
+                      <td>{{ item.product_price }}</td>
+                    
+                       <td>
+                           <a href="{% url 'panel_pedidos_modificar_linea' item.id %}" class="href btn btn-warning btn-circle" title="Editar"><i class="far fa-edit"> </i></a>
+                       </td>
+                        <td>
+                          <a href="{% url 'panel_pedidos_del_detalle'  order_number=ordenes.order_number  id_linea=item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="far fa-trash-alt"></i></a>
+               
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+
+              <div class="row">
+                <!-- accepted payments column -->
+                <div class="col-6">
+                  <p class="lead">
+                    <div class="callout callout-info">
+                      <h5><i class="fas fa-info"></i> </h5>
+                      <div class="col form-group">
+                        <label for="">Observaciones</label>
+                         {{ ordenes.dir_obs }} {{ ordenes.order_note}}
+                        </div>
+                     
+                     
+                    </div>
+                  </p>
+                  
+                </div>
+                <!-- /.col -->
+                <div class="col-6">
+                  <p class="lead"></p>
+
+                  <div class="table-responsive">
+                    <table class="table">
+                      <tr>
+                        <th style="width:50%">Subtotal:</th>
+                        <td>{{ subtotal }}</td>
+                      </tr>
+                    
+                      <tr>
+                        <th>Envio:</th>
+                        <td> <input type="number" step="any" name="envio" id="envio" class="form-control" value="{{ ordenes.envio|floatformat:2|decimal_point }}" maxlength="10"></td>
+                      </tr>
+                      <tr>
+                        <th>Descuentos:</th>
+                        <td> <input type="number" step="any" name="order_total_descuentos" id="order_total_descuentos" class="form-control" value="{{ ordenes.order_total_descuentos|floatformat:2|decimal_point }}" maxlength="10"></td>
+                      </tr>
+                      <tr>
+
+                        {% if canal_venta == 'SI' %}
+                        <tr>
+                          <th>Comisiones:</th>
+                          <td><input type="number" step="any" name="order_total_comisiones" id="order_total_comisiones" class="form-control" value="{{ ordenes.order_total_comisiones|floatformat:2|decimal_point }}" maxlength="10"></td>
+                        </tr>
+                        <tr>
+                          <th>Impuestos:</th>
+                          <td><input type="number" step="any" name="order_total_impuestos" id="order_total_impuestos" class="form-control" value="{{ ordenes.order_total_impuestos|floatformat:2|decimal_point }}" maxlength="10">
+                        </tr>
+
+                        <script>
+                          document.getElementById('order_total_impuestos').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_impuestos').value = newValue;
+                          });
+                          document.getElementById('order_total_comisiones').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_comisiones').value = newValue;
+                          });
+                          document.getElementById('order_total_descuentos').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_order_total_descuentos').value = newValue;
+                          });
+                          document.getElementById('envio').addEventListener('input', function() {
+                              var newValue = this.value;
+                              document.getElementById('enc_envio').value = newValue;
+                          });
+
+                        </script>
+                      
+                      {% endif %}
+
+                        <th>Total:</th>
+                        <td>{{ ordenes.order_total }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+
+              <!-- this row will not appear when printing -->
+              <div class="row no-print">
+                <div class="col-12">
+                  <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
+                 
+                 
+
+                   
+                </div>
+              </div>
+            </div>
+            <!-- /.invoice -->
+
+        
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  
+{% endblock %}
+
+{% block control_modal%}
+<script>
+  function abrir_modal2(url)
+  {
+   
+    var keyword=$('#producto').val();
+    console.log(keyword)
+    if (keyword=="")
+    {
+      keyword="all"
+    }
+    var order_number=$('#order_number').val();
+    console.log(order_number)
+   
+    url = '/panel/producto/search/' + encodeURIComponent(keyword) + '/' + order_number
+  
+    console.log(url)
+   
+    $("#popup").load(url, function(){
+      $(this).modal({
+        backdrop:'static',
+        keyboard: false
+      })
+      $(this).modal('show');
+    });
+    return false;
+  }
+
+  function cerrar_modal()
+  {
+    $('#popup').modal('hide');
+    return false;
+  }
+
+function calcular_detalle()
+  {
+      var cant,prec,stotal;
+
+      cant = $("#edit_quantity").val();
+      cant = parseFloat(cant)
+      cant = cant==="" ? 0 : +cant;
+      cant = cant<0 ? 0 : cant;
+
+      desc =$('#edit_descuento').val();
+      desc = parseFloat(desc)
+      desc = desc==="" ? 0 : +desc;
+      desc = desc<0 ? 0 : desc;
+
+
+      prec =$('#edit_precio').val();
+      prec = parseFloat(prec)
+      prec = prec==="" ? 0 : +prec;
+      prec = prec<0 ? 0 : prec;
+      
+      
+
+      stotal = cant * prec;
+      tot_desc = cant * desc;
+      stotal = stotal - tot_desc;
+     
+      $('#edit_quantity').val(cant);
+      $('#edit_precio').val(prec);
+      $('#edit_descuento').val(desc);
+      
+      $('#edit_subtotal').val(stotal);
+      
+
+      console.log("Cantidad " + cant);
+      console.log("prec " + prec);
+      console.log("desc " + desc);
+      console.log("subtotal " + $('#edit_subtotal').val());
+   
+
+   }
+  
+  function mensaje(msg,color='green')
+  {
+    if (color=="success")
+    {
+      color="green";
+    }
+    if (color=="error")
+    {
+      color="red";
+    }
+
+
+    $.alert({
+      title:'',
+      theme:'material',
+      type:color,
+      content:msg
+    });
+  }
+
+  {% if messages %}
+    {% for message in messages %}
+      console.log("{{ message.tags }}");
+      mensaje("{{ message }}","{{ message.tags }}");
+    {% endfor %}
+  {% endif %}
+
+
+$('#edit_quantity,#edit_precio,#edit_descuento').change(function(){
+            calcular_detalle();
+        });
+
+</script>
+
+{% endblock%}

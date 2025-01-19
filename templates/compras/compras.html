@@ -1,0 +1,88 @@
+
+
+{% extends 'panel/base.html' %}
+{% load static %}
+{% block page_content %}
+
+  <form id="compras" name="compras" action="{% url 'compras_save'  %}" enctype="multipart/form-data" method="POST">
+  {% csrf_token %}
+  <div class="card-body login-card-body">
+
+      <div style="width:1500px; margin:0 auto;">
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <!-- left column -->
+              <div class="col-md-8">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Solicitud de Compras de USD <b>  </b></h3>
+                    <input type="number" id="idcompra" name="idcompra" class="form-control" value="{{ idcompra }}" hidden>
+                    
+                  </div>
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                 
+
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="fecha">Fecha Solicitud:</label>
+                    </div>
+                    <input type="text"  onblur="validar(this)" name="fecha" id="fecha"  value="{{ fecha|date:'Y-m-d' }}"required />
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="cuenta">Cuenta:</label>
+                    </div>
+                      <select class="custom-select" id="cuenta" name="cuenta">
+                        {% for item in cuentas %}
+                            {% if item.id == orden.cuenta %}
+                            <option value="{{ item.id }}" selected>{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% else %}
+                            <option value="{{ item.id }}">{{ item.nombre }} - {{ item.moneda.moneda }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="monto">Monto Solicitado:</label>
+                    </div>
+                    <input type="text" name="monto" id="monto" class="form-control" value="0" required >
+                  </div>
+                  <!-- / .card-body -->
+                  <div class="card-footer">
+                    <button type="submit" class="btn btn-success">Confirmar Solicitud</button>
+                    <a href="#" class="btn btn-secondary">Cancelar</a>
+                  </div>
+              
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block js_page %}
+
+
+<script>
+
+  $(function () {
+
+       $("#fecha, #fecha").datetimepicker({
+           format: 'Y-m-d',
+           timepicker:false
+       });
+
+      });
+
+  
+</script>
+{% endblock %}

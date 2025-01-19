@@ -1,23 +1,31 @@
 {% extends 'panel/base.html' %}
-
+{% load custom_filters %}
 
 {% block page_content %}
 
 
-<div class="card shadow mb-6">
+<div class="card shadow mb-1">
   <!-- Card Header - Dropdown -->
-  <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-2 font-weight-bold text-primary " >PANEL DE PEDIDOS - {{ cantidad }}</h6>
-  
-      {% csrf_token %}
-        <div class="dropdown no-arrow">Desde:
-          <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />
-                Hasta:<input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta}}"/>
-                
-                <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+    <h6 class="m-1 font-weight-bold text-primary " >PANEL DE PEDIDOS - {{ cantidad }}</h6>
+        <div class="dropdown no-arrow">
+        <form action="{% url 'panel_pedidos' status %}" enctype="multipart/form-data" method="POST">
+         {% csrf_token %}
+         Desde:
+          <input type="text"  onblur="validar(this)" name="fecha_desde" id="fecha_desde"  value="{{ fecha_desde}}" />Hasta:
+          <input type="text"  onblur="validar(this)" name="fecha_hasta" id="fecha_hasta"  value="{{ fecha_hasta}}"/>
+          <button type="submit" class="btn btn-primary"> <i class="fas fa-search"></i></button>
+        </form>
+        <!-- Form Export-->
+        <form action="{% url 'mov_export_xls' 2 %}" enctype="multipart/form-data" method="POST">
+          {% csrf_token %}
+            <input type="text"  onblur="validar(this)" name="fechadesde" id="fechadesde"  value="{{ fecha_desde}}" hidden/>
+            <input type="text"  onblur="validar(this)" name="fechahasta" id="fechahasta"  value="{{ fecha_hasta}}" hidden/>
+            <button type="submit" class="btn btn-secondary" style="float: right;">Exportar xls</button>
+        </form>
+                   
         </div>
-      </form>
+     
   </div>
     
   <div class="container-fluid">
@@ -30,7 +38,7 @@
               <div class="col mr-2">
                 <a href="{% url 'panel_pedidos' 'New'  %}">
                   <div class="text-s font-weight-bold text-primary text-uppercase mb-1"> Pend de Facturar {{ cantidad_new }}</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_new}} </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ amount_new|format_currency }} </div>
                 
               </a>
               </div>
@@ -49,7 +57,7 @@
             <div class="col mr-2">
               <a href="{% url 'panel_pedidos' 'Cobrado'  %}">
                 <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Pend de Entregar {{ cantidad_cobrado}}</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_cobrado}} </div>           
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ amount_cobrado|format_currency}} </div>           
             </a>
             </div>
             <div class="col-auto">
@@ -61,14 +69,14 @@
     </div>
 
 
-    <div class="col-xl-3 col-md-6 mb-4">
+  <div class="col-xl-3 col-md-6 mb-4">
       <div class="card border-left-success shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
             <a href="{% url 'panel_pedidos' 'Entregado'  %}">
               <div class="text-s font-weight-bold text-primary text-uppercase mb-1">Entregados {{ cantidad_entregado}}</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ amount_entregado }}  </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ amount_entregado|format_currency }}  </div>
             
           </a>
           </div>
@@ -97,6 +105,7 @@
 
     <table 
       id="table"
+      style="font-size: 13px;"
       data-toggle="table"
       data-pagination="false"
       data-search="true"
@@ -107,15 +116,19 @@
       data-locale="es-AR"
     >
       <thead>
-          <th class="all">Acciones</th>  
+          <th class="all">Acciones</th>
+          {% if canal_venta == 'SI' %}
+          <th data-sortable="true" data-field="origen_venta">Canal de Venta</th>
+          {% endif %}  
           <th data-sortable="true" data-field="order_number">Nro</th>
           <th data-sortable="true" data-field="first_name">Nombre</th>
           <th data-sortable="true" data-field="last_name">Apellido</th>   
-          <th data-sortable="true" data-field="phone">phone</th>
-          <th data-sortable="true" data-field="email">email</th>
-          <th data-sortable="true" data-field="order_total">order_total</th>
-          <th data-sortable="true" data-field="status">status</th>
+          <th data-sortable="true" data-field="phone">Tel</th>
+          <th data-sortable="true" data-field="email">Cuenta</th>
+          <th data-sortable="true" data-field="order_total">Total</th>
+          <th data-sortable="true" data-field="status">Estado</th>
           <th data-sortable="true" data-field="fecha">Fecha </th>
+          <th data-sortable="true" data-field="nro_tracking">Tracking </th>
          
 
       </thead>
@@ -126,25 +139,60 @@
         <tr>
           <td >
             {% if item.status == 'New' %}
-             <i class="href btn btn-primary btn-circle"><i class="fas fa-dollar-sign"></i></i>
+             <i class="href btn btn-primary btn-circle"><i class="fas fa-dollar-sign"></i>
             {% endif %}
             {% if item.status == 'Cobrado' %}
-             <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i></i>
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-truck"></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-truck"></i>
+              {% endif %}
             {% endif %}
             {% if item.status == 'Entregado' %}
-            <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i></i>
+              {% if item.nro_tracking %}
+                  <i class="href btn btn-success btn-circle"><i class="fas fa-edit"></i>
+              {% else %}
+                  <i class="href btn btn-warning btn-circle"><i class="fas fa-edit"></i>
+              {% endif %}
             {% endif %}
-          
-          </div>
+            
           </td>
+          {% if canal_venta == 'SI' %}
+          <td class="text-center">
+            <span class="badge bg-primary text-white">{{ item.origen_venta }} </span>
+          </td>
+          {% endif %}
+          
           <td><b><a href="{% url 'panel_pedidos_detalle' item.order_number %}">{{ item.order_number }}</a></b></td>
           <td>{{ item.first_name }} </td> 
           <td>{{ item.last_name }}</td>
           <td>{{ item.dir_telefono }}</td>
-          <td>{{ item.email }}</td>
-          <td>$ {{ item.order_total }} </td>
-          <td>{{ item.status }}</td>
+
+          {% if item.cuenta != 0 %}
+            {% for i in cuenta %}
+              {% if i.id == item.cuenta %}
+                <td>{{ i.nombre }}</td>
+              {% endif %}
+            {% endfor %}
+          {% else%}
+           <td>Pendiente</td>
+          {% endif %}     
+
+
+          
+          <td>{{ item.order_total|format_currency }} </td>
+          {% if item.status == "New" %}
+            <td class="text-center"><span class="badge bg-primary text-white">{{ item.status }}</span></td>
+          {% elif item.status == "Cobrado" %}
+            <td class="text-center"><span class="badge bg-warning text-white">{{ item.status }}</span></td>
+          {% elif item.status == "Entregado" %}
+            <td class="text-center"><span class="badge bg-success text-white">{{ item.status }}</span></td>
+          {% else %}
+            <td class="text-center"><span class="badge bg-secondary text-white">{{ item.status }}</span></td>
+          {% endif %}
+          
           <td>{{ item.fecha | date:"d/m/Y"  }}</td>
+          <td>{{ item.nro_tracking  }}</td>
           
           
         </tr>
@@ -154,16 +202,4 @@
     </table>
   </div>
 </div>
-{% endblock %}
-{% block js_page %}
-<script>
-$(function () {
-
-  $("#fecha_desde, #fecha_hasta").datetimepicker({
-    format: 'd/m/Y',
-    timepicker:false
-    });
-  });
-
-</script>
 {% endblock %}

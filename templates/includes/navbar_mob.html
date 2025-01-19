@@ -1,0 +1,268 @@
+{% load static %}
+ 
+  <div class="container-fluid" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:10px;font-weight: 600;position:sticky;top:0;z-index:999;">
+  <a href="#" style="color:black;text-transform: uppercase;letter-spacing: 2px;">
+    BIENVENIDO AL CATALOGO MAYORISTA</a>
+  </div> <!-- container //  -->
+
+
+ <script>
+  
+    var logo = document.getElementById('img_logo');
+    window.addEventListener('scroll',()=> {
+	  
+    var scroll  = window.scrollY
+  	if (scroll>10) {
+	  	logo.style.visibility=false;
+    } else {
+      logo.style.visibility=true;
+    }
+  });
+
+
+ </script> 
+ 
+<header class="section-header" style="text-align:center;background-image: linear-gradient(to right, white , white);padding:0px;font-weight: 600;position:sticky;top:0;z-index:999;">
+
+  <style>
+
+      #TopDiv {
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+      #TopDiv_light {
+          transition: opacity 0.5s ease, visibility 0.5s ease;
+          opacity: 1;
+          visibility: visible;
+        }
+        .hidden {
+          opacity: 0;
+          visibility: hidden;
+        }
+    
+</style>
+
+
+  <div id="TopDiv" class="container">
+      <div  class="row">
+        <div class="col">
+          <div class="filter_menu align-items-left">
+            <div class="input-group-prepend p-1">	
+                
+                 <select name="filtro-cat" id="filtro-cat" class="form-control">
+                 {% if not category_name %}
+                   <option selected disabled value="">Filtros</option>
+                 {% else %}
+                   <option  select value="category/{{ category.slug}}/">{{ category_name }}</option>
+                 {% endif %}
+                 {% for category in links %}
+                     <option  value="category/{{ category.slug}}/">{{ category.category_name }}</option>
+                   
+                 {% endfor %}
+               </select>
+            </div>
+             <div class="input-group-prepend p-1">	
+              
+<!--                    <select id="filtro-subcat" name="filtro-subcat" class="form-control" style="border: 2px solid #ffd700; border-radius: 4px; padding: 10px; width: 100%; margin-bottom: 20px;">
+-->                 <select name="filtro-subcat" id="filtro-subcat" class="form-control">  
+                     {% if not sub_category_name %}
+                        <option selected disabled value=""> -- Seleccione -- </option>
+                     {% else %}
+                        <option selected value="{{subcategory.sub_category_slug}}/">{{ sub_category_name }}</option>		
+                      {% endif %}
+                      {% for subcategory in subcategories %}
+                          <option value="{{subcategory.sub_category_slug}}/">{{ subcategory.subcategory_name }}</option>		
+                      {% endfor%}
+                     </select>
+
+                     <script>
+                      // JavaScript para cambiar el color del borde y crear la animación
+                      const combo = document.getElementById('filtro-subcat');
+                      let borderColor = '#ffd700';  // Color inicial del borde
+                      let alternateColor = '#ff4500';  // Segundo color para el parpadeo
+              
+                      setInterval(() => {
+                          // Alternar entre el color inicial y el color alternativo
+                          combo.style.borderColor = combo.style.borderColor === borderColor ? alternateColor : borderColor;
+                      }, 500); // Cambiar cada 500 ms para crear el efecto de parpadeo
+                  </script>
+             </div>
+          </div> 
+        </div>
+        <div class="col">
+          <div class="filter_menu align-items-right">
+            <div class="input-group-prepend flex-column p-1">	
+              <a href="{% url 'cart' %}" class="btn btn-primary"> 	
+                <span><i class="fa fa-shopping-cart"></i>  CARRITO &nbsp ({{cart_count}})</span>
+              </a>
+            </div>
+             <div class="input-group-prepend p-1">	
+                   
+                <form action="{% url 'search' %}" class="search" method='GET'>
+                  <div class="input-group-append" >
+                      <input type="text" class="form-control"  placeholder="Search" name="keyword"  required>
+                      <div class="input-group-append">
+                          <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                          </button>
+                      </div>
+                    </div>
+                </form>  
+             </div>
+        </div>       
+      </div>
+  </div>
+
+  <!--  DIV 2 PARA SCROLL  *************************-->
+  
+  <div id="TopDiv_light" class="container text-right">
+    <div  class="row">
+      <div class="col">
+        <div class="filter_menu align-items-left">
+          <div class="input-group-prepend p-1">	
+              
+              <select name="filtro-cat" id="filtro-cat" class="form-control">
+              {% if not category_name %}
+                <option selected disabled value="">Filtros</option>
+              {% else %}
+                <option  select value="category/{{ category.slug}}/">{{ category_name }}</option>
+              {% endif %}
+              {% for category in links %}
+                  <option  value="category/{{ category.slug}}/">{{ category.category_name }}</option>
+                
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group-prepend p-1">	
+                
+                  <select name="filtro-subcat" id="filtro-subcat" class="form-control">
+                    {% if not sub_category_name %}
+                      <option selected disabled value=""> -- Seleccione -- </option>
+                  {% else %}
+                      <option selected value="{{subcategory.sub_category_slug}}/">{{ sub_category_name }}</option>		
+                    {% endif %}
+                    {% for subcategory in subcategories %}
+                        <option value="{{subcategory.sub_category_slug}}/">{{ subcategory.subcategory_name }}</option>		
+                    {% endfor%}
+                  </select>
+          </div>
+        </div> 
+      </div>
+      <div class="col">
+        <div class="filter_menu align-items-right">
+          <div class="input-group-prepend flex-column p-1">	
+            <a href="{% url 'cart' %}" class="btn btn-primary"> 	
+              <span><i class="fa fa-shopping-cart"></i>  CARRITO &nbsp ({{cart_count}})</span>
+            </a>
+          </div>
+          <div class="input-group-prepend p-1">	
+                
+              <form action="{% url 'search' %}" class="search" method='GET'>
+                <div class="input-group-append" >
+                    <input type="text" class="form-control"  placeholder="Search" name="keyword"  required>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                          <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                  </div>
+              </form>  
+          </div>
+      </div>       
+      </div>
+    </div>
+  </div>  
+  <!--  FIN DIV 2 PARA SCROLL *********************-->
+<span><input type="text" value="{{category_slug }}" id="cat_slug" nameid="cat_slug" hidden><br></span>
+<div class="row">
+  <div class="col ">
+<!--    <header class="border-bottom mb-4 pb-3">-->
+      <div class="form-inline">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            {% if category_name %} 
+            <li class="breadcrumb-item"><a href="{% url 'products_by_category' category_slug %}">{{category_name}}</a></li>
+            {% endif %}
+            {% if sub_category_name %}	
+            <li class="breadcrumb-item active" aria-current="page">{{sub_category_name}}</li>
+            {% endif %}
+          </ol>          
+        </nav>
+      </div>
+    <!-- </header> sect-heading -->
+    
+  </div>
+</div>
+
+</header> <!-- section-header.// -->
+	<!-- ========================= FOOTER END // ========================= -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+   
+
+  //document.addEventListener('scroll', function() {
+  //  const div = document.getElementById('TopDiv');
+  //  const div2 = document.getElementById('TopDiv_light');
+
+ //   if (window.scrollY === 0) {
+ //       div.classList.remove('hidden');
+ //       div2.classList.add('hidden');
+ //   } else {
+ //       div.classList.add('hidden');
+ //       div2.classList.remove('hidden');
+ //   }
+//});
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const div2 = document.getElementById('TopDiv_light');
+   div2.classList.add('hidden');
+});
+  
+    
+$(function () {
+
+        $("#filtro-cat").change(function() {
+           //console.log($("#filtros").val());
+		   var filtro=$('#filtro-cat').val();
+		   //console.log("origin")
+           //console.log(window.location.origin)  //subcategory
+		   //console.log("pathname")
+		   //console.log(window.location.pathname) //Localhost
+		   //console.log("filtro")
+		   //console.log(filtro)
+		   url = window.location.origin + '/store/' + filtro
+		   //console.log("url")  
+		   //console.log(url)
+		   window.location.href = url
+		   
+		   
+        });
+
+		$("#filtro-subcat").change(function() {
+           //console.log($("#filtros").val());
+		   var subcat=$('#filtro-subcat').val();
+		   var cat=$('#cat_slug').val();
+		   
+		   
+		   url = window.location.origin + '/store/category/' + cat + '/' + subcat
+		   console.log("url")  
+		   console.log(url)
+		   window.location.href = url
+		   
+		   
+        });
+  
+		
+});
+  </script>
+  </body>
+  </html>
+
+

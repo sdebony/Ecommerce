@@ -1,0 +1,66 @@
+
+{% extends 'panel/base.html' %}
+
+{% block page_content %}
+
+
+<div class="card shadow mb-4">
+  <!-- Card Header - Dropdown -->
+  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <h6 class="m-2 font-weight-bold text-primary " >Lista de Proveedores</h6>
+    </div>
+    
+     
+  <div class="buttons-toolbar">
+      <a class="btn btn-primary" href="{% url 'proveedores_add' %}"><i class="fa fa-plus"></i> Nuevo</a>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    {% if not proveedores %}
+        <div class="alert alert-info">No se encontraron proveedores</div>
+    {% endif %}
+        
+
+    <table 
+      id="table"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="false"
+      data-show-toggle="false"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    >
+      <thead>
+        
+          <th data-sortable="true" data-field="nombre">Nombre</th>
+          <th data-sortable="true" data-field="direccion">Direccion</th>   
+          <th data-sortable="true" data-field="telefono">Telefono 1</th>
+          <th data-sortable="false" data-field="email">Email</th>
+          <th data-sortable="false" data-field="">Acciones</th>
+         
+      </thead>
+      <tbody>
+        {% for item in proveedores %}
+          <tr>
+            
+            <td><a href="{% url 'proveedor_list_articulos' item.id %}">{{ item.nombre }}</a></td> 
+            <td>{{ item.direccion }}</td> 
+            <td>{{ item.telefono1 }}</td> 
+            <td>{{ item.email }}</td> 
+            <td >         
+              <a href="{% url 'proveedores_update' item.id  %}" class="href btn btn-warning btn-circle" title="Modificar"><i class="fa fa-edit" aria-hidden="true"></i></a>
+              <a href="{% url 'proveedores_del' item.id %}" class="href btn btn-danger btn-circle" title="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></a>
+          </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block js_page %}
+{% endblock %}

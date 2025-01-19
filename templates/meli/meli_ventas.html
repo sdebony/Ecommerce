@@ -1,0 +1,80 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+
+<div class="card shadow mb-6">
+  <!-- Card Header - Dropdown -->
+ 
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <h1 class="h3 mb-6 text-gray-800">Mis Ventas - {{ cantidad_ventas }} </h1>
+     
+    </div>
+    
+      
+    <div class="card-body">
+        {% if ventas %}
+
+        <table 
+      id="dataTable"
+      style="font-size: 13px;"
+      data-toggle="table"
+      data-pagination="false"
+      data-search="true"
+      data-show-columns="true"
+      data-show-toggle="true"
+      data-show-fullscreen="false"
+      data-toolbar=".buttons-toolbar"
+      data-locale="es-AR"
+    > 
+       
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th data-sortable="true" scope="col">Ventas ID</th>
+                    <th data-sortable="true" scope="col">Fecha</th>
+                    <th data-sortable="true" scope="col">Estado</th>
+                    <th data-sortable="true" scope="col">Total Pagado</th>
+                    <th data-sortable="true" scope="col">Costo de envio</th>
+                    <th data-sortable="true" scope="col">Total Comision</th>
+                    <th data-sortable="true" scope="col">Total a Cobrar</th>
+                   
+                    
+                    <th data-sortable="true" scope="col">Comprador</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+
+                       
+                        {% for venta in ventas %}
+                        <tr> 
+                            <th><a href="{% url 'meli_ventas_detalle' venta.id %}">{{ venta.id }} </a>
+                            {% if venta.existe_en_bd %}
+                                <span class="badge bg-success text-white">Ingresada</span>
+                            {% else %}
+                                <span class="badge bg-primary text-white">Nueva</span>
+                            {% endif %}
+                             </th>
+                            <th>{{ venta.date_created|format_iso_date }} </th>
+                            <th>{{ venta.tags|last  }}</th>
+                            <th>{{ venta.total_amount|format_currency }}</th>
+                            <th>{{ venta.payments.0.shipping_cost|format_currency }}</th>
+                            <th>{{ venta.total_comision|format_currency }}</th>
+                            <th>{{ venta.total_calculado|format_currency }}</th>
+                            <th>{{ venta.buyer.nickname }}</th>
+                                
+                            
+                            
+                        </tr>
+                        {% endfor %}
+                
+                        
+            </thead>
+        </table>
+        {% endif %}
+    </div>
+</div>  
+
+{% endblock%}

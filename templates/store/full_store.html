@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<!-- ========================= SECTION PAGETOP 
+ VERSION PC FULL SCREEN
+========================= -->
+<!-- ========================= SECTION INTRO END// ========================= -->
+<head>
+	<style>
+        img:hover {
+            transform: scale(1.4);
+        }
+        .badge {
+        margin-top: 10px; /* Ajusta el espacio desde la parte superior */
+        margin-right: 10px; /* Ajusta el espacio desde la parte derecha */
+    }
+    </style>
+	
+</head>
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-content padding-y">
+	
+<div class="container">
+	
+<div class="row">
+	<aside class="col-md-3">
+		
+<div class="card">
+	<article class="filter-group">
+		<header class="card-header">
+			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
+				<i class="icon-control fa fa-chevron-down"></i>
+				<h6 class="title">Categorias</h6>
+			</a>
+		</header>
+		<div class="filter-content collapse show" id="collapse_1" style="">
+			<div class="card-body">
+
+				<ul class="list-menu">
+			<!--		<li><a href="{% url 'store' %}">All Products  </a></li>
+			-->		{% for category in links %}
+						<li>
+						<!--	<a href="{{ category.get_url }}">{{ category.category_name }}  </a> -->
+							<a data-toggle="collapse" href="#{{ category.slug }}"  aria-expanded="true" aria-controls="{{ category.slug }}">
+								<strong>{{ category.category_name }} </strong>
+							  </a><ul>
+							  {% for subcategory in sub_links %}
+									{% if subcategory.category == category %}
+							 		<div class="collapse" id="{{ category.slug }}">
+										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}"> {{ subcategory.subcategory_name }}  </a></li> 
+									</div>
+									{% endif %}
+							   {% endfor%}
+								</ul>
+						</li>
+						
+
+					{% endfor %}
+				</ul>
+
+			</div> <!-- card-body.// -->
+		</div>
+	</article> <!-- filter-group  .// -->
+
+</div> <!-- card.// -->
+
+	</aside> <!-- col.// -->
+	<!-- <main class="col-md-9">  -->
+	<main class="col-md-9">
+
+<header class="border-bottom mb-4 pb-3">
+	
+		<div class="form-inline">
+			<span class="mr-md-auto"><b>{{ product_count }}</b> Articulo/s Encontrado/s </span>
+			
+		</div>
+</header><!-- sect-heading -->
+
+<div class="row">
+	{% if products %}
+	{% for product in products %}
+	<div class="col-md-4">
+		
+		<form action="{% url 'add_cart' product.id %}" enctype="multipart/form-data" method="POST">
+			{% csrf_token %}
+			
+
+
+
+		<input type="text" class="form-control form-control-sm"  id="ruta" name="ruta" value="{{ request.path }}" hidden >
+		<figure class="card card-product-grid">
+			<section id="{{product.id}}">
+				<a href="{{ product.get_url }}" class="title" style="text-decoration: none; color: inherit;" onclick="guardarRutaYPosicion(event, '{{ product.get_url }}')">
+						
+					<div class="img-wrap">
+							{% if product.images %}
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/{{product.imgfile}}" loading="lazy">
+							{% else %}
+								<img class="lazyload" src="https://yourfiles.cloud/uploads/none.jpg" loading="lazy">
+							{% endif %}
+					</div> <!-- img-wrap.// -->
+					{% if product.tiene_descuento %}
+					<!-- Globito de promoción con el texto y el ícono alineado arriba a la derecha -->
+					<span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-primary" style="font-size: 1.5rem; padding: 0.5rem 1rem;">
+						{{ product.porcenteje_descuento | format_integer_def  }} %
+					</span>
+					{% endif %}
+
+					<figcaption class="info-wrap p-1">
+						<div class="fix-start P-1 text-wrap">
+							
+								<span class="text-muted small" style="font-size: 15px">{{ product.desc_item_large | capfirst | truncatechars:70 }}</span>
+					</div>
+				</a>
+				{% if product.stock > 0 %}
+				<div class="input-group-prepend p-1">
+					<span class="input-group-text" style="font-size: 15px">$ {{ product.price }}</span>	 
+					<input type="number" class="form-control form-control-sm d-flex"  id="quantity" name="quantity" value="1" >  <!--  onchange="this.form.submit()  -->
+					<input type="text" class="form-control form-control-sm"  id="volver_store" name="volver_store" value="1" hidden>
+					<!-- <button type="submit" class="btn  btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop"   readonly="readonly"> -->
+					<button type="submit" class="btn  btn-primary btn-sm">						
+						
+						<i class="fa fa-shopping-cart"></i>
+					</button>
+				</div>
+				{% else %}
+				<div class="input-group-prepend">	
+					<h5 class="text-danger">Sin Stock</h5>
+				</div>
+				{% endif %}
+				<!--	
+				<button type="submit" class="btn  btn-primary"  data-toggle="modal" data-target="#staticBackdrop" readonly="readonly">
+				 <span class="text">Agregar </span> <i class="fa fa-shopping-cart"></i> </button>
+			
+		-->		 
+
+			</figcaption>
+			</section>
+		</figure>
+		</form>
+	</div> <!-- col.// -->
+	{% endfor %}
+	{% else %}
+	<div>
+		<h2>No se encontraron articulos disponibles.</h2>
+	</div>
+	
+	{% endif %}
+
+</div> <!-- row end.// -->
+
+
+<nav class="mt-4" aria-label="Page navigation sample">
+	{% if products.has_other_pages %}
+	  <ul class="pagination">
+			{% if products.has_previous %}
+	    <li class="page-item"><a class="page-link" href="?page={{products.previous_page_number}}">Anterior</a></li>
+			{% else %}
+			<li class="page-item disabled"><a class="page-link" href="#">Anterior</a></li>
+			{% endif %}
+
+			{% for i in products.paginator.page_range %}
+				{% if products.number == i %}
+	    		<li class="page-item active"><a class="page-link" href="#">{{i}}</a></li>
+				{% else %}
+					<li class="page-item"><a class="page-link" href="?page={{i}}">{{i}}</a></li>
+				{% endif %}
+	    {% endfor %}
+
+			{% if products.has_next %}
+	    	<li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}">Siguiente</a></li>
+			{% else %}
+				<li class="page-item disabled"><a class="page-link" href="#">Siguiente</a></li>
+			{% endif %}
+	  </ul>
+	{% endif %}
+</nav>
+
+	</main> <!-- col.// -->
+
+</div>
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+{% if messages %}
+<dialog id="modal" class="modal-dialog-center modal-auto-clear modal-sm"><h2><i class="fa fa-shopping-cart"></i> <span> - Carrito </span> </h2>
+	<button id="btn_abrir_modal" hidden></button>
+				
+	
+		{% if messages %}
+			{% for message in messages %}
+			<div id="message_close" > <!-- class="container"-->
+				<div {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %} role="alert">
+					{{ message }}
+				</div>
+				
+			</div>
+			{% endfor %}
+		{% endif %}
+	
+	<button id="btn_cerrar_modal" class="btn-btn-primary">Cerrar</button>
+				
+</dialog>
+{% endif %}
+
+
+</body>
+
+
+
+<script>
+	
+function guardarRutaYPosicion(event, url) {
+  event.preventDefault(); // Evita el comportamiento predeterminado del enlace
+
+
+  // Si ya existe una rutaAnterior, la eliminamos
+  if (sessionStorage.getItem('rutaAnterior')) {
+    sessionStorage.removeItem('rutaAnterior');
+  }
+  
+  // Guarda la nueva ruta actual
+  const urlActual = window.location.href;
+  
+  sessionStorage.setItem('rutaAnterior', urlActual);
+  // Guarda la posición de desplazamiento
+ 
+  sessionStorage.setItem('posicionScroll', window.scrollY);
+  
+
+  // Redirige a la nueva URL
+  window.location.href = url; // Navega a la nueva URL
+}
+
+
+</script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+	  const posicionScroll = sessionStorage.getItem('posicionScroll');
+	  if (posicionScroll) {
+		window.scrollTo(0, posicionScroll); // Restaura la posición guardada
+		sessionStorage.removeItem('posicionScroll');
+	  }
+	  
+	  
+	});
+
+	window.addEventListener('load', function() {
+    Modal.showModal();
+    setTimeout(() => {
+        Modal.close(); // Cierra el modal después de 2 segundos
+    }, 1200); // Tiempo en milisegundos
+});
+
+  </script>
+  
+
+<script>
+	const btnAbrirModal = document.querySelector("#btn_abrir_modal");
+    const btnCerrarModal = document.querySelector("#btn_cerrar_modal");
+    const Modal = document.querySelector("#modal");
+
+    btnAbrirModal.addEventListener("click", () => {
+        Modal.showModal();
+        setTimeout(() => {
+            Modal.close();
+        }, 1200);
+    });
+
+    btnCerrarModal.addEventListener("click", () => {
+        Modal.close();
+    });
+
+    window.addEventListener('load', function() {
+        Modal.showModal();
+        setTimeout(() => {
+            Modal.close(); // Cierra el modal después de 2 segundos
+        }, 1200); // Tiempo en milisegundos
+    });
+	
+</script>
+{% endblock %}

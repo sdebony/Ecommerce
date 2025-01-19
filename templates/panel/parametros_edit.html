@@ -1,0 +1,65 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+<section class="section-conten padding-y bg">
+
+<div class="container">
+	<div class="row">
+	<main class="col-md-9">
+		<article class="card">
+            <header class="card-header">
+                <center><strong class="d-inline-block mr-3"><h4>Parametros - {{ param.codigo}} - {{ param.nombre }}  </h4></strong></center>
+
+            </header>
+            <div class="card-body">
+                <form id="dolar" name="dolar" action="{% url 'panel_margen_edit' param.id  %}" enctype="multipart/form-data" method="POST">
+                    {% csrf_token %}
+                    <input type="text" name="idparam"  class="form-control" value="{{ param.id}}" required hidden >
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Nombre</label>
+                                    <b>{{ param.nombre }} </b>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>codigo</label>
+                                    <b>{{param.codigo}} </b>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Valor</label> <b>{{param.tipo_valor}} </b>
+                                    <input type="number" step="any" class="form-control" name="valor" id="valor"  value="{{ param.valor|format_number }}" required>
+                                    
+                                </div>
+                                
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <label>Descripción</label>
+                                    {{param.descripcion}}
+                                    
+                                </div>
+                            </div>
+
+
+                            <button type="submit" class="btn btn-primary"><span class=""></span> Guardar </button>
+                            <a href="{% url 'panel_config_margen' %}" class="btn btn-secondary">Volver</a>
+                        </div> <!-- row.// -->
+                    </div> <!-- card-body .// -->
+                </form>
+            </div>
+		</article>
+	</main>
+    </div> <!-- row.// -->
+</div>
+</section>
+
+
+
+{% endblock %}
+

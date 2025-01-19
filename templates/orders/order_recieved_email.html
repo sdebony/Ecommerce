@@ -1,124 +1,185 @@
-{% autoescape off %}
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Pedido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
 
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
 
-  <title>Lifche</title>
+        img.logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .order-info {
+            margin-bottom: 20px;
+        }
+
+        .order-info p {
+            margin: 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
 </head>
 
-<body id="page-top" class="bg-gradient-primary">
-Hola {{user.first_name}},
+<body>
+    <div class="container">
+        <!-- Logo de la compañía -->
+        <div class="invoice-logo"><img src="https://yourfiles.cloud/uploads/557f3d304da1d7f8b14311d30e57249b/logo.png" alt="Lifche" class="logo"></div>
 
+        <h1>Detalle del Pedido</h1>
 
-<div class="container" style="margin: 0 auto;width: 50%;padding: 50px;background: #f1f1f1;margin-top: 50px;margin-bottom: 50px;">
-    <div class="row invoice row-printable">
-        <div class="col-md-12">
-            <!-- col-lg-12 start here -->
-            <div class="panel panel-default plain" id="dash_0">
-                <!-- Start .panel -->
-                <div class="panel-body p30">
-                    <div class="row">
-                        <!-- Start .row -->
-                        <div class="col-lg-6">
-                            <!-- col-lg-6 start here -->
-                            <div class="invoice-logo"><img src="logo.png" alt="Lifche" style="max-height: 40px;"></div>
-                        </div>
-                        <!-- col-lg-6 end here -->
-                        <div class="col-lg-6">
-                            <!-- col-lg-6 start here -->
-                            <div class="invoice-from">
-                                <ul class="list-unstyled text-right">
-                                    <li><strong>Cliente:</strong></li>
-                                    <li>{{order.full_name}}</li>
-                                    <li>{{order.full_address}}</li>
-                                    <li>{{order.dir_localidad}}, {{order.dir_provincia}}</li>
-                                    <li>{{order.dir_cp}}</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <!-- col-lg-6 end here -->
-                        <div class="col-lg-12">
-                            <!-- col-lg-12 start here -->
-                            <div class="invoice-details mt25">
-                                <div class="well">
-                                    <ul class="list-unstyled mb0">
-                                        <li><strong>Order</strong> #{{order_number}}</li>
-                                        <li><strong>Transaction ID</strong> {{transID}}</li>
-                                        <li><strong>Order Date:</strong> {{order.created_at}}</li>
-                                        <li><strong>Status:</strong> {{payment.status}}</li>
-                                    </ul>
-                                </div>
-                            </div>
+        <!-- Información del pedido -->
+        <div class="order-info">
+            <p><strong>Nombre del Cliente:</strong> {{order.full_name}}</p>
+            <p><strong>Nro de Pedido:</strong> {{order_number}}</p>
+            <p><strong>Fecha:</strong>{{order.created_at|date:'d/m/Y'}}</p>
+        
+            <p><strong>
+                {% if order.dir_correo == 1 %}
+                    OCA - 
+                {% endif %}
+                {% if order.dir_correo == 2 %}
+                    Correo Argentino - 
+                {% endif %}
+                {% if order.dir_correo == 3 %}
+                    Retira Cliente - 
+                {% endif %}
+            
+                {% if order.dir_tipocorreo == 2 %}
+                    Retiro en Sucursal - 
+                {% endif %}
+                {% if order.dir_tipocorreo == 1 %}
+                    Envio a Domicilio - 
+                {% endif %}
+                
+            </strong></p> <strong>{{ order.dir_nombre }}</strong>
+            {% if order.dir_tipoenvio == 1 %}
+            <p class="card-text mb-0 fw-bold">Tipo envio: <strong>Clásico</strong></p>
+            {% elif order.dir_tipoenvio == 2 %}
+            <p class="card-text mb-0 fw-bold">Tipo envio: <strong>Expreso</strong></p>
+            {% else %}
+            <p class="card-text mb-0 fw-bold"><strong>{{ order.dir_nombre }}</strong></p>
+            {% endif %}
 
-                            <div class="invoice-items">
-                                <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th class="per70 text-center">Producto</th>
-                                                <th class="per5 text-center">Cantidad</th>
-                                                <th class="per25 text-center">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                          {% for item in ordered_products %}
-                                            <tr>
-                                                <td>{{item.product.product_name}}
-                                                  <p class="text-muted small">
-                                          					{% if item.variations.all %}
-                                          						{% for i in item.variations.all %}
-                                          							{{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
-                                          						{% endfor %}
-                                          					{% endif %}
-                                          				</p>
-                                                </td>
-                                                <td class="text-center">{{item.quantity}}</td>
-                                                <td class="text-center">$ {{item.product_price}}</td>
-                                            </tr>
-                                          {% endfor %}
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th colspan="2" class="text-right">Sub Total:</th>
-                                                <th class="text-center">${{subtotal}} </th>
-                                            </tr>
-                                            <tr>
-                                                <th colspan="2" class="text-right">Envio:</th>
-                                                <th class="text-center">${{order.envio}} </th>
-                                            </tr>
+            
 
-                                            <tr>
-                                                <th colspan="2" class="text-right">Total:</th>
-                                                <th class="text-center">${{order.order_total}} </th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="invoice-footer mt25">
-                                <p class="text-center">Gracias por comprar con nosotros!</p>
-                            </div>
-                        </div>
-                        <!-- col-lg-12 end here -->
-                    </div>
-                    <!-- End .row -->
-                </div>
-            </div>
-            <!-- End .panel -->
+            <p><strong>Dirección de Entrega:</strong> {{order.full_address}} - {{order.dir_localidad}}, {{order.dir_provincia}} ({{order.dir_cp}})</p>
         </div>
-        <!-- col-lg-12 end here -->
-    </div>
-    </div>
 
+        <!-- Tabla de productos -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Descuento</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for item in ordered_products %}
+                <tr>
+                    <td>{{item.product.product_name}}
+                          {% if item.variations.all %}
+                          <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
+                            {% for i in item.variations.all %}
+                              {{ i.variation_category | capfirst }} : {{ i.variation_value | capfirst }} <br>
+                            {% endfor %}
+                            </p>
+                          {% endif %}
+                          {% for product in products_and_quantities|default:'' %}
+                          <p style="margin: 0; padding: 0; line-height: 1.2; font-family: Arial, sans-serif; font-size: 10px;">
+                                {% if item.id == product.order_product %}
+                                    {{ product.quantity }} x {{ product.product_name }}  <br>
+                                {% endif %}
+                            </p>
+                            {% endfor %}
+          
+                    </td>
+
+                    <td>{{item.quantity}}</td>
+                    <td>${{item.product_price}}</td>
+                    <td>${{ item.total_discount }}</td>
+                    <td>${{item.subtotal_line}}</td>
+                </tr>
+               
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Resumen de costos -->
+        <p><strong>Envío:</strong>${{order.envio}}</p>
+        <p class="total"><strong>Total:</strong> ${{order.order_total}} </p>
+
+        <p>Te enviaremos un email de confirmación cuando tu pedido sea enviado.</p>
+        <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
+
+        <p>¡Gracias por comprar con nosotros!</p>
+        <div class="footer">
+            <p>&copy; 2024 Lifche. Todos los derechos reservados.</p>
+        </div>
+    </div>
 </body>
 
-
-{% endautoescape %}
+</html>

@@ -1,5 +1,6 @@
 {% extends 'panel/base.html' %}
-
+{% load static %}
+{% load custom_filters %}
 {% block page_content %}
 
   <!-- Content Wrapper. Contains page content -->
@@ -31,19 +32,38 @@
               {{ ordenes.status | upper }}</font></b></h5>
          
             </div>
+            {% if canal_venta == 'SI' %}
+            <td class="text-center">
+              <span class="badge bg-primary text-white">{{ ordenes.origen_venta }} </span>
+            </td>
+            {% endif %}
 
 
             <!-- Main content -->
-            <div class="invoice p-3 mb-3">
+            <div id="printableArea" class="invoice p-3 mb-3" >
               <!-- title row -->
               <div class="row">
                 <div class="col-12">
-                 {% if ordenes.dir_correo %} 
-                  <h4><i class="fas fa-globe"></i> Correo Argentino
+              
+
+                 {% if ordenes.dir_tipocorreo == 2 %} 
+                  <h4><i class="fas fa-store"></i> Retira en Sucursal {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %} - Tipo envio: {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
-                  {% else %}
-                  <h4><i class="fas fa-home"></i> Entrega Cliente 
+                  {% endif %}
+                  {% if ordenes.dir_tipocorreo == 1 %}
+                  <h4><i class="fas fa-home"></i> Envio a Domicilio -  {% if ordenes.dir_correo == 1 %} OCA {% else %} Correo Argentino {% endif %}  Envio:  {% if ordenes.dir_tipoenvio == 1 %} Clasico {% endif %} {% if ordenes.dir_tipoenvio == 2 %} Expreso {% endif %}
+                    
+                    <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_correo == 3 %}
+                  <h4><i class="fas fa-user"></i> Retira Cliente
+                    <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
+                  </h4>
+                  {% endif %}
+                  {% if ordenes.dir_correo == 0 %}
+                  <h4><i class="fas fa-user"></i> 
                     <small class="float-right">Fecha: {{ ordenes.fecha | date:"d/m/Y" }}</small>
                   </h4>
                   {% endif %}
@@ -51,13 +71,20 @@
                 <!-- /.col -->
               </div>
               <!-- info row -->
+              {% if ordenes.dir_tipocorreo == 2 %} 
               <div class="row invoice-info">
                 <div class="col-sm-4 invoice-col">
-                  Para
+                    <span class="float-left">Sucursal: <strong>{{ ordenes.dir_nombre }}</strong></span>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col">
                   <address>
-                    <strong>{{ ordenes.full_name}}</strong><br>
-                   {{ ordenes.dir_calle }} {{ ordenes.dir_nro }} <br>
-                   {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}}<br>
+                    <strong>Para: {{ ordenes.full_name}}</strong><br>
+                   {{ ordenes.full_address }} <br>
+                   {{ ordenes.dir_localidad}} ,{{ ordenes.dir_provincia}} ({{ ordenes.dir_cp}})<br>
                     Phone: {{ ordenes.dir_telefono}}<br>
                     Email: {{ordenes.email }}
                   </address>
@@ -76,7 +103,9 @@
                     <tr>
                       <th>Cantidad</th>
                       <th>Product</th>
-                      <th>Variantes</th>
+                      <th>Variantes / Kits</th>
+                      <th>Precio Unit</th>
+                      <th>Desc Unit</th>
                       <th>Subtotal</th>
                     </tr>
                     </thead>
@@ -89,8 +118,18 @@
                         {% for var in item.variations.all %}
                           {{ var.variation_category | capfirst }} : {{ var.variation_value | capfirst }} <br>
                         {% endfor %}
+                        {% for product in products_and_quantities|default:'' %}
+                        <p class="text-muted small">
+                                {% if item.id == product.order_product %}
+                                    {{ product.quantity }} x {{ product.product_name }}  <br>
+                                {% endif %}
+                            </p>
+                        {% endfor %}
                       </td>
-                      <td>{{ item.product_price }}</td>
+                      <td>{{ item.product_price|format_currency }}</td>
+                      <td>{{ item.descuento_unitario|format_currency }}</td>
+                      
+                      <td>{{item.subtotal|format_currency}}</td>
                     </tr>
                     {% endfor %}
                     
@@ -103,34 +142,56 @@
 
               <div class="row">
                 <!-- accepted payments column -->
-                <div class="col-6">
+                <div class="col-8">
                   <p class="lead">
                     <div class="callout callout-info">
                       <h5><i class="fas fa-info"></i> Observaciones:</h5>
-                      {{ ordenes.dir_obs }}
+                      Peso total artículos: <B>{{ordenes.total_peso}}</B>
+                      {% if ordenes.cuenta != 0 %}
+                      <div>Cuenta de cobro: <b>{{cuenta.nombre}}</b></div>
+                      <div>Tracking: <b><a href="https://www.correoargentino.com.ar/formularios/e-commerce?id={{ordenes.nro_tracking}}" target="_blank"> {{ordenes.nro_tracking}}</a></b></div>
+                      {% endif %}     
+                      <hr><P>
+                      {{ ordenes.dir_obs }}</P>
                       {{ ordenes.order_note }}
                     </div>
                   </p>
                   
                 </div>
                 <!-- /.col -->
-                <div class="col-6">
+                <div class="col-4">
                   <p class="lead"></p>
 
                   <div class="table-responsive">
                     <table class="table">
                       <tr>
                         <th style="width:50%">Subtotal:</th>
-                        <td>{{ subtotal }}</td>
+                        <td>{{ subtotal|format_currency }}</td>
                       </tr>
                     
                       <tr>
                         <th>Envio:</th>
-                        <td>{{ ordenes.envio }}</td>
+                        <td>{{ ordenes.envio|format_currency }}</td>
                       </tr>
                       <tr>
+                        <th>Descuentos:</th>
+                        <td>{{ ordenes.order_total_descuentos|format_currency }}</td>
+                      </tr>
+                      {% if canal_venta == 'SI' %}
+                        <tr>
+                          <th>Comisiones:</th>
+                          <td>{{ ordenes.order_total_comisiones|format_currency }}</td>
+                        </tr>
+                        <tr>
+                          <th>Impuestos:</th>
+                          <td>{{ ordenes.order_total_impuestos|format_currency }}</td>
+                        </tr>
+                      
+                      {% endif %}
+
+                      <tr>
                         <th>Total:</th>
-                        <td>{{ ordenes.order_total }}</td>
+                        <td>{{ ordenes.order_total|format_currency }}</td>
                       </tr>
                     </table>
                   </div>
@@ -139,32 +200,82 @@
               </div>
               <!-- /.row -->
 
-              <!-- this row will not appear when printing -->
-              <div class="row no-print">
-                <div class="col-12">
-                  <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
-                 {% if pago_pendiente %}
+              
+            </div>
+            <!-- this row will not appear when printing -->
+            <div class="row no-print">
+              <div class="col-12">
+                <!-- <a href="#" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a> -->
+               {% if pago_pendiente %}
                   <a href="{% url 'registrar_pago' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-credit-card"></i> Registrar Pago</a>
                   <pre style='display:inline'  class="float-right"> </pre>
-                  <a href="{% url 'panel_pedidos_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
-                  
-                  {% endif %} 
-                  <pre style='display:inline'  class="float-right"> </pre>
-                  {% if entrega_pendinete %} 
-                    <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
-                    <pre style='display:inline'  class="float-right"> </pre>
-                    <a href="{% url 'panel_pedidos_eliminar_pago' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Pago</a>
-                  {% endif %} 
+                  {% for items in permisousuario %}
+                      {% if items.codigo.codigo == 'PEDIDOS DEL' %}
+                        {% if items.modo_ver %}
+                          <a href="{% url 'panel_pedidos_confirmacion_eliminar' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar</a>
+                          <pre style='display:inline'  class="float-right"> </pre>
+                        {% endif %}
+                      {% endif %}
+                      {% if items.codigo.codigo == 'PEDIDOS EDIT' %}
+                        {% if items.modo_ver %}
+                          <a href="{% url 'panel_pedidos_detalle_edit' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="far fa-edit-alt"></i> Modificar Pedido</a>
+                          <pre style='display:inline'  class="float-right"> </pre>
+                        {% endif %}
+                        <a href="{% url 'enviar_datos_pago' ordenes.order_number %}"  class="btn btn-primary float-right"><i class="far fa-credit-card"></i> Enviar Datos de pago</a>
+                        <pre style='display:inline'  class="float-right"> </pre>
+                      
 
-                  {% if entregado %} 
-                    <a href="{% url 'panel_pedidos_eliminar_entrega' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Entrega</a> 
-                  {% endif %} 
-                   
-                </div>
+                      {% endif %}
+                       
+                  {% endfor %}
+              {% endif %} 
+                
+                {% if entrega_pendinete %} 
+                  {% if ordenes.nro_tracking %}
+                  <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
+                  <pre style='display:inline'  class="float-right"> </pre>
+                  {% endif %}
+                  <a href="{% url 'panel_pedidos_eliminar_pago' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Pago</a>
+                  
+                    {% for items in permisousuario %}
+                        {% if items.codigo.codigo == 'PEDIDOS FACTURA' %}
+                          {% if items.modo_editar %}
+                            {% if not ordenes.nro_tracking %}
+                            <pre style='display:inline'  class="float-right"> </pre>
+                              <a href="{% url 'panel_pedidos_enviar_tracking' ordenes.order_number %}"  class="btn btn-success float-right"><i class="fas fa-file"></i> Enviar Tracking</a>
+                            {% endif %}
+                           {% endif %}
+                        {% endif %}
+                      {% endfor %}
+                {% endif %} 
+
+                {% if entregado %} 
+                  <a href="{% url 'panel_pedidos_eliminar_entrega' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Entrega</a> 
+                    {% for items in permisousuario %}
+                        {% if items.codigo.codigo == 'PEDIDOS FACTURA' %}
+                            {% if items.modo_editar %}
+                                <pre style='display:inline'  class="float-right"> </pre>
+                                <a href="{% url 'panel_pedidos_enviar_factura' ordenes.order_number %}"  class="btn btn-success float-right"><i class="far fa-file"></i> Enviar Factura</a>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                
+
+                 
               </div>
             </div>
             <!-- /.invoice -->
+            <!-- this row will not appear when printing -->
+            <div class="row no-print">
+              <div class="col-12">
+                  <a href="{% url 'panel_pedidos_imprimir_picking' ordenes.order_number %}"  class="btn btn-secundary" target="_blank">
+                    <i class="fas fa-print"></i> Imprimir Pedido</a>
+                 
+              </div>
+            </div>
 
+     
         
           </div><!-- /.col -->
         </div><!-- /.row -->
@@ -175,4 +286,16 @@
  
 {% endblock %}
 {% block js_page %}
+
+
+<script type="text/javascript">
+  function printDiv(divName) {
+      var printContents = document.getElementById(divName).innerHTML;
+      w=window.open();
+      w.document.write(printContents);
+      w.print();
+      w.close();
+  }
+</script>
+
 {% endblock %}

@@ -3,13 +3,29 @@
 {% load static %}
 {% block page_content %}
 
+<style>
+    /* Estilo para la barra de progreso */
+    #progressBar {
+        background-color: navy; /* Color de fondo azul marino */
+        color: black;           /* Color del texto negro */
+    }
+
+    /* Para hacer que el texto se vea bien centrado */
+    .progress {
+        height: 30px; /* Ajusta la altura según sea necesario */
+    }
+
+    .progress-bar {
+        font-weight: bold; /* Hacer el texto más visible */
+        text-align: center; /* Centrar el texto en la barra */
+    }
+</style>
 
 <section class="content">
     <div class="container-fluid">
-      <div class="row">
+        <div class="row">
             <!-- left column -->
-            <div class="col-md-6" >
-               
+            <div class="col-md-6" >          
                     <!-- general form elements -->
                     <div class="card card-primary">
                         <div class="card-header">
@@ -22,43 +38,97 @@
                                     <button type="submit" class="btn btn-primary">Procesar Archivo ...</button>
                                     <a href="#" class="btn btn-secondary">Cancelar</a>
                                     
-                                </form>
-                          </div>
-                  
+                            </form>
+                        </div>
                     </div>
             </div>
 
-            <!-- rigth column-->
-
-            <aside class="col-lg-6">
-                <div class="card">
+            <div class="col-md-6" >
+               
+                <aside class="col-lg-12">
                     <div class="card-body">
                     <!-- Collapsable Card Example -->
-                        <div class="card shadow mb-4">
+                        <div class="card shadow mb-6">
                             <!-- Card Header - Accordion -->
-                            <a href="#collapseCardRta" class="d-block card-header py-3" data-toggle="collapse"
-                                role="button" aria-expanded="false" aria-controls="collapseCardRta">
-                                <h6 class="m-0 font-weight-bold text-primary">Resultado - Procesados OK : {{ cant_ok }} - Procesados Error : {{ cant_error }}  </h6>
+                            <a href="#collapseCard3" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="false" aria-controls="collapseCard3">
+                                <h3 class="card-title" align="center"><i class="fas fa-info"></i> Formato </h3>
                             </a>
                             <!-- Card Content - Collapse -->
-                            <div class="collapse" id="collapseCardRta">
+                            <div class="collapse" id="collapseCard3">
                                 <div class="card-body">
-                                    <p>Procesados OK : {{ cant_ok }}        </p>
-                                    <p>Procesados Error : {{ cant_error }}        </p>
-                                    <p>Errores : {{ error_str }}        </p> 
+                                    <span> Arhivo Excel (XLS) con las siguientes columnas. (el nombre del archivo no debe tener espacios)</span>
+                                    <ul>
+                                        <li> <b>(a) Codigo</b> - Ejemplo: 5YEJ9MVUM99</li>
+                                        <li> <b>(b) Fecha</b> - Ejemplo:  2024-10-17 18:05:55</li>
+                                        <li> <b>(c) Monto Total</b> - Ejemplo:  1234.56</li>
+                                        <li> <b>(d) Monto Productos</b>  - Ejemplo: 1234.56</li>
+                                        <li> <b>(e) Mensaje</b> - Ejemplo:  Pedido: *https://pedido.shop/pedido/?pedido=5YEJ9MVUM99*  *Nombre y Apellido** _noelia rigoni_  ...</li>
+                                        <li> <b>(f) Nombre y Apellido</b> - Ejemplo:  noelia rigoni </li>
+                                        <li> <b>(g) Correo</b> - Ejemplo: 1 (OCA)  2 (Correo Argentino) 3 (Retira Cliente)</li>
+                                        <li> <b>(h) Mail</b> - Ejemplo: noeliarigoni@hotmail.com</li>
+                                        <li> <b>(i) Calle</b> - Ejemplo: Río Tunuyán 233</li>
+                                        <li> <b>(j) Localidad</b> - Ejemplo:  chajari </li>
+                                        <li> <b>(k) CP:</b> - Ejemplo:  1000 </li>
+                                        <li> <b>(l) Provincia:</b> - Ejemplo:  Entre Rios </li>
+                                        <li> <b>(m) Telefono:</b> - Ejemplo:  3456407316 </li>
+                                        <li> <b>(n) Observaciones:</b> - Ejemplo:  PELOTITAS DE COLORES: 20 celeste, 10 verde menta, 20 crema, 20 blanco, 20 rosa bebe, 10 rosa pastel </li>
+
+
+                                    </ul>
+                                    <a href="{% url 'panel_producto_import_del_all' %}"  class="btn btn-secondary">Eliminar Todos los productos</a>
+                                    <a href="{% url 'panel_producto_img' %}"  class="btn btn-primary">Actualizar Imagenes Productos</a>
+
+                                    
+
+
                                 </div>
                             </div>
                         </div>
-                         </form>
+                 
                     </div>
-                    <!--    <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a> -->
-                    </div><br>
-            <!-- fin rigth column-->
+                  
+                </aside>
+            </div>
 
         </div>
-    </div>            
+
+        <!-- rigth column-->
+
+        <aside class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                <!-- Collapsable Card Example -->
+                    <div class="card shadow mb-4">
+                        <!-- Card Header - Accordion -->
+                        <a href="#collapseCardRta" class="d-block card-header py-3" data-toggle="collapse"
+                            role="button" aria-expanded="false" aria-controls="collapseCardRta">
+                            <h6 class="m-0 font-weight-bold text-primary">Resultado - Procesados OK : {{ cant_ok }} Monto Total $ {{ total_pedido }}  - Procesados Error : {{ cant_error }}  </h6>
+                        </a>
+                        <!-- Card Content - Collapse -->
+                        <div class="collapse" id="collapseCardRta">
+                            <div class="card-body">
+                                <p>Procesados OK : {{ cant_ok }}        </p>
+                                <p>Procesados Error : {{ cant_error }}        </p>
+                                <p>Errores : {{ error_str }}        </p> 
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <!--    <a href="{% url 'panel_guardar_tmp_productos' %}" class="btn btn-success">Guardar</a> -->
+            </div>
+            <br>
+        </aside>
+        <!-- fin rigth column-->
+
+    </div>
+                        
 </section>
 <br>
+
+
+
 
 <section class="content">
     <div class="container-fluid">
@@ -86,10 +156,20 @@
                         <div class="card">
                           <div class="card-header" id="headingOne">
                             <h5 class="mb-0">
-                              <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
-                                Pedido:  {{ pedidos.codigo }}  <span style="color: green;" > $ {{ pedidos.order_total}}</span> - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                              {% if pedidos.status == 1 %} 
+                                                            
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
+                                    <span style="color: rgb(43, 196, 13);" >Pedido:  {{ pedidos.codigo }}   $ {{ pedidos.order_total}} - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                                    </span>
+                                </button>
                                 
-                              </button>
+                              {% else %}
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#{{ pedidos.codigo }}" aria-expanded="true" aria-controls="{{ pedidos.codigo }}">
+                                    <span style="color: red;" > 
+                                        Pedido:  {{ pedidos.codigo }} $ {{ pedidos.order_total}} - {{pedidos.first_name }} , {{pedidos.last_name }} 
+                                    </span>
+                                    </button>
+                              {% endif %}
                               <span style="float: right;">
                                         <a href="{% url 'panel_guardar_tmp_pedidos' pedidos.codigo %}" class="btn btn-secondary">Importar</a>
                                     
@@ -97,65 +177,65 @@
                             </h5>
                           </div>
                     <!-- Card Content - Collapse -->
-                    <div id="{{ pedidos.codigo}}" class="collapse" aria-labelledby="{{ pedidos.codigo}}" data-parent="#accordion">
-                        <div class="card-body">
-                                      <!-- tabla articulos -->
-                                            <table 
-                                            id="table"
-                                            data-toggle="table"
-                                            data-pagination="false"
-                                            data-search="false"
-                                            data-show-columns="false"
-                                            data-show-toggle="false"
-                                            data-show-fullscreen="false"
-                                            data-toolbar=".buttons-toolbar"
-                                            data-locale="es-AR"
-                                            >
-                                            <thead>
-                                                <th data-sortable="true" data-field="id">Nro</th>
-                                                <th data-sortable="true" data-field="product">Producto</th>
-                                                <th data-sortable="true" data-field="quantity">Cantidad</th>   
-                                                <th data-sortable="true" data-field="subtotal">Precio</th>
-                                                <th data-sortable="true" data-field="status">Error</th>
-                                                
-                                               
-                                            </thead>
-                                            <tbody>
-                                                {% for item in articulos_tmp %}
-                                                  {% if item.codigo == pedidos.codigo %}
-                                                    <tr>
-                                                      <td>{{ item.id }}</td>
-                                                      <td>{{ item.product }}</td>
-                                                      <td>{{ item.quantity }}</td> 
-                                                      <td>{{ item.subtotal }}</td>
-                                                      <td>
-                                                        {% if item.status %}
-                                                            <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;">
-                                                        {% else %}
-                                                            <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;">
+                            <div id="{{ pedidos.codigo}}" class="collapse" aria-labelledby="{{ pedidos.codigo}}" data-parent="#accordion">
+                                <div class="card-body">
+                                            <!-- tabla articulos -->
+                                                    <table 
+                                                    id="table"
+                                                    data-toggle="table"
+                                                    data-pagination="false"
+                                                    data-search="false"
+                                                    data-show-columns="false"
+                                                    data-show-toggle="false"
+                                                    data-show-fullscreen="false"
+                                                    data-toolbar=".buttons-toolbar"
+                                                    data-locale="es-AR"
+                                                    >
+                                                    <thead>
+                                                        <th data-sortable="true" data-field="id">Nro</th>
+                                                        <th data-sortable="true" data-field="product">Producto</th>
+                                                        <th data-sortable="true" data-field="quantity">Cantidad</th>   
+                                                        <th data-sortable="true" data-field="subtotal">Precio</th>
+                                                        <th data-sortable="true" data-field="status">Error</th>
+                                                        
+                                                    
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for item in articulos_tmp %}
+                                                        {% if item.codigo == pedidos.codigo %}
+                                                            <tr>
+                                                            <td>{{ item.id }}</td>
+                                                            <td>{{ item.product }}</td>
+                                                            <td>{{ item.quantity }}</td> 
+                                                            <td>{{ item.subtotal }}</td>
+                                                            <td>
+                                                                {% if item.status %}
+                                                                    <img src="{% static 'img/check.jpg' %}" alt="check" width="30" style="border-radius:10px;">
+                                                                {% else %}
+                                                                    <img src="{% static 'img/uncheck.jpg' %}" alt="check" width="30" style="border-radius:10px;">
+                                                                {% endif %}
+                                                            </td>
+                                                            </tr>
                                                         {% endif %}
-                                                       </td>
-                                                    </tr>
-                                                  {% endif %}
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                        </div>
-                    </div>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                </div>
+                            </div>
                         </div>
                      <!-- fin tabla articulos-->
                     </div>
                 {% endfor %}
                 </div>
               <a href="{% url 'panel_guardar_tmp_pedidos_all' %}" class="btn btn-success">Importar Todos</a>
+              <a href="{% url 'mov_export_xls' 4 %}" class="btn btn-secondary">Exportar Todos</a>
             </div>         
          </div>
-       
-      </div><br>
-
+      </aside> 
+    </div>
+    <br>
       <!-- / .card-body -->
-      
-    
+
 </section>
 <br>
 

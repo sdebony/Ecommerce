@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404,redirect
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import AccountPermition
 
-from .models import Cuentas,Monedas
+from .models import Cuentas,Monedas,ConfiguracionParametros
 
 # Create your views here.
 
@@ -87,7 +87,11 @@ def cuentas_detalle(request,cta_id=None):
             moneda = request.POST.get("moneda")
             habilitado = request.POST.getlist("is_available")
             limite = request.POST.get("limite")
-
+            documento = request.POST.get("documento")
+            nro_cuenta = request.POST.get("nro_cuenta")
+            cbu = request.POST.get("cbu")
+            cuil = request.POST.get("cuil")
+            alias = request.POST.get("alias")
             
             if habilitado:
                 is_available=True
@@ -113,6 +117,11 @@ def cuentas_detalle(request,cta_id=None):
                         moneda=monedas,
                         limite=limite,
                         is_available=is_available,
+                        documento=documento,
+                        nro_cuenta=nro_cuenta,
+                        cbu=cbu,
+                        cuil=cuil,
+                        alias=alias,
                         
                     )
                     cuentas.save()
@@ -126,6 +135,11 @@ def cuentas_detalle(request,cta_id=None):
                         moneda=moneda,
                         limite=limite,
                         is_available=habilitado,
+                        documento=documento,
+                        nro_cuenta=nro_cuenta,
+                        cbu=cbu,
+                        cuil=cuil,
+                        alias=alias,
                  )
                  cuentas.save()
                  cta_id=cuentas.id
@@ -209,3 +223,4 @@ def cuentas_new(request):
            
 
     return render(request,'panel/login.html',)
+

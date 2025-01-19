@@ -1,0 +1,75 @@
+{% extends 'panel/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block page_content %}
+
+
+<style>
+    .col-producto {
+        width: 45%; /* Ajusta el ancho de la columna del producto */
+    }
+    .col-cantidad {
+        width: 25%; /* Ajusta el ancho de las otras columnas */
+    }
+    .col-idproducto {
+        width: 10%;
+    }
+    .col-marca {
+        width: 15%;
+    }
+    .col-costo {
+        width: 15%;
+    }
+</style>
+
+
+    <div class="container mt-4">
+        <h2>Recepción de Productos - OC: {{ oc_enc_compras.id }} -  {{ oc_enc_compras.proveedor.nombre}}</h2>
+        <form action="{% url 'oc_recibir' id_oc=oc_enc_compras.id %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="envio" class="form-control" value="{{oc_enc_compras.costoenvio }}" readonly hidden>
+            <input type="text" name="descuento" class="form-control" value="{{oc_enc_compras.descuento }}" readonly hidden>
+   
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th class="col-producto">Producto</th>
+                        <th class="col-idproducto">ID Producto</th>
+                        <th class="col-marca">Marca</th>
+                        <th class="col-costo">Costo</th>
+                        <th>Cantidad Solicitada</th>
+                        <th>Cantidad Recibida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ejemplo de fila de datos -->
+                    {% if oc_detalle_compras %}
+                    {% for item in oc_detalle_compras %}
+                    
+                    <tr>
+                        <td><input type="text" name="producto[]" class="form-control" value="{{ item.producto.nombre_articulo }}" readonly></td>
+                        <td><input type="text" name="idproducto[]" class="form-control" value="{{ item.producto.id_product.id }}" readonly></td>
+                        <td><input type="text" name="marca[]" class="form-control" value="{{ item.producto.marca }}" readonly></td>
+                        <td><input type="text" name="costo[]" class="form-control" value="{{ item.precio_prv|format_currency }}" readonly></td>
+                        <td><input type="text" name="cantidad_solicitada[]" class="form-control" value="{{ item.cantidad }}" readonly></td>
+                        <td><input type="number" name="cantidad_recibida[]" class="form-control" value="0"></td>
+                    </tr>
+                    <!-- Puedes agregar más filas según sea necesario -->
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-center">
+                            <button type="submit" class="btn btn-success">Confirmar Recepción</button>
+                            <a href="{% url 'oc_list' %}" class="btn btn-secondary"><i class="far fa-hand-point-left"></i> Cancelar</a>
+                            
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+    </div>
+    {% endblock %}
+
