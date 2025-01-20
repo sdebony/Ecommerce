@@ -21,15 +21,14 @@ def decimal_point(value):
 
 @register.filter
 def format_currency(value):
-    """
-    Formatea un número en formato de moneda.
-    Ejemplo: 12345678.90 se convierte en $12,345,678.90
-    """
     try:
-        locale.setlocale(locale.LC_ALL, '')
+        # Redondear el valor a 2 decimales
+        value = round(value, 2)
+        locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
         return locale.currency(value, grouping=True)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, locale.Error):
         return value
+        
 
 @register.filter
 def format_currency_usd(value):
