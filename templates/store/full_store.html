@@ -11,10 +11,35 @@
         img:hover {
             transform: scale(1.4);
         }
-        .badge {
+        
+		.badge {
         margin-top: 10px; /* Ajusta el espacio desde la parte superior */
         margin-right: 10px; /* Ajusta el espacio desde la parte derecha */
-    }
+    	}
+		
+		.highlight {
+			background-color: #0a57abad; /* Color de fondo igual al btn-primary */
+			color: #ffffff !important; /* Letras blancas */
+			font-size: 1.8rem; /* Texto más grande */
+			padding: 10px; /* Espaciado interno */
+			border-radius: 5px; /* Bordes redondeados */
+			text-align: center; /* Centra el texto */
+		}
+
+		.highlight a {
+			color: #ffffff !important; /* Letras blancas para enlaces */
+			text-decoration: none; /* Elimina el subrayado */
+		}
+
+		.highlight a:hover,
+		.highlight a:focus,
+		.highlight a:active {
+			color: #ffffff !important; /* Mantiene el color blanco */
+			text-decoration: none; /* Sin subrayado */
+			background-color: var(--bs-primary, #007bff); /* Fondo igual al btn-primary */
+		}
+
+
     </style>
 	
 </head>
@@ -31,36 +56,38 @@
 		<header class="card-header">
 			<a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
 				<i class="icon-control fa fa-chevron-down"></i>
-				<h6 class="title">Categorias</h6>
+				<h4 class="title">Categorias</h4>
 			</a>
 		</header>
 		<div class="filter-content collapse show" id="collapse_1" style="">
 			<div class="card-body">
-
 				<ul class="list-menu">
-			<!--		<li><a href="{% url 'store' %}">All Products  </a></li>
-			-->		{% for category in links %}
-						<li>
-						<!--	<a href="{{ category.get_url }}">{{ category.category_name }}  </a> -->
-							<a data-toggle="collapse" href="#{{ category.slug }}"  aria-expanded="true" aria-controls="{{ category.slug }}">
-								<strong>{{ category.category_name }} </strong>
-							  </a><ul>
-							  {% for subcategory in sub_links %}
+					{% for category in links %}
+						<li class="{% if category.category_name|upper == 'DESCUENTOS' %}highlight{% endif %}">
+							<a data-toggle="collapse" href="#{{ category.slug }}" aria-expanded="true" aria-controls="{{ category.slug }}">
+								<strong>{{ category.category_name }}</strong>
+							</a>
+							<ul>
+								{% for subcategory in sub_links %}
 									{% if subcategory.category == category %}
-							 		<div class="collapse" id="{{ category.slug }}">
-										<li><a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}"> {{ subcategory.subcategory_name }}  </a></li> 
-									</div>
+										<div class="collapse" id="{{ category.slug }}">
+											<li>
+												<a href="{% url 'products_by_subcategory' category.slug subcategory.sub_category_slug %}">
+													{{ subcategory.subcategory_name }}
+												</a>
+											</li>
+										</div>
 									{% endif %}
-							   {% endfor%}
-								</ul>
+								{% endfor %}
+							</ul>
 						</li>
-						
-
 					{% endfor %}
 				</ul>
-
 			</div> <!-- card-body.// -->
 		</div>
+		
+		
+		
 	</article> <!-- filter-group  .// -->
 
 </div> <!-- card.// -->
