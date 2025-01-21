@@ -3,6 +3,14 @@
 {% load custom_filters %}
 {% block content %}
 
+<style>
+    .btn-secondary:hover {
+      background-color: #6c757d; /* Color de fondo original */
+      color: white; /* Color de texto original */
+      cursor: default; /* Cursor no cambia */
+    }
+</style>
+
 <section class="section-content padding-y bg">
     <div class="container">
         <div class="card">
@@ -81,34 +89,38 @@
                                         <button type="button" id="add-item" class="btn btn-success">Agregar</button>
                                     </form>
                                     <!-- Tabla de selección -->
-                                    <div class="table-responsive mt-4" style="max-width: 50%;">
-                                        <table class="table table-sm table-bordered text-left" id="selected-items-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Producto</th>
-                                                    <th>Cantidad</th>
-                                                    <th>Acción</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Filas dinámicas -->
-                                                {% for item in cartitemkit%}
-                                                <tr>
-                                                    <td>{{ item.product.product_name}}</td>
-                                                    <td>{{ item.quantity }}</td>
-                                                    <td>
-                                                        <button class="btn btn-danger btn-sm" onclick="removeItem('${productId}')">Eliminar</button>
-                                                    </td>
-                                                </tr>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6 -mb-6">
+                                        <div class="table-responsive mt-6">
+                                            <table class="table table-sm table-bordered text-left" id="selected-items-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Producto</th>
+                                                        <th>Cantidad</th>
+                                                        <th>Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Filas dinámicas -->
+                                                    {% for item in cartitemkit%}
+                                                    <tr>
+                                                        <td>{{ item.product.product_name}}</td>
+                                                        <td>{{ item.quantity }}</td>
+                                                        <td>
+                                                            <button class="btn btn-danger btn-sm" onclick="removeItem('${productId}')">Eliminar</button>
+                                                        </td>
+                                                    </tr>
 
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
+                                </div>
 
                                     <!-- Botones -->
                                     <div class="d-flex justify-content-start mt-3">
-                                        <button type="button" id="confirm-items" class="btn btn-primary me-3" disabled>Confirmar selección</button>
+                                        <button type="button" id="confirm-items" class="btn btn-primary me-3" disabled>Confirmar Pedido</button>
                                         <button class="btn btn-secondary" onclick="volverAlListado()">Cancelar</button>
                                     </div>
                                 {% elif single_product.stock < 1 %}
@@ -118,7 +130,7 @@
                                     </div>
                                 {% else %}
                                 <div class="d-flex justify-content-start mt-3">
-                                    <button class="btn btn-secondary" onclick="volverAlListado()">Cancelar</button>
+                                    <button class="btn btn-secondary no-hover" onclick="volverAlListado()">Volver</button>
                                 </div>
                                 {% endif %}
                             </div>

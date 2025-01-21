@@ -44,16 +44,25 @@ def store(request, category_slug=None,subcategory_slug=None):
        
     if category_slug != None:
         if subcategory_slug != None and "todos" not in subcategory_slug.lower():
-            print("Subcategoria seleccionada")
-            print("TEST TEST TEST TEST TEST TEST TEST TEST ")
-            categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
-            #subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
-            subcategory = SubCategory.objects.filter(sub_category_slug=subcategory_slug).first()
+            descuentos_slug = settings.CATEGORIA_DESCUENTO.lower()
+            print("Subcategoria seleccionada:")
+            print("Descuento Slug: ",descuentos_slug,subcategory_slug)
+            if subcategory_slug != descuentos_slug:
+                categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+                #subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
+                subcategory = SubCategory.objects.filter(sub_category_slug=subcategory_slug).first()
+                subcategories = SubCategory.objects.filter(category=categories)
+                products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')            
+                product_count = products.count()
+            else:
+                categories = get_object_or_404(Category.objects.order_by("orden"), slug=category_slug)
+                #subcategory = get_object_or_404(SubCategory, sub_category_slug=subcategory_slug) #Para el Query de productos
+                subcategory = SubCategory.objects.filter(sub_category_slug=subcategory_slug).first()
+                subcategories = SubCategory.objects.filter(category=categories)
+                products = Product.objects.filter(is_popular=True, is_available=True).order_by('product_name')            
+                product_count = products.count()
 
-
-            subcategories = SubCategory.objects.filter(category=categories)
-            products = Product.objects.filter(category=categories,subcategory=subcategory, is_available=True).order_by('product_name')            
-            product_count = products.count()
+            
             paginator = Paginator(products, settings.PRODUCT_PAGE_STORE)
             page = request.GET.get('page')
             paged_products = paginator.get_page(page)
@@ -351,7 +360,7 @@ def search_products(request):
     keyword = request.GET.get('keyword', '')
     if keyword:
         # Buscar productos que coincidan con la palabra clave
-        products = Product.objects.filter(product_name__startswith=keyword).order_by('product_name')
+        products = Product.objects.filter(product_name__icontains=keyword).order_by('product_name')
         # Crear una lista de diccionarios con los datos que deseas mostrar
         results = [{'product_name': product.product_name} for product in products]
         return JsonResponse(results, safe=False)

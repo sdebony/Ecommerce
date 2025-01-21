@@ -209,29 +209,27 @@ DIAS_DEFAULT_MOVIMIENTOS = 90
 
 MONTO_MINIMO=100
 
-DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
-DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
-DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
-DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
-#DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
-#DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
-#DEF_CATEGORY='esferas'  #Eesferas (Slug)
-#DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
+#DEF_CATEGORY='pelotas-de-tenis'  #Eesferas (Slug)
+#DEF_SUBCATEGORY='pelotas-de-tenis-odea' #Esferas 12 mm (slug)
+#DEF_CATEGORY_ADD_PROD='pelotas-de-tenis'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+#DEF_SUBCATEGORY_ADD_PROD='pelotas-de-tenis-a-granel'
+#STORE_MULTI_CANAL="SI"
+#DEF_CC_MAIL = 'qualitiesarg@gmail.com'
+#DEF_CEL = '54111565184759'
+DEF_CATEGORY_ADD_PROD='esferas'  #DEFAULT PARA COPIA DE ARTICULOS DE PROVEEDOR
+DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
+DEF_CATEGORY='esferas'  #Eesferas (Slug)
+DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
+STORE_MULTI_CANAL="NO"
+DEF_CEL =  '54111558679809'
+DEF_CC_MAIL = 'lifche.argentina@gmail.com'
 
-STORE_MULTI_CANAL="SI"
-STORE_DEF_CANAL="WEB"
-
-STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
-STORE_TEMPLATE="2"  #2 Menu original
-
-ACTIVAR_ALERTAS = "NO"
-
-DEF_CEL = '54111565184759'
-#DEF_CEL =  '54111558679809'
-#DEF_CC_MAIL = 'lifche.argentina@gmail.com'
-DEF_CC_MAIL = 'qualitiesarg@gmail.com'
 
 #MELI  QUALITIES ***************
+STORE_DEF_CANAL="WEB"
+STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
+STORE_TEMPLATE="2"  #2 Menu original
+ACTIVAR_ALERTAS = "NO"
 CLIENTE_ID="710125811010660"                           #"5374552499309003"
 REDIRECT_URI="https://shop.qualities.com.ar/meli/"    #"https://lifche.qualities.com.ar/meli/"
 CLIENT_SECRET="IYNplfYS5hrHur1RPNDHTIDgpHJDmSmR"        #"1zFzquw3BtvgeHQnDS0H2DzvAkf7EPGE"
@@ -239,7 +237,7 @@ NICK_NAME="DI20240920150629" #Qualities
 SELLER_ID="1998248263" #"1998248263"  #QUALITIES_ARG
            
 ID_CUENTA_MELI=11  #MP Qualities
-
+CATEGORIA_DESCUENTO=""
 #SERVICIO CORREO ARGENTINO
 USER_CORREO_ARG = config('CA_USER')
 PASS_CORREO_ARG = config('CA_PASS')
