@@ -49,4 +49,10 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
+def error_generic(request, exception=None):
+    """
+    Vista genérica para manejar errores.
+    """
+    return render(request, 'errors/error_generic.html', status=500)
+
 

@@ -1,0 +1,51 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+</head>
+<style>
+.error-container {
+    text-align: center;
+    padding: 50px;
+    font-family: Arial, sans-serif;
+}
+
+.error-container h1 {
+    font-size: 3rem;
+    color: #ff4d4d;
+}
+
+.error-container p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.error-container .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #007bff;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+</style>
+<body>
+    <div class="error-container">
+        <h1>Oops! Algo salió mal.</h1>
+          <!-- Imagen graciosa -->   
+          <img id="myLogo" class="img-fluid"  src="https://yourfiles.cloud/uploads/005401eaa9472dd1b87881815e1999d7/error.jpg"  alt="Logo">
+
+        <p> Estamos trabajando para resolver el problema. Por favor, intenta nuevamente más tarde.</p>
+
+        <a href="/" class="btn btn-primary">Volver al inicio</a>
+    </div>
+</body>
+</html>

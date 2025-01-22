@@ -5,6 +5,39 @@
     BIENVENIDO AL CATALOGO MAYORISTA</a>
   </div> <!-- container //  -->
 
+  <style>
+    #searchResults ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      max-height: 250px; /* Tamaño más pequeño */
+      overflow-y: auto;
+      background-color: white; /* Fondo blanco para destacar la lista */
+      position: absolute; /* Asegura que esté encima del contenido */
+      width: 100%; /* Asegura que ocupe el ancho completo del input */
+      z-index: 1000; /* Asegura que la lista quede encima de otros elementos */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Añade sombra suave para distinguir la lista */
+    }
+  
+    #searchResults .list-group-item {
+      cursor: pointer;
+      font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+      padding: 8px 12px; /* Reducir el espaciado */
+      transition: background-color 0.2s;
+    }
+  
+    #searchResults .list-group-item:hover {
+      background-color: #f8f9fa; /* Color hover de Bootstrap */
+    }
+  
+    #searchResults {
+      margin-top: 5px; /* Ajusta la separación del input */
+      position: relative; /* Relaciona la posición con el input */
+      width: 90%; /* O ajusta según sea necesario */
+      max-width: 300px; /* Ajuste del ancho máximo */
+    }
+  </style>
+
 
  <script>
   
@@ -99,22 +132,26 @@
           <div class="filter_menu align-items-right">
             <div class="input-group-prepend flex-column p-1">	
               <a href="{% url 'cart' %}" class="btn btn-primary"> 	
-                <span><i class="fa fa-shopping-cart"></i>  CARRITO &nbsp ({{cart_count}})</span>
+                <span><i class="fa fa-shopping-cart"></i>CARRITO &nbsp ({{cart_count}})</span>
               </a>
             </div>
              <div class="input-group-prepend p-1">	
                    
-                <form action="{% url 'search' %}" class="search" method='GET'>
-                  <div class="input-group-append" >
-                      <input type="text" class="form-control"  placeholder="Search" name="keyword"  required>
-                      <div class="input-group-append">
-                          <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                          </button>
-                      </div>
+              <form id="searchForm" action="{% url 'search' %}"  class="search btn-block" method='GET'>
+                <div class="input-group-append" >
+                    <input type="text" id="searchInput" class="form-control"  placeholder="Search" name="keyword"  autocomplete="off" required>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                          <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                </form>  
+                  </div>
+              </form>  
+
+              
              </div>
+             <!-- Contenedor para los resultados de búsqueda -->
+             <div id="searchResults" class="row mt-3"></div>
         </div>       
       </div>
   </div>
@@ -162,10 +199,12 @@
             </a>
           </div>
           <div class="input-group-prepend p-1">	
-                
-              <form action="{% url 'search' %}" class="search" method='GET'>
+              
+            
+
+              <form id="searchForm" action="{% url 'search' %}"  class="search btn-block" method='GET'>
                 <div class="input-group-append" >
-                    <input type="text" class="form-control"  placeholder="Search" name="keyword"  required>
+                    <input type="text" id="searchInput" class="form-control"  placeholder="Search" name="keyword"  autocomplete="off" required>
                     <div class="input-group-append">
                         <button class="btn btn-primary" type="submit">
                           <i class="fas fa-search"></i>
@@ -173,6 +212,10 @@
                     </div>
                   </div>
               </form>  
+
+              <!-- Contenedor para los resultados de búsqueda -->
+              <div id="searchResults" class="row mt-3"></div>
+
           </div>
       </div>       
       </div>
@@ -203,29 +246,70 @@
 
 </header> <!-- section-header.// -->
 	<!-- ========================= FOOTER END // ========================= -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+ 
   <script>
-   
 
-  //document.addEventListener('scroll', function() {
-  //  const div = document.getElementById('TopDiv');
-  //  const div2 = document.getElementById('TopDiv_light');
-
- //   if (window.scrollY === 0) {
- //       div.classList.remove('hidden');
- //       div2.classList.add('hidden');
- //   } else {
- //       div.classList.add('hidden');
- //       div2.classList.remove('hidden');
- //   }
-//});
+  document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const searchResults = document.getElementById('searchResults');
+  
+      searchInput.addEventListener('input', function () {
+          const query = searchInput.value;
+          if (query.length >= 3) {
+              fetch("{% url 'search_products' %}?keyword=" + encodeURIComponent(query))
+                  .then(response => response.json())
+                  .then(data => {
+                      console.log('Search Results:', data); // Verifica la respuesta
+                      searchResults.innerHTML = '';
+                      if (data.length > 0) {
+                          const ul = document.createElement('ul');
+                          ul.className = 'list-group';
+  
+                          data.forEach(product => {
+                              const li = document.createElement('li');
+                              li.className = 'list-group-item';
+                              li.textContent = product.product_name;
+                              li.addEventListener('click', () => {
+                                  searchInput.value = product.product_name;
+                                  searchResults.innerHTML = '';
+                                  document.getElementById('searchForm').submit();
+                              });
+                              ul.appendChild(li);
+                          });
+  
+                          searchResults.appendChild(ul);
+                      } else {
+                          searchResults.innerHTML = '<p>No results found</p>';
+                      }
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                  });
+          } else {
+              searchResults.innerHTML = '';
+          }
+      });
+  
+      document.addEventListener('click', (e) => {
+          if (!searchResults.contains(e.target) && e.target !== searchInput) {
+              searchResults.innerHTML = '';
+          }
+      });
+  });
+  
+  </script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+ 
+<script>
 
   document.addEventListener('DOMContentLoaded', function() {
     const div2 = document.getElementById('TopDiv_light');
    div2.classList.add('hidden');
 });
   
-    
+ 
 $(function () {
 
         $("#filtro-cat").change(function() {
@@ -261,8 +345,9 @@ $(function () {
   
 		
 });
-  </script>
-  </body>
-  </html>
+</script>
+ 
+</body>
+</html>
 
 

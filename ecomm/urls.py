@@ -21,7 +21,10 @@ from django.conf import settings
 
 from . import views
 
+from django.conf.urls import handler500
+from ecomm.views import error_generic
 
+handler500 = error_generic
 
 urlpatterns = [
     path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),

@@ -33,7 +33,7 @@ def store(request, category_slug=None,subcategory_slug=None):
     category_name=""
     sub_category_name = ""
   
-    
+   
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     
     print("Store....")
