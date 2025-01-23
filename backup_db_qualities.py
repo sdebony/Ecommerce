@@ -4,10 +4,10 @@ import time
 from datetime import datetime, timedelta
 
 # Ruta del archivo de la base de datos
-db_path = 'db.sqlite3'
+db_path = 'db.qualities.sqlite3'
 
 # Directorio donde se guardarán los backups
-backup_dir = 'backups_lifche'
+backup_dir = 'backups_qualities'
 
 # Crear el directorio de backups si no existe
 os.makedirs(backup_dir, exist_ok=True)
