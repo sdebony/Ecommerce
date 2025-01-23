@@ -18,7 +18,7 @@ class DatabaseSwitchMiddleware(MiddlewareMixin):
             settings.STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
             settings.STORE_TEMPLATE="2"  #2 Menu original
             settings.ACTIVAR_ALERTAS = "NO"
-            settings.DEF_CEL =  '54111558679809'
+            settings.DEF_CEL =  '541161285469'
             settings.DEF_CC_MAIL = 'lifche.argentina@gmail.com'
             settings.CATEGORIA_DESCUENTO="descuentos-promos"
             
@@ -30,7 +30,7 @@ class DatabaseSwitchMiddleware(MiddlewareMixin):
             settings.DEF_CATEGORY_ADD_PROD = 'pelotas-de-tenis'
             settings.DEF_SUBCATEGORY_ADD_PROD = 'pelotas-de-tenis-a-granel'
             settings.DEF_CC_MAIL = 'qualitiesarg@gmail.com'
-            settings.DEF_CEL = '54111565184759'
+            settings.DEF_CEL = '541161285469'
             settings.STORE_MULTI_CANAL="SI"
             settings.STORE_DEF_CANAL="WEB"
             settings.STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New

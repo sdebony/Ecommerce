@@ -379,10 +379,10 @@ def order_cash(request):
             #************************
             #Send Whatsapp
             #*************************
-            celular=settings.DEF_CEL
+            #celular=settings.DEF_CEL
 
-            enviar_whatsapp (request,order.order_number,celular)
-            print("enviar whatsapp")
+            #enviar_whatsapp (request,order.order_number,celular)
+            #print("enviar whatsapp")
             
             context = {
                 'order': order,

@@ -221,7 +221,7 @@ DEF_SUBCATEGORY_ADD_PROD='esferas-9-mm'
 DEF_CATEGORY='esferas'  #Eesferas (Slug)
 DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 STORE_MULTI_CANAL="NO"
-DEF_CEL =  '54111558679809'
+DEF_CEL =  '541161285469'
 DEF_CC_MAIL = 'lifche.argentina@gmail.com'
 
 
