@@ -223,7 +223,7 @@ DEF_SUBCATEGORY='esferas-9-mm' #Esferas 12 mm (slug)
 STORE_MULTI_CANAL="NO"
 DEF_CEL =  '541161285469'
 DEF_CC_MAIL = 'lifche.argentina@gmail.com'
-
+DEF_MOSTRAR_GAN='SI'
 
 #MELI  QUALITIES ***************
 STORE_DEF_CANAL="WEB"

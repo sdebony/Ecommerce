@@ -155,6 +155,9 @@
                       {{ ordenes.dir_obs }}</P>
                       {{ ordenes.order_note }}
                     </div>
+                    {% if ganancia|add:0 > 0 %}
+                    <div>Ganancia: <b>{{ ganancia }}</b></div>
+                    {% endif %}
                   </p>
                   
                 </div>

@@ -21,6 +21,7 @@ class DatabaseSwitchMiddleware(MiddlewareMixin):
             settings.DEF_CEL =  '541161285469'
             settings.DEF_CC_MAIL = 'lifche.argentina@gmail.com'
             settings.CATEGORIA_DESCUENTO="descuentos-promos"
+            settings.DEF_MOSTRAR_GAN='SI'
             
         if host in ["localhost","103.199.185.212","shop.qualities.com.ar"]:
             # Configuración para localhost
@@ -37,6 +38,7 @@ class DatabaseSwitchMiddleware(MiddlewareMixin):
             settings.STORE_TEMPLATE="2"  #2 Menu original
             settings.ACTIVAR_ALERTAS = "SI"
             settings.CATEGORIA_DESCUENTO=""
+            settings.DEF_MOSTRAR_GAN='SI'
            
 
     

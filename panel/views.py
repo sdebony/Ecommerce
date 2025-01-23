@@ -976,8 +976,6 @@ def panel_pedidos_list(request,status=None):
         fecha_1 = request.POST.get("fecha_desde")
         fecha_2 = request.POST.get("fecha_hasta") 
 
-        
-
         if not fecha_1 and not fecha_2 :
             fecha_hasta = datetime.today() + timedelta(days=1) # 2023-09-28
             dias = timedelta(days=dias_default_pedidos) 
@@ -1072,9 +1070,15 @@ def panel_pedidos_detalle(request,order_number=None):
 
         subtotal=0
         subtotal_sin_desc=0
+        subtotal_cobrado=0
+        subtotal_costo=0
+        ganancia=0
+
         for detalle in ordenes_detalle:
             subtotal = subtotal + detalle.subtotal  # Accede al subtotal de cada elemento
             subtotal_sin_desc = subtotal_sin_desc + round(float(detalle.quantity) * float(detalle.product_price),2)
+            subtotal_cobrado = subtotal_cobrado + round(float(detalle.precio_unitario_cobrado) * float(detalle.quantity),2)
+            subtotal_costo = subtotal_costo + round(float(detalle.costo) * float(detalle.quantity),2)
 
         
             #Envio detalle de kits al order_recibe para el mail.
@@ -1085,14 +1089,18 @@ def panel_pedidos_detalle(request,order_number=None):
             # Agregar al resultado final
             resultado_final.extend(list(kits))  # Convierte el queryset en lista y la extiende    
 
-        
+        if settings.DEF_MOSTRAR_GAN=='SI':
+            ganancia = subtotal_cobrado - subtotal_costo
+            ganancia = round(ganancia,2)
+        else:
+           ganancia=0
+
         idcuenta = ordenes.cuenta
         if idcuenta>0:
             cuenta = Cuentas.objects.get(id=idcuenta)
         else:
             cuenta= []
 
-        
         if ordenes.status=="New":
             pago_pendiente=True
             entrega_pendinete=False
@@ -1112,8 +1120,9 @@ def panel_pedidos_detalle(request,order_number=None):
         else:
             canal_venta= settings.STORE_MULTI_CANAL.upper()
 
+       
         
-        
+
         context = {
             'ordenes':ordenes,
             'permisousuario':permisousuario,
@@ -1123,6 +1132,7 @@ def panel_pedidos_detalle(request,order_number=None):
             'subtotal_sin_desc':subtotal_sin_desc,
             'pago_pendiente': pago_pendiente,
             'entrega_pendinete':entrega_pendinete,
+            'ganancia':ganancia,
             'entregado':entregado,
             'cuenta':cuenta,
             "canal_venta":canal_venta
@@ -1131,6 +1141,7 @@ def panel_pedidos_detalle(request,order_number=None):
         return render(request,'panel/pedidos_detalle.html',context) 
     else:
         return render (request,"panel/login.html")
+
 
 def panel_pedidos_imprimir_picking(request,order_number=None):
 
