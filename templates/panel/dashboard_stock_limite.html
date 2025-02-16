@@ -1,0 +1,32 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+<div class="card shadow mb-4">
+    <div class="container mt-5">
+        <h1 class="mb-4">Informe Articulos con Stock menor al mínimo</h1>
+
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Stock Minimo</th>
+                    <th>Stock Real</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for products in productos_stock_limite %}
+                <tr>
+                    <td>{{ products.product_name }}</td>
+                    <td>{{ products.stock_minimo  }}</td>
+                    <td>{{ products.stock }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

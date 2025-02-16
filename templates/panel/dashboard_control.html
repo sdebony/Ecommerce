@@ -30,7 +30,9 @@
                 <div class="card border-left-success shadow h-100 py-2">
                     <div class="card-body text-center">
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Artículos con Stock límite</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ resultados.productos_stock_menor_igual_3 }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>
+                            <a href="{% url 'dashboard_stock_limite' %}" target="_blank">{{resultados.productos_stock_menor_igual_3 }}</a></strong>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -51,7 +53,10 @@
                 <div class="card border-left-success shadow h-100 py-2">
                     <div class="card-body text-center">
                         <div class="text-xl font-weight-bold text-primary text-uppercase mb-3">Artículos en Pérdida</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>{{ resultados.productos_costo_mayor_igual_precio }}</strong></div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800"><strong>
+                            <a href="{% url 'dashboard_articulos_en_perdida' %}" target="_blank">{{resultados.productos_costo_mayor_igual_precio }}</a></strong>
+                        </div>
+                       
                     </div>
                 </div>
             </div>

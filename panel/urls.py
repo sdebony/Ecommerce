@@ -11,6 +11,9 @@ urlpatterns = [
     path('dashboard/control', views.dashboard_control, name='dashboard_control'),
     path('dashboard/resultados', views.dashboard_resumen_ventas, name='dashboard_resumen_ventas'),
     path('dashboard/ganancias', views.dashboard_ganancia_neta, name='dashboard_ganancia_neta'),
+    path('dashboard/stock', views.dashboard_stock_limite, name='dashboard_stock_limite'),
+    path('dashboard/perdida', views.dashboard_articulos_en_perdida, name='dashboard_articulos_en_perdida'),
+
 
     
 

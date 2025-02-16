@@ -1,0 +1,32 @@
+{% extends 'panel/base.html' %}
+{% load custom_filters %}
+{% block page_content %}
+
+<div class="card shadow mb-4">
+    <div class="container mt-5">
+        <h1 class="mb-4">Informe Articulos en Perdida</h1>
+
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Costo</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for products in articulos_en_perdida %}
+                <tr>
+                    <td>{{ products.product_name }}</td>
+                    <td>{{ products.price|format_currency  }}</td>
+                    <td>{{ products.costo_prod|format_currency }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -63,6 +63,7 @@
               <td >
                 <a href="{% url 'oc_detalle_ver' item.id %}" class="btn btn-warning btn-circle" title="Ver"><i class="fa fa-eye" aria-hidden="true"></i></a>  
                 <a href="{% url 'oc_recibir' item.id %}" class="btn btn-secondary btn-circle" title="Recibir"><i class="fas fa-box-open" aria-hidden="true"></i></a>
+                <a href="{% url 'oc_anular_pago' item.id %}" class="btn btn-danger btn-circle" title="Eliminar Pago"><i class="fa fa-trash" aria-hidden="true"></i></a>
               </td>
               {% elif item.estado == 2 %}
               <td><span class="badge bg-success text-white">Finalizado</span></td>

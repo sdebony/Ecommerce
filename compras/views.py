@@ -1144,6 +1144,30 @@ def oc_registrar_pago(request,id_oc=None):
     else:
         return render(request,'panel/login.html',)
 
+def oc_anular_pago(request,id_oc=None):
+
+    if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
+
+        print(id_oc)
+        # Busco la transaccion del pago y la elimino
+        oc_enc_compras = ComprasEnc.objects.get(id=id_oc)
+        if oc_enc_compras:
+            id_trx = oc_enc_compras.id_pago
+            oc_enc_compras.id_pago=0
+            oc_enc_compras.estado = 0 # 0-Nuevo  1-Pagado 2-Entregado
+            oc_enc_compras.save()
+
+        trx = Movimientos.objects.filter(id=id_trx)
+        if trx:
+            trx.delete()
+            print("Eliminando transaccion:")
+
+        return redirect('oc_list')
+           
+    
+    else:
+        return render(request,'panel/login.html',)
+
 def oc_recibir(request,id_oc=None):
 
     if validar_permisos(request,'ORDENES DE COMPRA'):  #ORDEN DE COMPRA
@@ -1181,22 +1205,28 @@ def oc_recibir(request,id_oc=None):
             descuento = request.POST.get('descuento')
             total_recibido=0
 
+
             otros_costo = float(envio) - float(descuento)
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
                 total_recibido = total_recibido + float(cantidad_recibida)
-            
+               
+
             if total_recibido > 0:
                 otros_costo = float(otros_costo) / float(total_recibido)
                 otros_costo = math.ceil(otros_costo)
-
+               
             # Puedes procesar los datos como necesites
             for idproducto, costo, cantidad_recibida in zip(idproductos, costos, cantidades_recibidas):
                 
-                
-                costo = costo.replace('$', '').replace(',', '')
+                costo = costo.replace('$', '').replace('.', '')
+                costo = costo.replace(',', '.')
+                costo = float(costo)
+              
                 
                 costo_float = float(costo) + float(otros_costo) #Agrego costo Flete
+                #print(f'costo 2:', {costo_float})
                 costo_float = math.ceil(costo_float)
+                #print(f'costo 3:', {costo_float})
                 #print(f'idproducto:', {idproducto},)
                 #print(f'costo:', {costo_float},)
                 #print(f'stock:', {cantidad_recibida},)

@@ -107,7 +107,6 @@ def NumTomonth(shortMonth):
             11 : 'Noviembre',
             12 : 'Diciembre'
     }[shortMonth]
-
 # Función para generar un slug único
 def generate_unique_slug(product_slug, product_id=None):
     new_slug = slugify(product_slug).lower()
@@ -815,6 +814,46 @@ def dashboard_ganancia_neta(request):
 
     return render(request, 'panel/dashboard_ganancia.html', context)
 
+def dashboard_stock_limite(request):
+    
+    if validar_permisos(request,'DASHBOARD CONTROL'):
+        
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        productos_stock_limite = Product.objects.filter(stock__lt=F('stock_minimo'), is_available=True)
+        
+        
+        context = {
+            'permisousuario':permisousuario,
+            'productos_stock_limite':productos_stock_limite,
+            
+                 }
+        return render (request,"panel/dashboard_stock_limite.html",context)
+    else:
+        return render (request,"panel/login.html") 
+
+def dashboard_articulos_en_perdida(request):
+    
+    if validar_permisos(request,'DASHBOARD CONTROL'):
+        
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        articulos_en_perdida = Product.objects.filter(costo_prod__gte=F('price'))
+        
+        if articulos_en_perdida:
+            for products in articulos_en_perdida:
+                print("producto", products.product_name)
+        
+        context = {
+            'permisousuario':permisousuario,
+            'articulos_en_perdida':articulos_en_perdida,
+            
+                 }
+        return render (request,"panel/dashboard_articulos_en_perdida.html",context)
+    else:
+        return render (request,"panel/login.html") 
+
+
 def panel_product_list_category(request):
     
     if validar_permisos(request,'PRODUCTO'):
@@ -1141,7 +1180,6 @@ def panel_pedidos_detalle(request,order_number=None):
         return render(request,'panel/pedidos_detalle.html',context) 
     else:
         return render (request,"panel/login.html")
-
 
 def panel_pedidos_imprimir_picking(request,order_number=None):
 
