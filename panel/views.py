@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect,HttpResponse
 from django.urls import reverse
 from django.conf import settings
+from django.db.models.functions import Upper
 from django.core.files.storage import FileSystemStorage
 from accounts.models import AccountPermition,Permition
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,7 +28,7 @@ from datetime import timedelta,datetime,timezone
 from decimal import Decimal
 from django.utils import timezone
 from requests.auth import HTTPBasicAuth
-from django.db.models import Sum, Avg, F, Q
+from django.db.models import Sum, Avg, F, Q,Value
 
 import requests
 from django.db.models import Case, When, Value, FloatField, ExpressionWrapper, F
@@ -521,6 +522,7 @@ def dashboard_control(request):
 
     if validar_permisos(request,'DASHBOARD CONTROL'):
         
+        
 
         permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
         resultados = Product.objects.aggregate(
@@ -624,6 +626,7 @@ def dashboard_control(request):
 
         multi_cuentas= settings.STORE_MULTI_CANAL
         total_ganancia_real = round(float(ganancia_neta),2)
+        
 
         #STOCK TEORICO  LO COMPRADO MENOS LO VENDIDO
         # Sumar el total del campo cantidad del modelo ComprasDet
@@ -635,9 +638,13 @@ def dashboard_control(request):
         ).aggregate(total=Sum('unidades_totales'))['total'] or 0
 
    # Sumar el total de 'quantity' excluyendo los productos con 'product.es_kit = False'
-        orders_total = OrderProduct.objects.filter(product__es_kit=False).aggregate(total=Sum('quantity'))['total'] or 0
+        orders_total = OrderProduct.objects.filter(product__es_kit=False).exclude(
+            product__product_name=settings.DEF_FLETE).aggregate(total=Sum('quantity'))['total'] or 0
+            
+            
        
         total_articulos_vendidos = int(productos_kit_total) + int(orders_total)
+        print("productos_kit_total",productos_kit_total,orders_total,compras_total)
         # Generar el resultado en el formato requerido
 
         stock_control = int(compras_total) - int(total_articulos_vendidos)
@@ -852,7 +859,6 @@ def dashboard_articulos_en_perdida(request):
         return render (request,"panel/dashboard_articulos_en_perdida.html",context)
     else:
         return render (request,"panel/login.html") 
-
 
 def panel_product_list_category(request):
     

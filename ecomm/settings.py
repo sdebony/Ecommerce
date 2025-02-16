@@ -224,7 +224,7 @@ STORE_MULTI_CANAL="NO"
 DEF_CEL =  '541161285469'
 DEF_CC_MAIL = 'lifche.argentina@gmail.com'
 DEF_MOSTRAR_GAN='SI'
-
+DEF_FLETE='Envio Flex ML'
 #MELI  QUALITIES ***************
 STORE_DEF_CANAL="WEB"
 STORE_TEMPLATE_MOBILE="3" # 1 Menu Mariano  /  3 MENU Test New
