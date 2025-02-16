@@ -237,6 +237,8 @@
                   {% if ordenes.nro_tracking %}
                   <a href="{% url 'panel_registrar_entrega' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Despachar</a>
                   <pre style='display:inline'  class="float-right"> </pre>
+
+                 
                   {% endif %}
                   <a href="{% url 'panel_pedidos_eliminar_pago' ordenes.order_number %}"  class="btn btn-danger float-right"><i class="far fa-trash-alt"></i> Eliminar Pago</a>
                   
@@ -246,6 +248,10 @@
                             {% if not ordenes.nro_tracking %}
                             <pre style='display:inline'  class="float-right"> </pre>
                               <a href="{% url 'panel_pedidos_enviar_tracking' ordenes.order_number %}"  class="btn btn-success float-right"><i class="fas fa-file"></i> Enviar Tracking</a>
+                              <pre style='display:inline'  class="float-right"> </pre>
+                            
+                              <a href="{% url 'panel_pedidos_imprimir_etiquetas' ordenes.order_number %}"  class="btn btn-warning float-right"><i class="fas fa-truck"></i> Generar Etiqueta</a>
+            
                             {% endif %}
                            {% endif %}
                         {% endif %}

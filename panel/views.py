@@ -1229,6 +1229,35 @@ def panel_pedidos_imprimir_picking(request,order_number=None):
     else:
         return render (request,"panel/login.html")
 
+def panel_pedidos_imprimir_etiquetas(request,order_number=None):
+
+    if validar_permisos(request,'PEDIDOS'):
+
+        permisousuario = AccountPermition.objects.filter(user=request.user).order_by('codigo__orden')
+        resultado_final=[]
+        ordenes = Order.objects.get(order_number=order_number)
+        pack_id = '0000001'
+        envio_id = '000000200'
+        fecha_entrega = '20/20/20'
+        dir_cp = 1643
+        dir_localidad = 'Beccar'
+        dir_provincia = 'Buenos Aires'
+        dir_calle = 'calle'
+        dir_nro = '3000'
+        dir_obs = 'Lote 5555'
+        dir_nombre = 'Santiago De Bony'
+         
+        context = {
+            'ordenes':ordenes,
+            'pack_id':pack_id,
+            'envio_id':envio_id
+           
+        }
+        
+        return render(request,'panel/pedido_etiqueta.html',context) 
+    else:
+        return render (request,"panel/login.html")
+
 def panel_pedidos_enviar_factura(request,order_number=None):
 
     if validar_permisos(request,'PEDIDOS FACTURA'):
